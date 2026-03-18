@@ -117,6 +117,12 @@ export interface LiaisonSummary {
   callSummaryForLiaison: string;
   aeDetected: boolean;
   aeDetails?: string;
+  // Structured 5-block liaison summary (research-validated format)
+  contextSummary: string;           // Block 1: Who, what TA, what drug, risk tier
+  whatHappened: string;              // Block 2: Call outcome, key moments, duration
+  whatChangedSinceLastTouch: string; // Block 3: New signals, status changes
+  clinicalQuestionsRaised: string[]; // Block 4: Unresolved clinical questions from the call
+  recommendedAction: string;         // Block 5: Specific next action with timeframe
 }
 
 // ---------------------------------------------------------------------------
@@ -135,12 +141,22 @@ export interface Classification {
   liaison_summary: string;
   aeDetected: boolean;
   aeNarrative?: string;
+  competitiveIntelNotes: string[];
+  // MSL follow-up extraction flags
+  mslFollowupRequested?: boolean;
+  mslFollowupTopic?: string;
+  // FRM-relevant extraction (patient calls)
+  payerNameExtracted?: string;
+  priorAuthStatusExtracted?: string;
+  denialReasonExtracted?: string;
 }
 
 // ---------------------------------------------------------------------------
 // Screening Types (for AE detection / adherence assessments)
 // ---------------------------------------------------------------------------
-export type ScreeningInstrumentId = 'AE-SCREEN' | 'ADHERENCE-CHECK' | 'DOSING-VERIFY' | 'SWITCH-ASSESS';
+export type ScreeningInstrumentId =
+  | 'AE-SCREEN' | 'ADHERENCE-CHECK' | 'DOSING-VERIFY' | 'SWITCH-ASSESS'
+  | 'AE-TRIAGE' | 'C-SSRS-LITE' | 'TETRAS-LITE' | 'MMAS-4';
 
 export type ScreeningStatus = 'pending' | 'in-progress' | 'completed' | 'declined';
 
@@ -203,6 +219,28 @@ export interface CallRecord {
   channel: ChannelType;
   screeningResults?: ScreeningResult[] | null;
   aeDetected: boolean;
+  // FRM-relevant fields (access/reimbursement)
+  payerName?: string;
+  priorAuthStatus?: 'not-needed' | 'pending' | 'approved' | 'denied' | 'appealing';
+  denialReason?: string;
+  timeToTherapyDays?: number;
+}
+
+// ---------------------------------------------------------------------------
+// MSL Follow-Up Request -- trackable scientific follow-up items
+// ---------------------------------------------------------------------------
+export interface MSLFollowUpRequest {
+  id: string;
+  callId: string;
+  contactId: string;
+  contactName: string;
+  contactType: 'patient' | 'hcp';
+  requestType: 'peer-to-peer' | 'clinical-data' | 'off-label-inquiry' | 'scientific-exchange';
+  topic: string;
+  urgency: UrgencyLevel;
+  assignedMSL?: string;
+  status: 'new' | 'assigned' | 'scheduled' | 'completed';
+  createdAt: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -302,4 +340,57 @@ export interface AnalyticsResponse {
   dailyTrend: Array<{ date: string; interactions: number; engagements: number; conversions: number }>;
   topConcerns: Array<{ concern: string; count: number; percentage: number }>;
   recentCalls: CallRecord[];
+}
+
+// ---------------------------------------------------------------------------
+// Evidence Engine -- outcome tracking for payer contracting
+// ---------------------------------------------------------------------------
+export type OutcomeTimepoint = 'baseline' | '30d' | '60d' | '90d';
+
+export interface PatientOutcomeRecord {
+  patientId: string;
+  therapeuticArea: TherapeuticArea;
+  drugProduct: DrugProduct;
+  enrolledAt: string;
+  tetrasScores: Partial<Record<OutcomeTimepoint, number>>;
+  mmasScores: Partial<Record<OutcomeTimepoint, number>>;
+  persistedAt90d: boolean;
+  aeReported: boolean;
+  seriousAeReported: boolean;
+}
+
+export interface CohortTimepointStats {
+  timepoint: OutcomeTimepoint;
+  n: number;
+  mean: number;
+  median: number;
+  stdDev: number;
+  ci95Lower: number;
+  ci95Upper: number;
+  percentImprovedFromBaseline: number;
+}
+
+export interface CohortOutcomeData {
+  therapeuticArea: TherapeuticArea;
+  drugProduct: DrugProduct;
+  instrumentId: 'TETRAS-LITE' | 'MMAS-4';
+  instrumentLabel: string;
+  totalEnrolled: number;
+  trajectory: CohortTimepointStats[];
+  persistenceRate: Record<Exclude<OutcomeTimepoint, 'baseline'>, number>;
+  aeIncidenceRate: number;
+}
+
+export interface PayerEvidenceCard {
+  generatedAt: string;
+  cohortSize: number;
+  meanBaselineScore: number;
+  mean90dScore: number;
+  meanImprovementPct: number;
+  ci95: [number, number];
+  persistenceRate90d: number;
+  adherenceRate90d: number;
+  aeRate: number;
+  seriousAeRate: number;
+  headline: string;
 }
