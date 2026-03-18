@@ -49,10 +49,23 @@ const config: Config = {
           dark: '#485D61',
           'dark-hover': '#333F42',
         },
+        brand: {
+          DEFAULT: 'rgb(var(--brand-primary) / <alpha-value>)',
+          dark: 'rgb(var(--brand-primary-dark) / <alpha-value>)',
+          light: 'rgb(var(--brand-primary-light) / <alpha-value>)',
+          secondary: 'rgb(var(--brand-secondary) / <alpha-value>)',
+          accent: 'rgb(var(--brand-accent) / <alpha-value>)',
+          accent2: 'rgb(var(--brand-accent2) / <alpha-value>)',
+          accent3: 'rgb(var(--brand-accent3) / <alpha-value>)',
+          info: 'rgb(var(--brand-info) / <alpha-value>)',
+          surface: 'rgb(var(--brand-surface) / <alpha-value>)',
+        },
       },
       fontFamily: {
         sans: ['Roboto', 'Segoe UI', 'system-ui', 'sans-serif'],
         mono: ['Roboto Mono', 'Fira Code', 'monospace'],
+        'brand-heading': ['var(--brand-heading-font)'],
+        'brand-body': ['var(--brand-body-font)'],
       },
       borderRadius: {
         none: '0px',
