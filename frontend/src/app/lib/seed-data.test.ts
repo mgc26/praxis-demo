@@ -21,6 +21,8 @@ import type {
   CohortOutcomeData,
   PayerEvidenceCard,
 } from './types';
+import { praxisBrand } from './brands/praxis';
+import { amgenBrand } from './brands/amgen';
 
 // ---------------------------------------------------------------------------
 // Contacts
@@ -37,6 +39,7 @@ describe('getContactQueue (seed contacts)', () => {
   });
 
   it('every contact has required fields', () => {
+    const validTAs = praxisBrand.therapeuticAreas.map(ta => ta.id);
     for (const c of contacts) {
       expect(typeof c.contactId).toBe('string');
       expect(c.contactId.length).toBeGreaterThan(0);
@@ -48,7 +51,7 @@ describe('getContactQueue (seed contacts)', () => {
       expect(['patient-support', 'hcp-support', 'hcp-outbound', 'medcomms-qa', undefined]).toContain(
         (c as unknown as Record<string, unknown>).agentType,
       );
-      expect(['essential-tremor', 'dee']).toContain(c.therapeuticArea);
+      expect(validTAs).toContain(c.therapeuticArea);
     }
   });
 
@@ -58,10 +61,10 @@ describe('getContactQueue (seed contacts)', () => {
     expect(types.has('hcp')).toBe(true);
   });
 
-  it('therapeutic areas include both essential-tremor and dee', () => {
+  it('therapeutic areas include both brand TAs', () => {
     const areas = new Set(contacts.map((c) => c.therapeuticArea));
-    expect(areas.has('essential-tremor')).toBe(true);
-    expect(areas.has('dee')).toBe(true);
+    expect(areas.has(praxisBrand.therapeuticAreas[0].id)).toBe(true);
+    expect(areas.has(praxisBrand.therapeuticAreas[1].id)).toBe(true);
   });
 
   it('has no duplicate contactIds', () => {
@@ -187,10 +190,11 @@ describe('getFilteredCalls', () => {
   });
 
   it('filters by therapeuticArea', () => {
-    const result = getFilteredCalls({ therapeuticArea: 'essential-tremor' });
+    const ta0 = praxisBrand.therapeuticAreas[0].id;
+    const result = getFilteredCalls({ therapeuticArea: ta0 });
     expect(result.total).toBeGreaterThan(0);
     for (const c of result.calls) {
-      expect(c.therapeuticArea).toBe('essential-tremor');
+      expect(c.therapeuticArea).toBe(ta0);
     }
   });
 
@@ -252,8 +256,8 @@ describe('getAnalytics', () => {
     expect(analytics.agentTypeDistribution).toHaveProperty('medcomms-qa');
 
     // Therapeutic area distribution
-    expect(analytics.therapeuticAreaDistribution).toHaveProperty('essential-tremor');
-    expect(analytics.therapeuticAreaDistribution).toHaveProperty('dee');
+    expect(analytics.therapeuticAreaDistribution).toHaveProperty(praxisBrand.therapeuticAreas[0].id);
+    expect(analytics.therapeuticAreaDistribution).toHaveProperty(praxisBrand.therapeuticAreas[1].id);
 
     // Daily trend
     expect(Array.isArray(analytics.dailyTrend)).toBe(true);
@@ -319,7 +323,8 @@ describe('buildSignalFeed', () => {
       expect(typeof entry.recommendedAction).toBe('string');
       expect(['routine', 'soon', 'urgent']).toContain(entry.urgency);
       expect(typeof entry.supportPathway).toBe('string');
-      expect(['essential-tremor', 'dee']).toContain(entry.therapeuticArea);
+      const validTAs = praxisBrand.therapeuticAreas.map(ta => ta.id);
+      expect(validTAs).toContain(entry.therapeuticArea);
       expect(typeof entry.timestamp).toBe('string');
       expect(['new', 'queued', 'in-progress', 'completed']).toContain(entry.status);
     }
@@ -597,8 +602,9 @@ describe('Clinical Accuracy in seed data', () => {
   it('should not have contraindicated medications for Dravet patients', () => {
     // WHY: Sodium channel blockers (carbamazepine, oxcarbazepine, phenytoin, lamotrigine)
     // are contraindicated in Dravet syndrome and would be a clinical data integrity error.
+    const ta1 = praxisBrand.therapeuticAreas[1].id;
     const dravetPatients = contacts.filter(
-      c => c.contactType === 'patient' && c.therapeuticArea === 'dee',
+      c => c.contactType === 'patient' && c.therapeuticArea === ta1,
     );
     const contraindicatedDrugs = ['carbamazepine', 'oxcarbazepine', 'phenytoin', 'lamotrigine'];
     for (const patient of dravetPatients) {
@@ -613,18 +619,19 @@ describe('Clinical Accuracy in seed data', () => {
     }
   });
 
-  it('should have ELEX dosing in plausible range (25mg-200mg)', () => {
+  it('should have product 0 dosing in plausible range (25mg-200mg)', () => {
     // WHY: Out-of-range dosing would be clinically implausible and make the demo look unrealistic.
-    const elexPatients = contacts.filter(
-      c => c.contactType === 'patient' && c.drugProduct === 'euloxacaltenamide',
+    const d0 = praxisBrand.products[0];
+    const d0Patients = contacts.filter(
+      c => c.contactType === 'patient' && c.drugProduct === d0.id,
     );
     const doseRegex = /(\d+)\s*mg/i;
-    for (const patient of elexPatients) {
-      const elexMed = (patient.currentMedications ?? []).find(m =>
-        m.toLowerCase().includes('euloxacaltenamide') || m.toLowerCase().includes('elex'),
+    for (const patient of d0Patients) {
+      const drugMed = (patient.currentMedications ?? []).find(m =>
+        m.toLowerCase().includes(d0.genericName.toLowerCase()) || m.toLowerCase().includes(d0.brandName.toLowerCase()),
       );
-      if (elexMed) {
-        const match = elexMed.match(doseRegex);
+      if (drugMed) {
+        const match = drugMed.match(doseRegex);
         if (match) {
           const dose = parseInt(match[1], 10);
           expect(dose).toBeGreaterThanOrEqual(25);
@@ -634,18 +641,19 @@ describe('Clinical Accuracy in seed data', () => {
     }
   });
 
-  it('should have Relutrigine dosing in plausible range (weight-based or fixed adult dose)', () => {
-    // WHY: Relutrigine doses should be plausible for pediatric and adult Dravet patients.
-    const relPatients = contacts.filter(
-      c => c.contactType === 'patient' && c.drugProduct === 'relutrigine',
+  it('should have product 1 dosing in plausible range (weight-based or fixed adult dose)', () => {
+    // WHY: Product 1 doses should be plausible for the target patient population.
+    const d1 = praxisBrand.products[1];
+    const d1Patients = contacts.filter(
+      c => c.contactType === 'patient' && c.drugProduct === d1.id,
     );
     const doseRegex = /(\d+)\s*mg/i;
-    for (const patient of relPatients) {
-      const relMed = (patient.currentMedications ?? []).find(m =>
-        m.toLowerCase().includes('relutrigine'),
+    for (const patient of d1Patients) {
+      const drugMed = (patient.currentMedications ?? []).find(m =>
+        m.toLowerCase().includes(d1.brandName.toLowerCase()),
       );
-      if (relMed) {
-        const match = relMed.match(doseRegex);
+      if (drugMed) {
+        const match = drugMed.match(doseRegex);
         if (match) {
           const dose = parseInt(match[1], 10);
           // Pediatric doses start around 10-25mg, adult up to 200mg
@@ -710,34 +718,44 @@ describe('Data Integrity -- cross-referential consistency', () => {
   });
 
   it('should have every contact with a valid therapeuticArea', () => {
+    const validTAs = praxisBrand.therapeuticAreas.map(ta => ta.id);
     for (const contact of contacts) {
-      expect(['essential-tremor', 'dee']).toContain(contact.therapeuticArea);
+      expect(validTAs).toContain(contact.therapeuticArea);
     }
   });
 
   it('should have every contact with a valid drugProduct', () => {
+    const validProducts = praxisBrand.products.map(p => p.id);
     for (const contact of contacts) {
-      expect(['euloxacaltenamide', 'relutrigine']).toContain(contact.drugProduct);
+      expect(validProducts).toContain(contact.drugProduct);
     }
   });
 
   it('should have therapeuticArea and drugProduct consistently paired on contacts', () => {
-    // WHY: ELEX is for essential tremor, Relutrigine is for DEE -- mismatches are data bugs.
+    // WHY: Product 0 is for TA 0, Product 1 is for TA 1 -- mismatches are data bugs.
+    const ta0 = praxisBrand.therapeuticAreas[0].id;
+    const ta1 = praxisBrand.therapeuticAreas[1].id;
+    const d0 = praxisBrand.products[0].id;
+    const d1 = praxisBrand.products[1].id;
     for (const contact of contacts) {
-      if (contact.therapeuticArea === 'essential-tremor') {
-        expect(contact.drugProduct).toBe('euloxacaltenamide');
-      } else if (contact.therapeuticArea === 'dee') {
-        expect(contact.drugProduct).toBe('relutrigine');
+      if (contact.therapeuticArea === ta0) {
+        expect(contact.drugProduct).toBe(d0);
+      } else if (contact.therapeuticArea === ta1) {
+        expect(contact.drugProduct).toBe(d1);
       }
     }
   });
 
   it('should have every call record with consistent therapeuticArea-drugProduct pairing', () => {
+    const ta0 = praxisBrand.therapeuticAreas[0].id;
+    const ta1 = praxisBrand.therapeuticAreas[1].id;
+    const d0 = praxisBrand.products[0].id;
+    const d1 = praxisBrand.products[1].id;
     for (const call of calls) {
-      if (call.therapeuticArea === 'essential-tremor') {
-        expect(call.drugProduct).toBe('euloxacaltenamide');
-      } else if (call.therapeuticArea === 'dee') {
-        expect(call.drugProduct).toBe('relutrigine');
+      if (call.therapeuticArea === ta0) {
+        expect(call.drugProduct).toBe(d0);
+      } else if (call.therapeuticArea === ta1) {
+        expect(call.drugProduct).toBe(d1);
       }
     }
   });
@@ -806,10 +824,12 @@ describe('getPatientOutcomes', () => {
     }
   });
 
-  it('all patients are ET / ELEX', () => {
+  it('all patients are TA-0 / product-0 (Praxis default)', () => {
+    const ta0 = praxisBrand.therapeuticAreas[0].id;
+    const d0 = praxisBrand.products[0].id;
     for (const p of patients) {
-      expect(p.therapeuticArea).toBe('essential-tremor');
-      expect(p.drugProduct).toBe('euloxacaltenamide');
+      expect(p.therapeuticArea).toBe(ta0);
+      expect(p.drugProduct).toBe(d0);
     }
   });
 });
@@ -931,13 +951,14 @@ describe('ET seed calls have TETRAS-LITE screening', () => {
     calls = getAllCalls();
   });
 
-  it('at least one ET patient-support call has TETRAS-LITE screening result', () => {
-    const etPatientCalls = calls.filter(
-      c => c.therapeuticArea === 'essential-tremor' &&
+  it('at least one TA-0 patient-support call has TETRAS-LITE screening result', () => {
+    const ta0 = praxisBrand.therapeuticAreas[0].id;
+    const ta0PatientCalls = calls.filter(
+      c => c.therapeuticArea === ta0 &&
            c.agentType === 'patient-support' &&
            c.screeningResults?.some(s => s.instrumentId === 'TETRAS-LITE')
     );
-    expect(etPatientCalls.length).toBeGreaterThanOrEqual(1);
+    expect(ta0PatientCalls.length).toBeGreaterThanOrEqual(1);
   });
 
   it('TETRAS-LITE screening results have valid scores (0-8)', () => {
@@ -949,5 +970,91 @@ describe('ET seed calls have TETRAS-LITE screening', () => {
       expect(r.totalScore).toBeLessThanOrEqual(8);
       expect(r.status).toBe('completed');
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Brand-Aware Seed Data: Amgen brand generates Amgen-specific data
+// ---------------------------------------------------------------------------
+describe('Brand-aware seed data (Amgen)', () => {
+  let contacts: ContactRecord[];
+  let calls: CallRecord[];
+
+  beforeAll(() => {
+    contacts = getContactQueue(amgenBrand);
+    calls = getAllCalls(amgenBrand);
+  });
+
+  it('generates 12 contacts for Amgen', () => {
+    expect(contacts).toHaveLength(12);
+  });
+
+  it('generates 20 calls for Amgen', () => {
+    expect(calls).toHaveLength(20);
+  });
+
+  it('contacts use Amgen therapeutic areas (cardiovascular, severe-asthma)', () => {
+    const validTAs = amgenBrand.therapeuticAreas.map(ta => ta.id);
+    for (const c of contacts) {
+      expect(validTAs).toContain(c.therapeuticArea);
+    }
+    // Both TAs should be represented
+    const areas = new Set(contacts.map(c => c.therapeuticArea));
+    expect(areas.has('cardiovascular')).toBe(true);
+    expect(areas.has('severe-asthma')).toBe(true);
+  });
+
+  it('contacts use Amgen drug products (evolocumab, tezepelumab)', () => {
+    const validProducts = amgenBrand.products.map(p => p.id);
+    for (const c of contacts) {
+      expect(validProducts).toContain(c.drugProduct);
+    }
+  });
+
+  it('call transcripts reference Amgen brand names (Repatha, TEZSPIRE)', () => {
+    // At least one call transcript should mention Repatha or TEZSPIRE
+    const allText = calls.flatMap(c => c.transcript.map(t => t.text)).join(' ');
+    const hasRepatha = allText.includes('Repatha');
+    const hasTezspire = allText.includes('TEZSPIRE');
+    expect(hasRepatha || hasTezspire).toBe(true);
+  });
+
+  it('Amgen contacts should NOT reference Praxis drug names', () => {
+    const allText = JSON.stringify(contacts);
+    expect(allText).not.toContain('ELEX');
+    expect(allText).not.toContain('Euloxacaltenamide');
+    expect(allText).not.toContain('Relutrigine');
+  });
+
+  it('Amgen calls use Amgen hub name in transcripts', () => {
+    const allText = calls.flatMap(c => c.transcript.map(t => t.text)).join(' ');
+    expect(allText).toContain(amgenBrand.hubName);
+  });
+
+  it('Amgen analytics has correct therapeutic area distribution keys', () => {
+    const analytics = getAnalytics('all', amgenBrand);
+    expect(analytics.therapeuticAreaDistribution).toHaveProperty('cardiovascular');
+    expect(analytics.therapeuticAreaDistribution).toHaveProperty('severe-asthma');
+  });
+
+  it('Amgen patient outcomes use Amgen TA/drug', () => {
+    const patients = getPatientOutcomes(amgenBrand);
+    expect(patients).toHaveLength(437);
+    const ta0 = amgenBrand.therapeuticAreas[0].id;
+    const d0 = amgenBrand.products[0].id;
+    for (const p of patients) {
+      expect(p.therapeuticArea).toBe(ta0);
+      expect(p.drugProduct).toBe(d0);
+    }
+  });
+
+  it('Amgen MSL follow-up requests reference Amgen product names', () => {
+    const reqs = getMSLFollowUpRequests(amgenBrand);
+    expect(reqs.length).toBeGreaterThanOrEqual(3);
+    // At least one topic should mention an Amgen brand name
+    const allTopics = reqs.map(r => r.topic).join(' ');
+    const hasRepatha = allTopics.includes('Repatha');
+    const hasTezspire = allTopics.includes('TEZSPIRE');
+    expect(hasRepatha || hasTezspire).toBe(true);
   });
 });
