@@ -2,6 +2,8 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useBrand } from './components/BrandContext';
+import BrandSelector from './components/BrandSelector';
 
 function cn(...classes: (string | boolean | undefined | null)[]): string {
   return classes.filter(Boolean).join(' ');
@@ -9,6 +11,7 @@ function cn(...classes: (string | boolean | undefined | null)[]): string {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { brand } = useBrand();
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
   const [shaking, setShaking] = useState(false);
@@ -40,9 +43,9 @@ export default function LoginPage() {
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#F5F5F5] font-sans">
       {/* Subtle decorative background geometry */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -right-40 -top-40 h-[600px] w-[600px] rounded-full bg-[radial-gradient(circle,rgba(0,185,206,0.06)_0%,transparent_70%)]" />
-        <div className="absolute -bottom-32 -left-32 h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle,rgba(72,93,97,0.04)_0%,transparent_70%)]" />
-        <div className="absolute left-1/2 top-1/3 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(0,185,206,0.03)_0%,transparent_70%)]" />
+        <div className="absolute -right-40 -top-40 h-[600px] w-[600px] rounded-full" style={{ background: `radial-gradient(circle, ${brand.theme.colors.primary}0F 0%, transparent 70%)` }} />
+        <div className="absolute -bottom-32 -left-32 h-[500px] w-[500px] rounded-full" style={{ background: `radial-gradient(circle, ${brand.theme.colors.secondary}0A 0%, transparent 70%)` }} />
+        <div className="absolute left-1/2 top-1/3 h-[400px] w-[400px] -translate-x-1/2 rounded-full" style={{ background: `radial-gradient(circle, ${brand.theme.colors.primary}08 0%, transparent 70%)` }} />
       </div>
 
       {/* Login card */}
@@ -56,14 +59,14 @@ export default function LoginPage() {
         {/* Logos + subtitle */}
         <div className="flex flex-col items-center gap-4">
           <img
-            src="/brand-assets/praxis/logo-primary.svg"
-            alt="Praxis Precision Medicines"
-            className="h-10"
+            src={brand.logoAsset}
+            alt={brand.companyName}
+            className="h-20"
           />
           <div className="flex items-center gap-2 text-xs text-[#ACB0B3]">
             <span>Powered by</span>
-            <span className="font-bold text-[#485D61]">Vi</span>
-            <span className="inline-block h-[4px] w-[4px] rounded-full bg-[#00B9CE]" />
+            <span className="font-bold" style={{ color: brand.theme.colors.secondary }}>Vi</span>
+            <span className="inline-block h-[4px] w-[4px] rounded-full" style={{ backgroundColor: brand.theme.colors.primary }} />
             <span>Operate</span>
           </div>
         </div>
@@ -73,7 +76,7 @@ export default function LoginPage() {
 
         {/* Title */}
         <div className="mb-6 text-center">
-          <p className="text-sm font-bold uppercase tracking-wider text-[#485D61]">
+          <p className="text-sm font-bold uppercase tracking-wider" style={{ color: brand.theme.colors.secondary }}>
             Pharma Engagement Platform
           </p>
         </div>
@@ -98,19 +101,28 @@ export default function LoginPage() {
             autoFocus
             aria-invalid={error}
             className={cn(
-              'h-11 w-full border bg-white px-4 text-sm text-[#000000] placeholder:text-[#ACB0B3] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00B9CE]/30 focus:border-[#00B9CE]',
+              'h-11 w-full border bg-white px-4 text-sm text-[#000000] placeholder:text-[#ACB0B3] transition-colors focus:outline-none focus:ring-2',
               error ? 'border-[#FF7D78]' : 'border-[#E2E7EA]',
             )}
+            style={{ '--tw-ring-color': `${brand.theme.colors.primary}4D` } as React.CSSProperties}
           />
           <div className="mt-1.5 min-h-[20px] text-xs text-[#FF7D78]">
             {error ? 'Incorrect access code. Please try again.' : ''}
           </div>
         </div>
 
+        {/* Brand selector */}
+        <div className="mb-6">
+          <BrandSelector />
+        </div>
+
         {/* Submit button */}
         <button
           type="submit"
-          className="h-11 w-full bg-[#00B9CE] font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#009AAD] active:bg-[#008A9B]"
+          className="h-11 w-full font-bold uppercase tracking-wider text-white transition-colors"
+          style={{ backgroundColor: brand.theme.colors.primary }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = brand.theme.colors.primaryDark)}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = brand.theme.colors.primary)}
         >
           Enter Dashboard
         </button>
@@ -122,11 +134,24 @@ export default function LoginPage() {
           Workshop &middot; March 24, 2026
         </p>
         <p className="text-xs text-[#ACB0B3]">
-          Praxis Precision Medicines &middot; Neurology Portfolio
+          {brand.companyName} &middot; {brand.tagline}
         </p>
         <div className="my-2 h-px w-16 bg-[#E2E7EA]" />
         <p className="text-[10px] uppercase tracking-wider text-[#ACB0B3]">
           Confidential &mdash; Vi Technologies
+        </p>
+      </div>
+
+      {/* Safety / Compliance Disclaimer */}
+      <div className="relative mt-6 max-w-lg px-6 text-center">
+        <p className="text-[10px] leading-relaxed text-[#ACB0B3]">
+          This platform is intended for demonstration and operational support purposes only.
+          It does not provide medical advice, diagnosis, or treatment. It is not a substitute
+          for professional medical judgment. All clinical decisions should be made by qualified
+          healthcare professionals. Adverse event information captured by this system is
+          forwarded to the appropriate pharmacovigilance teams for review and does not
+          constitute a completed regulatory submission. All patient and provider interactions
+          are subject to applicable privacy and data protection regulations.
         </p>
       </div>
     </main>
