@@ -1,4 +1,6 @@
+import { amgenBrand } from './amgen';
 import { praxisBrand } from './praxis';
+import { ptcBrand } from './ptc';
 
 // ---------------------------------------------------------------------------
 // Brand Pack types
@@ -47,7 +49,9 @@ export interface BrandPack {
 export const DEFAULT_BRAND_ID = 'praxis';
 
 const brandRegistry: Record<string, BrandPack> = {
+  [amgenBrand.id]: amgenBrand,
   [praxisBrand.id]: praxisBrand,
+  [ptcBrand.id]: ptcBrand,
 };
 
 export const allBrands: BrandPack[] = Object.values(brandRegistry);
