@@ -1,0 +1,91 @@
+/* Brand theme: Praxis Precision Medicines
+ * Source: https://praxismedicines.com
+ * Generated: 2026-03-17T14:15:00Z
+ * Confidence: high
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,700;1,900&family=Roboto+Condensed:wght@400;700&display=swap');
+
+/* Light theme (default) */
+:root[data-theme="praxis"],
+:root[data-theme="praxis"] [data-mode="light"] {
+  /* Colors */
+  --brand-primary: #00B9CE;
+  --brand-primary-light: #25C8D9;
+  --brand-primary-dark: #009AAD;
+  --brand-secondary: #485D61;
+  --brand-accent: #DE7D00;
+  --brand-bg: #FFFFFF;
+  --brand-surface: #F5F5F5;
+  --brand-surface-alt: #E2E7EA;
+  --brand-text: #000000;
+  --brand-text-secondary: #485D61;
+  --brand-text-on-primary: #FFFFFF;
+  --brand-border: #E2E7EA;
+  --brand-border-light: #F0F2F3;
+  --brand-success: #34A853;
+  --brand-warning: #EFBC66;
+  --brand-error: #FF7D78;
+  --brand-info: #2C59AB;
+
+  /* Extended palette */
+  --brand-gold: #EFBC66;
+  --brand-coral: #FF7D78;
+  --brand-peach: #FFBC7D;
+  --brand-blue: #2C59AB;
+  --brand-gray: #ACB0B3;
+  --brand-gray-dark: #838486;
+
+  /* Typography */
+  --font-heading: 'Roboto', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Roboto', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Roboto Mono', 'Fira Code', monospace;
+  --font-condensed: 'Roboto Condensed', 'Segoe UI', system-ui, sans-serif;
+
+  /* Layout */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-pill: 9999px;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+
+  /* Brand-specific patterns */
+  --clip-right: polygon(0% 0%, 100% 0%, 82% 100%, 0% 100%);
+  --clip-left: polygon(18% 0%, 100% 0%, 100% 100%, 0% 100%);
+  --header-gradient: linear-gradient(180deg, rgba(0,0,0,0.63) 23%, rgba(0,0,0,0) 61%);
+}
+
+/* Dark theme */
+:root[data-theme="praxis"] [data-mode="dark"] {
+  --brand-primary: #25C8D9;
+  --brand-primary-light: #4DD6E3;
+  --brand-primary-dark: #00B9CE;
+  --brand-secondary: #7A9499;
+  --brand-accent: #EFBC66;
+  --brand-bg: #0D1B2A;
+  --brand-surface: #1B2B3A;
+  --brand-surface-alt: #243545;
+  --brand-text: #E8ECEF;
+  --brand-text-secondary: #ACB0B3;
+  --brand-text-on-primary: #0D1B2A;
+  --brand-border: #2D3D4D;
+  --brand-border-light: #3D4D5D;
+  --brand-success: #81C995;
+  --brand-warning: #FFCF7D;
+  --brand-error: #FF9B97;
+  --brand-info: #5E8AD4;
+
+  /* Extended palette (dark-adjusted) */
+  --brand-gold: #FFCF7D;
+  --brand-coral: #FF9B97;
+  --brand-peach: #FFD4A8;
+  --brand-blue: #5E8AD4;
+  --brand-gray: #ACB0B3;
+  --brand-gray-dark: #838486;
+
+  /* Brand-specific patterns */
+  --header-gradient: linear-gradient(180deg, rgba(13,27,42,0.9) 23%, rgba(13,27,42,0) 61%);
+}

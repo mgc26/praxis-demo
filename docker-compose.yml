@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_WS_BACKEND_URL=http://localhost:8080
+      - DASHBOARD_PASSWORD=praxis2026
+    depends_on:
+      - ws-backend
+
+  ws-backend:
+    build: ./ws-backend
+    ports:
+      - "8080:8080"
+    env_file: ./ws-backend/.env

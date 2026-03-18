@@ -1,0 +1,169 @@
+{
+  "brand": {
+    "name": "Praxis Precision Medicines",
+    "slug": "praxis",
+    "website": "https://praxismedicines.com",
+    "scrapedAt": "2026-03-17T14:15:00Z",
+    "sources": [
+      "https://praxismedicines.com/",
+      "https://praxismedicines.com/wp-content/uploads/elementor/css/post-5.css",
+      "https://praxismedicines.com/wp-content/uploads/elementor/css/post-21.css",
+      "https://praxismedicines.com/wp-content/uploads/elementor/css/post-9.css",
+      "https://praxismedicines.com/wp-content/uploads/elementor/css/post-142.css",
+      "https://praxismedicines.com/wp-content/uploads/2025/03/praxis-logos_full-color.svg"
+    ]
+  },
+  "colors": {
+    "light": {
+      "primary": "#00B9CE",
+      "primaryLight": "#25C8D9",
+      "primaryDark": "#009AAD",
+      "secondary": "#485D61",
+      "accent": "#DE7D00",
+      "background": "#FFFFFF",
+      "surface": "#F5F5F5",
+      "surfaceAlt": "#E2E7EA",
+      "textPrimary": "#000000",
+      "textSecondary": "#485D61",
+      "textOnPrimary": "#FFFFFF",
+      "border": "#E2E7EA",
+      "borderLight": "#F0F2F3",
+      "success": "#34A853",
+      "warning": "#EFBC66",
+      "error": "#FF7D78",
+      "info": "#2C59AB"
+    },
+    "dark": {
+      "primary": "#25C8D9",
+      "primaryLight": "#4DD6E3",
+      "primaryDark": "#00B9CE",
+      "secondary": "#7A9499",
+      "accent": "#EFBC66",
+      "background": "#0D1B2A",
+      "surface": "#1B2B3A",
+      "surfaceAlt": "#243545",
+      "textPrimary": "#E8ECEF",
+      "textSecondary": "#ACB0B3",
+      "textOnPrimary": "#0D1B2A",
+      "border": "#2D3D4D",
+      "borderLight": "#3D4D5D",
+      "success": "#81C995",
+      "warning": "#FFCF7D",
+      "error": "#FF9B97",
+      "info": "#5E8AD4"
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "heading": "'Roboto', 'Segoe UI', system-ui, sans-serif",
+      "body": "'Roboto', 'Segoe UI', system-ui, sans-serif",
+      "mono": "'Roboto Mono', 'Fira Code', monospace"
+    },
+    "fontImports": [
+      "https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,700;1,900&family=Roboto+Condensed:wght@400;700&display=swap"
+    ],
+    "fontWeights": {
+      "light": 300,
+      "normal": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700,
+      "black": 900
+    }
+  },
+  "logo": {
+    "primary": "/brand-assets/praxis/logo-primary.svg",
+    "icon": "/brand-assets/praxis/favicon.jpg",
+    "nav": "/brand-assets/praxis/logo-nav.png",
+    "darkVariant": null,
+    "favicon": "/brand-assets/praxis/favicon.jpg",
+    "ogImage": "/brand-assets/praxis/social-og.jpg",
+    "externalFallbacks": {}
+  },
+  "ui": {
+    "borderRadius": {
+      "sm": "0px",
+      "md": "0px",
+      "lg": "0px",
+      "xl": "0px",
+      "pill": "9999px"
+    },
+    "shadow": {
+      "style": "flat",
+      "sm": "none",
+      "md": "none",
+      "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1)"
+    },
+    "density": "comfortable",
+    "buttons": {
+      "borderRadius": "sm",
+      "textTransform": "uppercase",
+      "fontWeight": 700,
+      "style": "filled"
+    },
+    "cards": {
+      "borderRadius": "sm",
+      "shadow": "sm",
+      "border": false
+    },
+    "inputs": {
+      "borderRadius": "sm",
+      "style": "outlined"
+    },
+    "clipPaths": {
+      "right": "polygon(0% 0%, 100% 0%, 82% 100%, 0% 100%)",
+      "left": "polygon(18% 0%, 100% 0%, 100% 100%, 0% 100%)"
+    }
+  },
+  "tone": {
+    "voice": "professional",
+    "formality": "formal",
+    "sampleCopy": {
+      "headline": "DARE FOR MORE\u00ae",
+      "subheadline": "We dare for more in every aspect of what we do \u2013 advancing our portfolio of precision therapies for central nervous system disorders \u2013 to make the impossible possible.",
+      "cta": "Learn About Our Methodology",
+      "tagline": "Dare for MORE\u2122"
+    }
+  },
+  "brandExtras": {
+    "colorNames": {
+      "#00B9CE": "Praxis Teal (primary)",
+      "#02B8CF": "Praxis Teal (logo SVG)",
+      "#25C8D9": "Praxis Teal Light (emphasis)",
+      "#485D61": "Dark Teal Gray (secondary)",
+      "#2C59AB": "Praxis Blue (info/text accent)",
+      "#DE7D00": "Praxis Orange (accent)",
+      "#EFBC66": "Praxis Gold (active states, tabs)",
+      "#FF7D78": "Praxis Coral (alerts, alternate accent)",
+      "#FFBC7D": "Praxis Peach (page transitions)",
+      "#ACB0B3": "Medium Gray",
+      "#838486": "Dark Gray",
+      "#E2E7EA": "Light Gray"
+    },
+    "diagonalClipPaths": true,
+    "stickyHeaderGradient": "linear-gradient(180deg, #000000A1 23%, #00000000 61%)",
+    "headingStyle": "uppercase, bold/black weight, italic/oblique for emphasis",
+    "navStyle": "uppercase, 14px Roboto, weight 800, white on dark gradient"
+  },
+  "confidence": {
+    "overall": "high",
+    "details": {
+      "colors": { "score": "high", "source": "Elementor kit CSS (post-5.css) global color variables" },
+      "typography": { "score": "high", "source": "Elementor kit CSS global typography + Google Fonts local imports" },
+      "logo": { "score": "high", "source": "downloaded SVG from JSON-LD schema + PNG from header img srcset" },
+      "ui": { "score": "high", "source": "Elementor kit CSS button border-radius 0px, clip-path patterns, shadow values" },
+      "tone": { "score": "high", "source": "homepage H1, tagline, CTA text, meta description" },
+      "darkMode": { "score": "low", "source": "derived from light theme - site has no dark mode" }
+    },
+    "notes": [
+      "Brand uses white (#FFFFFF) text on teal (#00B9CE) buttons - contrast ratio ~2.4:1, fails WCAG AA. This is the brand's actual choice; preserved for accuracy.",
+      "Logo SVG uses #02B8CF vs Elementor kit #00B9CE - near-identical, using kit value as primary.",
+      "Inline emphasis text uses #25C8D9 - a brighter teal variant used for callout spans.",
+      "All border-radius values are 0px - the brand uses completely sharp/square corners throughout.",
+      "Site uses diagonal clip-path patterns on images (polygon-based) - captured in ui.clipPaths.",
+      "Dark mode colors are entirely derived; Praxis has no dark theme.",
+      "Site is WordPress + Elementor Pro with Hello Elementor child theme (praxis-theme).",
+      "Sub-pages (/about, /pipeline, /our-science, /our-team, /investors) all 404 - site is a single-page layout with anchor links."
+    ]
+  }
+}

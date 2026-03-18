@@ -1,0 +1,532 @@
+
+
+Spencer Honeyman
+Hey, team.
+
+Noah Smith
+Hey, guys.
+
+Spencer Honeyman
+You guys in New York today? No. We just rent yeah. This is our hotel room.
+
+Megan Sniecinski
+It's good.
+
+Spencer Honeyman
+We are. We are in a little cubby before the, the off site madness begins. Hey, Allison.
+
+Spencer Honeyman
+Just do not. No. What's up with you?
+
+Noah Smith
+Nothing crazy. Just, working from home today. Little guy is at daycare.
+
+Spencer Honeyman
+There you go. Hi, Allison. Hi. How are you? I'm doing well. It's great to meet you. Nice to meet you as well. Sorry. We're running a few minutes late. Hopefully, you got the note prior to 12:15.
+
+Allicyn Aubut
+I did.
+
+Spencer Honeyman
+Okay, and Meghan said you're her right hand woman, so I don't know if that's condolences or congratulate.
+
+Allicyn Aubut
+I don't know yet either, but I'll let you know.
+
+Spencer Honeyman
+I'll say I love Megan, so I so I will say congrats, and I wouldn't say that about most of our clients. So, are you Boston based? Yep. I'm in Massachusetts.
+
+Allicyn Aubut
+What part? I am a small. I live on the South Shore in Duxbury.
+
+Spencer Honeyman
+Beautiful. I know it. Yeah. I live in Sudbury.
+
+Allicyn Aubut
+Oh, nice. Yeah. I know a lot of folks who live there as well.
+
+Spencer Honeyman
+Alright. Whatever they say about me, it's not true. I've I've matured. We're really excited to connect with you guys on this. Megan, there'll be some new folks that you haven't met as well. What we were thinking for agenda for today and Allison, view us as an extension of your your team, your data, our AI cape like, whatever drives ROI, whether that's guys, you're on the wrong path, stop and switch or double down. Megan knows this, but feel free to be super direct with us. We just wanna help you win. We'd start with some intros. Meaghan, I thought give Allison just a quick orientation on v, the data we use, the, like, the 30 seconds of each capability, and then the focus today is on our Adjenic suite, which is v operate, which is why I brought some new folks, and we have a few different areas we wanna show you guys, and kinda brainstorm. Megan, does that sound right or any any other steer?
+
+Megan Sniecinski
+It it definitely does, and I realized it didn't res hit send on my response to you guys yesterday. Allison, I did share the demo. I shared the concepts, shared the framing, and the kind of what we're looking to, you know, incorporate into our commercialization, specifically what we're calling the hub of the future concept, which allow us to tap into the agentic model as sort of a front end for any patient issue that's gonna come through, whether they're essential tremor patients or DEE patients.
+
+Spencer Honeyman
+Cool. That's great.
+
+Megan Sniecinski
+That would I would love to spend some time today is breaking down what are the like, how would we make how would we build this together? Like, what are the components of the things we need to do? I know I asked you the question, Spencer, about, like, the data. That in my mind is trying to understand how we go from the agentic intake to a database because we know that that's what we'll need to do. Just like how how are you guys seeing that and like, what could we do, and then we can go.
+
+Spencer Honeyman
+Show you the backend. So this will be opposite of a sale. We're literally gonna be like, hey. Tomorrow, you wanted to do this. What do we need from you? What can we Okay. Do Okay. On your behalf? What's configurable, and so I think a good outcome is like, hey. These are the here's the potential. We extract back to what are the things we wanna prototype and demo and potentially go live with. So fully aligned. Right, and yeah, let's see where we can help. Do you wanna focus exclusively commercial, or do you wanna talk, like, patient coordinator clinical as as well?
+
+Megan Sniecinski
+Let's let's go commercial because I unless and maybe I can't imagine there's something different with the clinical unless you there is something to note out. But let's let's.
+
+Spencer Honeyman
+It's similar, and I'll allude to some things. I actually got to have coffee with Britt this morning before her ever saw a meeting because I'm in New York. So, like, I think the same way there could be a voice interaction with someone in the CRM database during DSA. Imagine it's a patient coordinator to schedule an appointment post prescript. It's the same concept. So, obviously, different different target behaviors you're trying to drive.
+
+Megan Sniecinski
+Yeah. But maybe what I would say twofold just on the clinical trial, and I see that Bobby and Matt are on too. I just realized. We we will likely come back with a green light to reactivate the DEE prescreening. Know that it'll take a little bit of time to get the model working. But on the con on the energy side, I did ask Taylor and Jen, like, what would we need to do to also bring on the age bring the agent intake on for that? I think we can keep going DE with the current model and use energy to learn. So that that's the okay. Perfect.
+
+Spencer Honeyman
+Awesome. Alright. So let me pull couple things. I think the one thing I would say, Allison, like, you so Vee's been around for about 8 years. We go deeper, not wider with large enterprise clients just in health care and pharma. We take a bit of a different spin with the type of data we use, and and I'll force you to nerd out for only a minute or two, but it is important because it's what's behind the agents, and we'll give you guys an edge. We'll give you the one bullet on the different things we're doing today with you guys in other areas of the business, and then if you ever wanna find time, Bobby will do intros, but you have all the right people to go way deeper, if it's interesting to you.
+
+Spencer Honeyman
+So maybe if we don't mind going around the horn for quick intros, we can jump in. Matt, since we're already off mute, why don't you go ahead? I don't think you guys have gone to meet Matt. Hi, everybody. Nice to meet you. Matt Gross, and I'm, being head of product for the Agentic suite operate. My background, I'm a otolaryngologist, head and neck surgeon, also a clinical informaticist, and I joined, by way of, a couple of companies. I previously served full time, faculty investigator at Mass General and Harvard Med, and then I've been a 4 a in industry since then So we can meet you all. So And I love.
+
+Megan Sniecinski
+The v swag. I just want you to know. I love the v swag.
+
+Spencer Honeyman
+And you got it week one. Allison, depending on how much more money you spend with us just kidding. We'll get you any of these swag you want. Perfect. Omry, I could joke with Megan. It's, sure. Omry, does spend time on the swag, which is once you meet him, our CEO, he's, very efficient. So it's it's off brand for him. Pun intended. Noah, Bobby, do you guys wanna do some quick interest?
+
+Noah Smith
+Yeah. I'm happy to, my name is Noah Smith, and I'm based out of Chicago, and I support the day to day execution with Praxis. So my background is in, originally, biomedical engineering as it's been the last 5 years in, biopharma consulting, both on the clinical and commercial sides. So I then work with a variety of large pharma companies, both in, like, AI deployment and then general strategy and tech implementation as well.
+
+Bobby Doyle
+And hi, Allison. Bobby Doyle, SVP of client services for our biopharma vertical. Apologies for being off camera. I'm out of the office at the moment, but great to meet you. Look forward to working with you and have worked over, the years on the clinical side of the house with energy and resilience, and we're looking forward to getting the commercial stuff kicked off as well. Great to meet you.
+
+Allicyn Aubut
+Nice to meet you guys. Thank you.
+
+Spencer Honeyman
+Awesome. Megan, I think your reputation precedes you, and Allison, you can feel free we Linkedin stalked you. But if you wanna provide any additional context, feel free.
+
+Allicyn Aubut
+Yeah. Linkedin probably says most of it. Right? I think, you know, I've been in biotech for 12, 15 years or so. Before that, I was a consultant. I have two business degrees, so not a scientific, degree or a computer science degree. This is definitely my first, AI project. So I'm really excited to work with you guys and learn the ropes and do some cool stuff for Praxis. So thanks.
+
+Spencer Honeyman
+Awesome We're excited.
+
+Megan Sniecinski
+With Alan, one of the reasons why we brought her like, we're we're building out cross company capabilities for the two simultaneous launches. So Allison is gonna is leading the launch integration. Kinda think about all of the pieces of the company and puzzle that need to come together for us to get our product to patients, and so this hub of the future concept is essentially building multiple services that we know we need to enable for commercialization that's not just commercial. Right? So safety reporting, quality complaints, requests from docs for METINFO, and so that's why I asked Allison to kinda own this integrated concept.
+
+Spencer Honeyman
+Awesome. So, Allison, we're gonna fly pretty quickly through the upload that's not related to this. It we it's probably will help you to have some more context at another another point in time, but we'll do a quick version now, and feel free to to ping us so we can schedule that offline. Megan could probably, recite this, better than I could on on the v story. But v, we've been around 8 years. We go deeper, not wider. Meaning we're not like a Saas sprint, pray vendor is the way I would describe it. So we view ourselves as an extension of the Praxis team, data, and AI capabilities to help either accelerate a clinical trial, drive script lift, or reduce operational costs, hopefully.
+
+Spencer Honeyman
+All 3 in some cases. Everything's against a a control group. So I, like yourself, I'm more of a business person. I'm I'm the CRO at Vee, been with the company over 7 years, and if at any point we don't think we can move the needle, like Megan can attest to this, we won't charge you for that month or we'll tell you, and if there's areas we also think we can help more, we'll tell you that too. So feel free to to, guide us as as you learn more on what we do and where we go. We have a unified platform that has different modules. What's being used today, I'll go into the data a little bit, is we invest $45,000,000 a year in what we call consumer behavioral intent data.
+
+Spencer Honeyman
+So think not medical claims, not Rx data, which is usually lagged, and so you're reacting to a medical event. You're reacting to an HCP switching to a competitor, or maybe you had an opportunity to get them to write their first script as examples. All of our data is real time. A consumer can be an undiagnosed, misdiagnosed, or diagnosed patient. It can be a family member, a caregiver, or an HCP. They're all consumers in our data, and things we get are, let's say someone searched best, best new, drug for essential tremor, and they don't click on Praxis, they click somewhere else, we would see the devices that searched that, but didn't we're in the 97% that didn't click.
+
+Spencer Honeyman
+If someone goes to a website, let's say it's a medical journal or maybe a competitor or a URL, a website for a webinar, ordinarily, you wouldn't see that in your data because you're able to see so with cookies and consent, maybe some, web browsing, we can see that off of any consented website visit. If in an LLM, like, chat g p t, someone searches something, if a URL comes up as one of the answers, we can see the visit. It would show Openai or Google visiting. So we get we don't know the exact query, but we know some metadata and that it was relevant there. We get influencer interactions. One major thing for commercial is we can take the device IDs, the mobile device is just a phone or or computer, linked up to a household, and we can infer with over 90% accuracy the health plan for coverage.
+
+Spencer Honeyman
+So over half the scripts that are written in The US are not filled due to lack of coverage. So we can use that in different ways, and we also get demographics, psychographics. We get actual household income, product purchases, whether it's a wearable, whether it's GLP one or it's an Xbox, and we get media consumption. Now we're not a data provider. We have over 70,000 data points per household across 96% of The US in real time. Our secret sauce, the so what who cares, is how do you find the signal through the noise to in a productized way, and there's a few different ways we do that today, and we'll send you a deck. One is reactivate where we use all that data.
+
+Spencer Honeyman
+Let's take ET, which because we did do this for the ET trial for phase 3. If someone did let's say you searched on, Google, hand tremors, you don't click on e 3 or any Praxis landing page, which is probably 99% of the time. We would see that device, and we'd see that they're also very active on Meta, and we upload that device. We never know who they are. It's all obviously compliant and privacy secure. So they would get an ad on Meta at the time of intent on the channel they consume media. So today, we do this across. Megan was alluding to for d's, for FE. We're gonna be doing it for patient and HCP. For ET at commercial launch, we're working on that closely with Brit. So we call think any media for patients or HCPs as v activate.
+
+Spencer Honeyman
+I'll say sanity check. Does that make sense at a high level?
+
+Allicyn Aubut
+Oh, yeah. Absolutely, and I did go through your website and go through each of these. So this extra context is sort of just solidifying it. Beautiful.
+
+Spencer Honeyman
+I'm I'm almost done, and then I'll pass it to the smarter people. Vengage is for both patients that we get in database for during d, like, during DSA. Let's say a patient does a CRM sign up or whatever term you wanna use instead of, like, the classic, we have consultants here. So if I offend you, I'm offending that. But the classic, like, ZS may come in and say, we're gonna send this weekly email. Maybe there's two or 3 personas, but if they've been in the database for 4 months, they, like, might unsubscribe. We can send instead of time based, but behavior or event driven triggers. So an email or an interaction happens and then also have the context not say, like, hey.
+
+Spencer Honeyman
+Saw you were searching symptoms or you visited a competitor website, but contextualize relevant content. Same thing with HCPs. So we can map NPIs, and if an, an HCP, let's say, is struggling with a diagnosis and maybe they're misdiagnosing a lot of patients with Parkinson's or they're looking at competitors or in a good way, they're now looking at the clinical trial results and going to prac a Praxis set of media content you created, we can get that in real time, and whether it's Fieldforce, email, an agent, we can trigger real time interactions with HCPs and patients to drive script lift, and so these are already in place contracted. I should they're in onboarding. They will be in place shortly across patient and HCP, media, CRM, operational team. All this will be at your disposal for free tea, and Britt has all the details we can send you way more information. Does that make sense at a high level before we go into the operate, which is really the the topic of the day?
+
+Allicyn Aubut
+Yeah, and just quickly, are we not doing those for the DEEs on the commercial side, Megan, or.
+
+Megan Sniecinski
+Do we not It's more that we we have not decided and declared? Okay. So we're we're more we're ahead with respect to you, Alexa, but that would be something. I think it it's all on the table. We're just more ahead for Alexa.
+
+Spencer Honeyman
+Yeah. I think for one because, like, we've we've had some challenges, and some of it's on us. Zero pointing. We've struggled to put get pull through on these for for clinical for various reasons. I think we're Megan, what we had discussed, we're really confident on being engaged for HCP, on d side because we can help you be way more proactive with next best action there. So, Megan, we'll discuss that in parallel, but view this this could be any disease state.
+
+Megan Sniecinski
+Yeah.
+
+Spencer Honeyman
+Any any interaction. Awesome. Love it. Alright. 15 minutes. Not terrible. Let's talk about v operate. So where to begin? I'm probably gonna pass it to Matt now, to walk through this, but and think of an AI agent as something that you can configure. It's an AI assistant, if you will, and you can give it tasks. The what gives our agents, which are already becoming commoditized, I'm sure at conferences and elsewhere you guys are hearing about them, seeing them is a couple things. One, privacy and compliance safe. This is obviously an industry where that's look literally life or death. So that's something it's privacy by design. Two, it has the data edge behind it. So an example would be, let's say a doctor comes to the website to ask a question or a patient calls in or gets called.
+
+Spencer Honeyman
+It's gonna know what that patient or HCP did prior. So let's say a year from now, they're dealing with supply chain issues or we know they're looking at symptoms management or off label use or whatever it is. It's not gonna say those things, but it's gonna contextualize one to one the interaction with that patient or HCP across the go ahead.
+
+Megan Sniecinski
+Sorry. Keep keep going, Spencer.
+
+Spencer Honeyman
+It's okay. Across chat, text, inbound call, outbound call, it's gonna have persistent. ID. Matt's gonna literally show you for Unitedhealthcare what the it's a demo environment for obvious reasons, but all the configurability and then the front end, and Megan, per your earlier point, you saw the Genentech one. We'll say, like, hey. If you guys give us a FAQ or q and a document and you just want it to follow that or you wanna give it some leeway and let it optimize over time, that's all configurable.
+
+Megan Sniecinski
+Can it also be given information we would have from the downstream step thinking, like, the patient CRM if it's a patient, or could we go through the HCP CRM to see that this.
+
+Spencer Honeyman
+A 100%. A 100%.
+
+Megan Sniecinski
+Now you can feed it not just from your data, but our practice data.
+
+Spencer Honeyman
+That's gonna be the onboarding. So we're we're not gonna obviously make you sit through it, but, basically, you can upload files. We it can be a managed service. So, like, everything you're seeing here, we can help you with, but we want the agent to have access to all data that it can. It's all gonna get tokenized either before or after we get it. So we don't know like, the agent will know the person's name because it needs to say, hey, doctor. Yeah. I'll say Krausson because, like, he is a doctor, which is kind of a pain in the *** for me now. But, or hey, Megan. Whatever it is, if someone were to hack us, it's Token1a73.
+
+Spencer Honeyman
+So there's zero risk of, like, medical data being associated with those tokens. We can get way more into this. Okay. So once we pick the use cases, we're gonna say, give us all data, like, current and ongoing data. So this agent has it as its disposal, and you need to give it a target variable. You can do well, I don't wanna steal too much of Matt's thunder, but you can do tone. You can give it guide rails. Like, one, we were with a very, very large health system where we do everything from, like, PCP scheduling to specialty activation, like, like post acute care to, like, RCM or our, like, remote patient monitoring, that type of stuff, and if someone says, hey.
+
+Spencer Honeyman
+I'm having chest pain. It escalates to call 911. If it says, hey. They're describing symptoms that are not normal. Like, it will say, you know what? Let me connect you with a nurse. You don't have to do any of that, but this is all configurable. The more data, the better, and we have the infrastructure to do it compliantly. Can we patient or HCP facing, and so thinking of it as an agent to do an interactions with any people you want in a compliant way with the maximum amount of data and any escalation or trees you want, and so we'll we're gonna show you the backend first, and then you'll be able to try it out.
+
+Megan Sniecinski
+Okay. Cool. That make sense?
+
+Spencer Honeyman
+K. So, Matt, you should be able to share screen and use my audio. I save that. Save that. K. I might be I might be able to do it too. Actually, have it. See.
+
+Spencer Honeyman
+Alright. I do. Cool. You okay. Cool. So what we're share like, what we're sharing with you guys here is not real data for obvious reasons, but it is the actual instance that Unitedhealthcare and Optum is leveraging for hundreds of millions of what we call interactions, which could be inbound, outbound call, text, chat, whatever, and so the scalability is there, and so what it would start with is a home screen. There's obvious permissions and settings that you want certain people to have and don't have. The beauty of this is, Megan, you may say I like, Allison, you decided to work for me. I never wanna have to open this. I just want the performance report sent to me.
+
+Spencer Honeyman
+Allison, you may say, I just wanna look at the home screen, but you can also go go in and configure it or our team can. So it can feel a little bit overwhelming is what I'm saying. Our team can do this on your behalf. We just wanna give you full transparency.
+
+Megan Sniecinski
+Okay.
+
+Spencer Honeyman
+Do you wanna use this? Yes, ma'am. Yeah. Okay. So just to kinda 15 seconds set the table and the job solved here. So this is in context of a care coordinator reaching out to the plans members, for utilization management, closing, you know, gaps of care measure, that sort of thing, and so you're gonna see that content in the config and just just so you understand that's what we're coming from there, and so so the agents are, as Spencer was saying, completely configurable, and how much you want to config is is, you know, part of our discovery process, and so, for example, you're seeing here is kind of really high level, like what do you call the agent, and we also have multi language support, and so depending on the, you know, the population that you're targeting in the campaigns, we support that natively as well, and then some people like to have and control the knobs and levers on the actual content flavor, and so do you want to do it a bit more kind of, you know, plain Jane or kind of very vanilla?
+
+Spencer Honeyman
+We have complete configurability on all those sorts of types of the kind of the tone calibration of the conversation. Custom greetings, custom sign offs, backend database integrations, as you were alluding to, Megan, all that is completely configurable, and then also getting a bit more to the the context specific of, in this case, it'd be of health plan being interested in the member population and and that sort of thing. We also can do things like literacy level too. Right, and so we meet patients as to where they're at. So it's a fifth grade reading level, which is typically the health care standard, and also Spencer standard. Thank you. Proud of Lafayette, I call it. Right? Yes, sir. So, but also 1,000,000 ARR though.
+
+Spencer Honeyman
+I don't know if you caught that before you join. Let's see how it goes, Matt. But go ahead. But, in any event, but also, for example, the health plans are interested in in social determinants of health and their blockers and barriers to health care, and so what we can do here is that depending on the campaign, we invoke, different kind of structure validated assessments for housing instability, financial hardship, digital literacy, all these sorts of things as it's relevant to the context of the campaign. I'm getting into more of the kind of health care clinical, guardrails, and so depending on the context, in this case, this is patient facing, and so, you know, if, the the plan was doing a PHQ 9, which is a depression mental behavior health screener, we had to make sure that we have, escalation triggers for any utterances that could be suicidal ideation or self harm as an exam as an example, and so all those guardrails are configured as well, again, relative to the context of the conversation campaign, and then also because of health care too, there are table stakes as to certain escalations triggers.
+
+Spencer Honeyman
+Spencer began to allude to that are kind of, you know, kind of the the standard, that we also invoke as well, and then but if, you know, practice has specific reason as to kind of tailor a little bit of we want this one on, but not this one given this campaign, that's all configurable as well. So I'll pause there. Does that make sense as far as kind of setting the stage for the agent itself?
+
+Megan Sniecinski
+I guess Yeah, and like Oh, go ahead, Megan. No. No. Go for it.
+
+Allicyn Aubut
+I was just gonna ask, like, the escalation triggers. Like, we can make up whatever is relevant to our business that's different than this. Right?
+
+Spencer Honeyman
+Yeah. This is behavioral health for patients. So this Yep. It's literally anything, and what it will also do this is how nerdy the world's becoming, but it is real, is that, basically, let's say you drag and drop a bunch of PDFs on things related to ET, doctor, q and a, FAQ, it will prepopulate all of this. It's already good to get 90 something percent of the way there, and then we'll sit down with you guys, and you can add things, tweak them, but you don't have to we'll set this up with you. These are just illustrative, Allison.
+
+Allicyn Aubut
+Okay, and the same thing with the previous page. Right? Like, where like, can you customize sort of the tone of voice and that stuff depending on if it's a doctor calling in or a patient calling.
+
+Spencer Honeyman
+In? They'll be separate agents. So you'll have, like, an HCP agent. It could be different, obviously, for d's than e t, all of that the other thing you can do that's pretty cool that I like is you can have, preset tone calibration or you can have dynamic tone calibration. So, like, one, it's not a fair, stereotype, but one one of our, clients was saying, hey. Most people in the Southeast speak more slowly than people in the Northeast, which is true, and so they could either set it by geography to speak more slowly or do the dynamic matching, which is one to one. So if someone in rural Louisiana speaks as fast as I do for being a Maslow from Boston, it just matches them, which is what I would personally suggest, but it's all configurable.
+
+Megan Sniecinski
+This is so amazing. Yeah, and like, on the member adaptation does not understand from a, like, commercial perspective for, like, being the drug manufacturer. What what what would you like, would we replace the social determinants of health with some sort of not that we're segmenting patients, but but maybe we are, or perhaps tier of AC like, can we can we configure this?
+
+Spencer Honeyman
+Yeah. I'll give I'll give you an example, and I made up these buckets. Grit gave me language, but I put Spencer terms so you can correct me. But let's say you've got 1,000,000 diagnosed. BT patients, ballpark. Let's say you have 1,000,000 that are untreated or failed with propranol I don't know what you like, the propranolol or something else, and then you have what I would call the Marcio special bucket, which is, like, everyone else that.
+
+Spencer Honeyman
+Is untreated, self treat like, we we hypothesize, but you're they're not diagnosed. You could bucket it that way, and maybe the way the information you want shared with them or what you wanna steer them to is different. The beauty of it though, you don't wanna over engineer it, is it's one to one. So it's got all the data on what that person's been doing historically in their life from all the different data. So you can have as much control. You can make it workflows or full agent or we'd recommend in between. But, yeah, this is just illustrative. So you can configure anything you want. You could say if they're diagnosed ET, I want the first thing the agent to say is x or or not or match the conversational tone.
+
+Megan Sniecinski
+Wow Okay.
+
+Spencer Honeyman
+And so what we wanted to do today, like, to to give you guys, like, what we were thinking is we wanna go through a few use cases we hypothesize could be relevant, and then we can spin up versions of this in in a in a day or two and bring it to you and say, like, hey. Like, let's let's configure it. Like, get it 90% of the way there. These are, again, these are use cases. Like, the client wanted to start with proactive outreach. So if I'm a health plan, they may not know that the spa unmuted spinal surgery didn't happen. It happened 90 days after because of the lag in claims. We see that they were on the spinal surgeon's website researching post spinal care on a Youtube video buying OTC pain meds.
+
+Spencer Honeyman
+I know it's a different. So we can create these would all be technically different agents that you could set up even within patient and HCP. So we may have a diagnosed, undiagnosed slash misdiagnosed and potential whatever. We can create buckets, and then Matt, if you wanna do this one is this live? Do you know? Yep. Okay. So this is again let's say it's an annual wellness visit. You'll see it's gonna call Matt, and I think the really cool part is there's always a human in the loop. If you want it, it will real time transcribe. It will then Megan asked me over email. It will take the transcription summary and actions and automatically plug it into your CRM or schedule an appointment or make a task for a nurse or any clinical personnel or not. So if you wanna call it just to show what that looks like.
+
+Allicyn Aubut
+Seems like they can do a lot of what the case managers do.
+
+Spencer Honeyman
+Exactly. Optum care coordination. I'm reaching out because I just wanted to personally check in and see how you're doing. We care about making sure our members have the support they need. Is this an okay. Time? Yeah. It is. Thank you. I'm glad I caught you, James. How have you been feeling lately? Oh, pretty good. That's great to hear. Have you had a chance to visit your doctor recently? It's been about 14 months since your last visit. Oh, you're right. That's true. I haven't. No problem at all. It's a good time to think about scheduling an annual wellness visit, which is covered at no cost under your plan. Would you like some help setting that up? Yeah. Let's do it. Perfect. What days and times work best for you for the appointment? Do you have a preference for a specific location or telehealth? Next Thursday, telehealth will be great. I gotta drop my kids off in the morning. So.
+
+Spencer Honeyman
+Got it. So would you prefer a telehealth appointment in the afternoon next Thursday? What time works best for you? No. 1am. 1pm would be great. Understood. I'll schedule a telehealth appointment for next Thursday at 1PM. I'll confirm that with doctor Michael Torres. Just a moment while I take care of this. Great. I've scheduled your telehealth appointment with doctor Michael Torres for next Thursday at 1PM. You'll receive a confirmation text soon. Before I let you go, I'd like to ask a couple of quick questions about your balance and safety. Yeah. Go ahead. So so that obviously, they wanted them to speak slowly, have longer pauses. So all that's configurable. Hopefully, you guys could hear it, and then clear this.
+
+Spencer Honeyman
+Does it have the transcript somewhere, or is that not coming through? Wouldn't be in in this be in the backend. So Okay. Yeah. So we can show you the backend, but that would be fully transcribed. It would be summarized. It plugs into their scheduling. So that like, Meg, I'll use a a clinical example. That could then get scheduled through the scheduling software with all that info, and the pretty cool thing here is for James, who's 67, which is why it triggered the slower speaking and pauses because that's how they asked to set it up for Medicare patients.
+
+Megan Sniecinski
+Yeah.
+
+Spencer Honeyman
+They know he has prediabetes, and I don't even know what that is. Hyperlopenia. So high cholesterol. High cholesterol. See? You need people like me to be able to know that, but they wouldn't know that a bunch of other things where we know he is low household income, and that's why it said it's a no cost visit. So these are just again, it's hard. We'll create these for you guys. All of this is gonna be hyper personalized, contextualized one to one with a target you're looking to drive, guide rails, all that.
+
+Megan Sniecinski
+This is just unbelievably amazing. Like, this is.
+
+Spencer Honeyman
+We're gonna put that on our webs we're gonna snip that and put it on the website, Megan.
+
+Megan Sniecinski
+Yeah. Just so and I free and Spencer knows me well that I wanna see the guts behind it. You have no idea how how this is fantastic. Thank you. And.
+
+Spencer Honeyman
+So the gut of the guts is we like, it's more like code. It's not pretty UI, but you can see the full transcription. You can see the full summary. You could you can give the agent a prompt like, hey. In your summary, just give me the top 3 bullets or I want a comprehensive summary for reason XYZ related. So this is where, like, obviously, your expertise is it's all configurable.
+
+Megan Sniecinski
+What do we have to build in the middle layer? Does it get that information into, like, our case management systems?
+
+Spencer Honeyman
+So it's hate to answer a question with a question, but what are your case management systems? What are the fields that are being populated, and though the if now that this exists, are those the fields you want populated? So we need to really workshop this is what I would say. Well, I mean, I.
+
+Megan Sniecinski
+So here's.
+
+Spencer Honeyman
+Like a here's an example of this is what Unitedhealthcare wanted. Here's an example of a call summary. They want it to be brief. They have a nurse dashboard, very similar to, like, case management, and this is what the nurse sees, and then this is what the type of, data they have, and then data web enrichment showed, which they wouldn't see. They're only part time employed now. They weren't before. They're actually pretty actively health, like, healthy. They're very digitally active even though they're 67. They're walking 2,000 to 4,000 steps a day that they shared, and then again, obviously, things related to tremor would be in here. No one ever needs to look at it, but if a Centimeters or you want to, and then it's different for every different like, this was a this was, I think, a wellness visit if I remember correct. So this was clinical this is appointment scheduling. This one's totally different. This one, I think, is around, like, alcohol use disorder. So you can create agents for anything.
+
+Megan Sniecinski
+Yeah. But I guess I well, let me ask you this. Are there what is what is are there requirements on the systems that we're standing up to enable our internal work? Are there requirements that we need to ask those systems so that we can? Like, I think because we're we're literally building I mean, you know, we're doing the Veeva thing, so that's easy. But the others like, we're we're gonna need to build up the case or select the case management system for patient services. Right?
+
+Spencer Honeyman
+We can give you some basic questions, but anything that's, like, if if you I know you guys aren't, but, like, we have clients who are, like, we built our own, and we're like, that sounds like an interesting decision, and I can't promise you will integrate there. I think this is where we're working with, like, Rob and Ambit on the Databricks piece. It can pass through there, and as long as as long as it has an API or a plug in to inject things.
+
+Megan Sniecinski
+Yeah.
+
+Spencer Honeyman
+The best way to do this might be through Databricks or directly in. But we'd we'd love I I wouldn't say I'd love to participate in the case management tool selection process because I would not love but I think we need to give you the questions to ask is what I would say.
+
+Megan Sniecinski
+Yeah, and actually so Allison has organized we're gonna use a small team for this hub of the future concept. So Allison, Neil, and Suzanne right now, we're getting together in Boston next week. Yeah. Based.
+
+Spencer Honeyman
+Matt's there as well. So and as you know, I am. So we could.
+
+Megan Sniecinski
+Maybe you guys come in and just there could be an element of like, we're still bit like, I think having you guys at the table and then.
+
+Spencer Honeyman
+This is actually a good example. Can you guys see Jennifer Taylor on the screen?
+
+Megan Sniecinski
+Yeah. Yeah.
+
+Spencer Honeyman
+This is Unitedhealth. It's a different use case, but these are the things they want. So they wanted some purchase patterns. Here's the call summary, like and then they wanted some rankings based on how they have their internal setups. So all of these are, like, little modules that you got we will map to yours, but you it's a chick it's a little bit of a chicken of the egg because you may not know you could have had access to this type of data or insight for your Centimeters. So it's it's gonna be a working session. You can see the full transcript here as well if you want to, so it all is gonna pipe in. What I would say, Megan, and like, Allison, we obviously don't know what Centimeters systems you're using.
+
+Spencer Honeyman
+You may need a less sophisticated. It needs to be able to be integrated with, but a less sophisticated and get away with a lower cost Centimeters because you're piping all this agentic stuff in, and what our belief is and a lot of very big pharma clients belief is. Veeva, I think it will be around for a long time for obvious reasons, but the classic Centimeters and CRMs are more be, like, single source of truth versus where your workflows interactions and interface is on a regular basis. Because the agents, you'll there you'll have 20 agents, Allison, working for you, if you will, sending back to it, not going through it, if that makes sense.
+
+Megan Sniecinski
+Well, let me ask you specific question. Right now, I'm pretty sure, like, the I don't know all the Veeva module names, but, like, the HCP. CRM, I believe we were activating in Veeva.
+
+Spencer Honeyman
+Which is great, and we already do that for what we would call Veeengage, which is how do we proactively outreach and does it prioritize it for an operational team member, send an email? What I would say is the way to think about that would be there could be a third vector where instead of it being a human making a call or knocking on the door or automating an email, maybe you want the agent. Yes to proactively reach out. I know Marcia was like, I don't want any humans and No. Which I know is hyperbole, I I think.
+
+Megan Sniecinski
+His I think his perspective has shipped like, that's actually like, we're thinking the meta like, we don't need we we're thinking we don't need meta fares and ourselves as many. This is probably gonna replace them. Yeah, and I. Marcio's. I'm his his perspective here has evolved significantly as he's seeing the world uptake the the uptake on this. So.
+
+Spencer Honeyman
+Great. Because I left the room being like, you want 1,000,000 CRM sign ups and no human beings interacting with doctors, and in Marcio, I trust. I love him to be clear, we wouldn't recommend that. So, like, I think we so, a, what we would love to leave the next 20 minutes with, what are the one to 3 agents that you want us to prioritize, and that backend you saw for Unitedhealthcare, we'll create one for for the Matt will create one with his team. It won't be perfect, but it'll have the types of things related to ET, and then we'll wanna do the workshop, and I think we really need to understand, like, we're not trying to make ourselves the center of the universe, but the it it's gonna be a Gentic first world at some point.
+
+Megan Sniecinski
+Yeah, and it needs to okay.
+
+Spencer Honeyman
+So it needs to go it's like start from the interaction with the patient or HCP that a human or an agent has. You configure it. You make sure it works for you and then works with your systems, and so we I think what would be really helpful, Megan, from you and Allison is just, like, it can be a whiteboard or it can be, like, a single, like I don't know if it's architecture, but, diagram of how all these pieces fit. So it's a well oiled machine, and you're not paying for things you don't need or you're not buying things that like like this, I can tell you, terrifies Veeva because, let's say, agents.
+
+Megan Sniecinski
+Obsolete. Just so you know, from what I now know, Veeva is gone in 5 to 10 years. Gone. Not even probably two and a half, 3 years. I would.
+
+Allicyn Aubut
+I was gonna say maybe a year. Who knows? This is like.
+
+Megan Sniecinski
+They are totally they are not organ they're they're they're not structured in any way to embrace this. They will be like the blockbuster to Netflix.
+
+Spencer Honeyman
+And so I think, like, without naming names, but let's say you are a Veeva like company, you have two options. You either embrace it and make it so agents can at least write back and work in your system, or they may make it very hard. So our ask, and I think what your ask should be is, here's what we want to enable, Veeva or a Centimeters or whatever it is. You don't we're not asking you to do any work, but to not block it. Because Veeva could say, we don't allow third party agents to even send a transcript into our sys whatever it is. So they're not gonna do that. I think that'll be, like, suicide.
+
+Megan Sniecinski
+I think but you're literally getting it's in my queue now in Ironclad or contract system to sign that. So I think I would need to know from you guys what the it should I should I add in any specific. Let us chat this afternoon.
+
+Spencer Honeyman
+We have an off site, so I'll get it to you tonight.
+
+Megan Sniecinski
+Okay. I would.
+
+Spencer Honeyman
+Be we have a pretty much all of our clients use Veeva because as you know, all big pharma does. Yeah. It would be really dumb of them, and I can't imagine a world if they didn't allow integrations of agents because then you become a walled garden CR. Like, it'd be insane, but we can make sure you have protections in there, or if you wanna switch away from it that you own the the agentic, like, you own the data. The not the raw data, but the the feedback loop data and the interaction data. So we'll we'll send you some things. Our 3 hypotheses for agents, and it can be anything. So this is where, guide us. One, I call the Medcoms agent. I think it's kinda what you were talking about, Megan. Yep. Basically.
+
+Spencer Honeyman
+The way. I'll let you guys speak to it because I know this is kinda what Marcio brought up, but it's basically it could be patient or HCP facing, I would assume. Maybe I'm wrong. But during DSA and after, it's able to both answer questions, but prompt conversations for lack of a better term that get the give the information on why a certain asset, let's say, you look or other is gonna be beneficial, and the way it will do that will be one to one personalized based on what they're doing in their everyday lives and what data we have on them. So one was med comms. One was what we call, like, HCP operational interventions, which is a mouthful.
+
+Spencer Honeyman
+So think of it as we're doing the engage for proactive next best action engines. Allison, let's say you're designing a workflow where there's an email lever for, like, a monthly newsletter, whatever. You don't need us for that. Maybe there's an operational team that, let's say, there's a competitor asset or a doctor misdiagnosed. Parkinson's and now they diagnosed ET, and we can see a patient searching. Boom. We hit Veeva through Databricks with a trigger for a human being or someone to reach out to the HCP and say, hey. Did you know this is a market and is awesome, and then see under that, the HCP proactive intervention could be an agent for an outbound call, a chat, an email, etcetera. So I call that we need to use practice language, but let's call it an HCP intervention conversation.
+
+Megan Sniecinski
+You wanna call it, like, call it an out like, 8 HCP?
+
+Spencer Honeyman
+Outbound. That's what I'm gonna say. Yeah. It's outbound. It's outbound. It's proactive.
+
+Megan Sniecinski
+Yeah.
+
+Spencer Honeyman
+But it's an extension of what you guys are already paying for and what will be driving engage.
+
+Megan Sniecinski
+Like, right now, instead of us doing emails for a and one on ones, we could do an agent outbound and say we'd love to connect with you. What are some of the things you might like, we could.
+
+Spencer Honeyman
+Yeah, or you start with an email and you say, hey. Like, talk to the practice agent, and then you get way more rich data, and what we've seen, this is more of a software ROI thing, is you start to answer why. So, like, maybe they're not interested in meeting with you guys. Why? Is it people, like and you can get a lot you free form text, Like, if you asked our AI team, that's the number one thing they want from these conversations. Because natural language processing will distill it and produce insights to either validate hypotheses, like, oh, they're worried about access or oh, whatever. The the the guy from the competitor takes me to Bruins games. What whatever it is, we figure out why they're not willing to have a conversation. Allison, I hope you're a Bruins fan because I have tickets. That was.
+
+Allicyn Aubut
+I like hot.
+
+Spencer Honeyman
+****. Alright. I like I enjoyed knowing you thus far, but, just kidding. Based on, and then the last one I had, like, this was a Brit idea from when we were on site, Megan. Like, she called it an RFM, like a reinforcement manager.
+
+Megan Sniecinski
+Reinforcement?
+
+Allicyn Aubut
+Trying to they're coming in.
+
+Megan Sniecinski
+Like treatment? Treatment?
+
+Spencer Honeyman
+Yes. In terms of, like, I'm trying to think what she might have been talking about.
+
+Allicyn Aubut
+Like, to keep the patients on the therapy longer?
+
+Spencer Honeyman
+I think she was thinking it could be around die maybe she was talking clinical here around the diary stuff and scheduling. I don't know, and she had to leave. So Okay. I'll tell her she made me look dumber than usual on this call. But, so, like, I think there's a med comms agent, which I guess is a no brainer. I think there's a proactive outbound extension of the Vengage next best action where it's conversational versus, like, I don't know, just a static email type thing, a time based email, and then I think there's, like, customer service is probably the wrong way to put it, but there's a, a q and a agent that should be everywhere. It should be on the Praxis website landing page at the at the bottom of any email sent, a QR code in your booth for patients or doctors that if they wanna learn more about an asset, they can have a conversation, and so that's more of an call it inbound. It's a omnichannel inbound agent to provide conversational support.
+
+Megan Sniecinski
+Okay. The only one that I from a specific use case that I might think about what we're gonna build to is, like, I was I was gonna call it, like, a pay patient complaint agent in the sense of, like, if they had if they were having. AEs or tolerability or something happen like, they broke the, like, the Religix Genie bottle and and they don't know what to do or this or the.
+
+Spencer Honeyman
+That will be that will be in the one that I the the conversational support agent would cover that. It could also so I'm getting a patient in an HCP version for obvious reasons. But, like, let's say, we match an NPI number, which we can compliantly do to you guys kinda saw with the Genentech demo. Allison, I don't know if you were able to check that out. We we can send it for. But if we see they're looking at a supply chain delay or off label you, we we can tailor the interaction, and so. I'm gonna ask Brett what reinforcement agent is, and we're gonna have to refer specifically for it. But the 3 that we just discussed, all jokes aside, is a med comms agent.
+
+Megan Sniecinski
+Okay.
+
+Spencer Honeyman
+It's an HCP outbound proactive intervention. Okay. Conversation versus a, like, a a one time thing. Yeah, and then it's, what I call a conversational support agent for patient and a conversational support agent for HCP. Assuming those are more inbound, which could be. I lost my prescription, worried about symptoms, or HCP is like, maybe they have questions about access or coverage. Yeah. Need your help, and so what we can do, a, does that sound right to you guys. Yeah. In terms of what you prioritize?
+
+Allicyn Aubut
+Well, maybe Megan, just one other thought. Like, do you think we would use this maybe as a first line triage for patient services too? Like, if they were calling in?
+
+Megan Sniecinski
+That's absolutely it. Yeah. All everything comes through this, and then we would go to the advanced human humans. This would help them. Investigations.
+
+Allicyn Aubut
+And those. Right? Like.
+
+Spencer Honeyman
+This will bring it to life for you, Allison. So it can be inbound or outbound. If someone calls the phone number, you can have the agent in the front and then triage your route, if you will. You can put a phone number for them to text. They can chat. This would be on your website, and I know I I use support in, like, the broadest sense intentionally of, like, it could be the triage to anything, or it might be able to handle it itself.
+
+Allicyn Aubut
+Yep. Yep. Like, it could be benefits investigation where it goes to a human being, or it could be product complaint it's, and then you and then you.
+
+Spencer Honeyman
+Link that to maybe a Centimeters system or maybe you want a human to call them and and talk it through, or even you could map it to an HCP that you can do anything you want with it. So those would be the 4. So I think, like, for next steps so I guess, a, are there any other agentic areas? The only one I'll I didn't throw out, but just to get on your radar, as you think about building out a field force team, oftentimes, what companies do is they look at claims clusters. They look at, like, some demographics info, and then they hire people per geography. We can look at where we seeing intent signals, and that usually does not match with claims clusters.
+
+Spencer Honeyman
+So that's probably a little bit down the road. But, Allison, Megan served this for me a minute. Anywhere having real time intent data can help you better forecast, predict, interact, drive behavior, open a clinical trial, and that's where we provide an edge and then productizing that AI in a way that delivers value. So I think those 3 slash 4 or 5 depending on what reinforcement it is for those are the 4 commercial. We've got med comms, HCP proactive inter back, interactions, conversational inbound support for patients, conversational inbound support for HCPs. Those are all triage as you said. It it could be. AI handled or routed.
+
+Megan Sniecinski
+And so the thing that I'm confused on, I get outbound proactive. HCB. HCP intervention or interaction. I get conversational support from HCP. What's the difference with the Medcoms?
+
+Spencer Honeyman
+Tell me what Medcoms is gonna look like for you guys initially and then over time.
+
+Megan Sniecinski
+I have a question. This this is an ET patient. They're 85. You know, I'm I'm not they have, early stage renal failure. Can I can I prescribe euloxacaltenamide?
+
+Spencer Honeyman
+And are you and because I'm talking more more about, like, the Marcy so you got are you gonna have Medcom human beings?
+
+Megan Sniecinski
+Only if we need them.
+
+Spencer Honeyman
+Okay. So that that's so I was basically saying it it could supercharge those people as that, but let's let's keep it simple. The the the HCP the two I think we should start with, the the lowest hanging fruit that will bring huge value are the conversational support ones, in my opinion. The HCP one is an extension of the next best action for the proactive Vivo one. So let's come back to you guys with a patient and an HCP version. Anything you can send to us, like, that's hopefully zero work on PDFs, docs, recordings where you talk about the types of quest we're not experts, and we know enough about ET from clinical. But, like, anything you can send, we can upload, like, securely, and that way, the agents will be not dumb, if you will.
+
+Spencer Honeyman
+They'll be getting smarter, and give us let me process with that. So we need to get you things to ask Veeva and Centimeters systems. Allison, we'll find time with you to have, like, a deeper dive on what we're doing today. I think Bobby and Noah are closest to that. So, Bobby, if you or Noah, if you guys feel free because everything we're talking about today is actually the only part of our system we're not using for practice in other areas, which is exciting. So you have the full context. But each of although they're modules, the one plus one plus one equals a lot more than 3, and so the more connected this can be, the better. Yeah.
+
+Spencer Honeyman
+Yeah. Megan, we'll get you the questions for Veeva and whatever tools, like, of what we need that system to be able to intake, but also output. So my actual biggest concern with Veeva is are they gonna give us, if an email is triggered from there, and let's say we do this through Databricks, will they give open delivered, and will they give the raw text of the email reply? I I don't Are there any.
+
+Allicyn Aubut
+Are there any CRM systems that you like better than Viva? Like, do you have a recommendation?
+
+Spencer Honeyman
+Definitely from the patient side.
+
+Megan Sniecinski
+Why don't you tell us so the case mat we're we need right now, I'll tell you the patient services. I haven't delved into the details, but from a Relutrigine, so the DEE patient services, Suzanne, who's leading that capability, is heading in the direction of Salesforce. But I don't know any more than that. I'm also trying to understand, like, who Spencer from p like, PTC built this all in house. So I'm I'm waiting for, like, if PTC is satisfied with their case management. So there's the case management. There's also then the patient CRM, and then.
+
+Spencer Honeyman
+Yep.
+
+Megan Sniecinski
+Those are probably the two that were secure independent, and then Veeva is the classic. The thing is I think Veeva has handcuffed the industry. That's what I was gonna say.
+
+Spencer Honeyman
+If if if Databricks is sitting behind Veeva, it's okay. It's it's we're gonna get charged, and they're gonna try and screw you with some of the terms. But I probably for now, I would sign a shorter term contract if you can for what you guys were saying earlier. I do have some thoughts on the Centimeters and the patient CRM, especially with how I think you're gonna grow out your commercial organ assets coming through the system. There's gonna be some interoperability with other agents you're gonna want. We can nerd out on that more later. So by we have an off site that, will be in today. But by tonight, Megan, I'll we'll get you and Allison all that stuff.
+
+Spencer Honeyman
+Allison, feel free to schedule with Bobby and Noah. What the hell was Spencer talking about the last hour, and what do you really do without us, and and hopefully get to meet you in Boston. Megan, we'd love to see you guys in person next week if you're right.
+
+Megan Sniecinski
+Guys, we're together Tuesday, Wednesday, Thursday. So depending on your schedules, if you also just wanna come in and work Yeah. Like, be part of our set. I think the sooner you are in and then I think, Allison, we should also have I'm not sure if it's Oskay who's leading the commercial data foundations from Ambit or we we should have somebody from the Ambit. Oh, Osuke on Rob's team is is owning our whole like, think of her as an extension of Brit in building out all of our Awesome. Data foundations. Everything we need across all systems, including then the Veeva deployment.
+
+Spencer Honeyman
+Okay. I don't I I was actually talking to Rob yesterday on something else, so I don't think I've met that individual. I don't know your schedule next week, but, Tuesday, Wednesday is pretty good on my end.
+
+Megan Sniecinski
+Okay. If you guys if you don't mind coming in both days, and then we can we can I think, after just.
+
+Spencer Honeyman
+How would It's a better view than.
+
+Megan Sniecinski
+Yeah?
+
+Spencer Honeyman
+This, and not not Matt, the window. Matt's a beautiful man. Yes. We're happy to like, I'll speak for myself. I'm happy to, and let's let's go deeper, and then the last thing is we'll put this all on an email, of course, but anything you can forward to us for the agents and then any of, like, what are the top 5 things you would wanna configure in those agents, both for value and like, compliance and private. We'll put in the obvious stuff, but, like so, like, hey. Don't share confidential medical debt. Like, we know that. But if there's anything you're, like, for ET in particular, x, y, and z, we'll start pulling this together, and I I think at some point next week, we can show you the the equivalent backend and front end across phone, text, chat, etcetera. Does that sound good for next steps?
+
+Megan Sniecinski
+Yeah. Can you also ask if you don't if you're gonna talk to our can you just describe to him what we're intending and then ask?
+
+Spencer Honeyman
+I talked to him yesterday, so I'll I'll try.
+
+Megan Sniecinski
+I'll I'll and I'll ping him and just say this is what we're billing, and I somebody from Osk's team should probably be the. I'm thinking. So I'll check, or honestly.
+
+Spencer Honeyman
+This is being recorded despite my bad sense of humor. I'm happy to share this with like, we trust Ambit. So we if you're comfortable with us sharing it with them, they can see it too. That's fine. Okay. I.
+
+Megan Sniecinski
+Best or I can ping Brett. I just I think somebody from that the c m because then that way, everything end to end is integrated.
+
+Spencer Honeyman
+We send the recording to you, and we'll cc Rob and Brett. Okay. So everyone has everything, and then we'll go from there. Yeah. I think what I would say is the pace in which this stuff is advancing and how quick is. That's very, very fast, and so we need to have Megan, I know we talked about the biweeklys and stuff. We need to have a super tight feedback loop on what's coming quickly.
+
+Megan Sniecinski
+Can you also tell us who we need in our work in our practice? Like, what's the profile of capability of someone we need in on our side to help accelerate this. Right? Like, is there are you learning from your other clients that if they have this profile of person internal?
+
+Spencer Honeyman
+I'll tell you what we actually are doing is we're we're calling them f d forward deployed engineers. They're technical people that are from this space that we basically give you part of their time at cost to help do this stuff. But I couldn't do it. There there's some technical stuff, and that might be worth it for the first 3 months type of thing. So we'll come to you guys with some demos of framework, and the goal is by end of next week, it's like, hey. Let's get these agents rocking and rolling by Datax and and QA. That sound good? Yeah.
+
+Megan Sniecinski
+Awesome Awesome. Hi, Allison.
+
+Spencer Honeyman
+It was great to meet you. I do have to jump to a 01:30, but I can text me, and yeah, we're excited to, to help on this front.
+
+Megan Sniecinski
+Yeah. This is so amazing. So excited. This is great.
+
+Spencer Honeyman
+Awesome. Thank you, guys.
