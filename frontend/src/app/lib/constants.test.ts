@@ -18,7 +18,14 @@ import {
   DEFAULT_PERSONAS,
   DEMO_SCENARIOS,
   WS_BACKEND_URL,
+  getDrugProducts,
+  getTherapeuticAreas,
+  getSupportPathways,
+  getDefaultPersonas,
+  getOutcomeLabels,
+  getDemoScenarios,
 } from './constants';
+import { praxisBrand } from './brands/praxis';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -363,6 +370,80 @@ describe('DEFAULT_PERSONAS', () => {
     expect(typeof p.greeting).toBe('string');
     expect(typeof p.signoff).toBe('string');
     expect(typeof p.language).toBe('string');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Brand-aware lookup functions
+// ---------------------------------------------------------------------------
+describe('getDrugProducts', () => {
+  it('returns product entries keyed by product id', () => {
+    const products = getDrugProducts(praxisBrand);
+    expect(Object.keys(products).length).toBe(praxisBrand.products.length);
+    for (const p of praxisBrand.products) {
+      expect(products).toHaveProperty(p.id);
+      expect(products[p.id].brandName).toBe(p.brandName);
+      expect(products[p.id].genericName).toBe(p.genericName);
+      expect(typeof products[p.id].label).toBe('string');
+    }
+  });
+});
+
+describe('getTherapeuticAreas', () => {
+  it('returns therapeutic areas keyed by id', () => {
+    const areas = getTherapeuticAreas(praxisBrand);
+    expect(Object.keys(areas).length).toBe(praxisBrand.therapeuticAreas.length);
+    for (const ta of praxisBrand.therapeuticAreas) {
+      expect(areas[ta.id]).toEqual({ label: ta.label });
+    }
+  });
+});
+
+describe('getSupportPathways', () => {
+  it('returns pathways keyed by id with label and color', () => {
+    const pathways = getSupportPathways(praxisBrand);
+    expect(Object.keys(pathways).length).toBe(praxisBrand.supportPathways.length);
+    for (const sp of praxisBrand.supportPathways) {
+      expect(pathways[sp.id]).toEqual({ label: sp.label, color: sp.color });
+    }
+  });
+});
+
+describe('getDefaultPersonas', () => {
+  it('returns personas keyed by agent type', () => {
+    const personas = getDefaultPersonas(praxisBrand);
+    expect(Object.keys(personas).length).toBe(praxisBrand.agentPersonas.length);
+    for (const ap of praxisBrand.agentPersonas) {
+      expect(personas[ap.agentType]).toEqual({
+        name: ap.name,
+        greeting: ap.greeting,
+        description: ap.description,
+      });
+    }
+  });
+});
+
+describe('getOutcomeLabels', () => {
+  it('returns brand outcome labels', () => {
+    const labels = getOutcomeLabels(praxisBrand);
+    expect(labels).toEqual(praxisBrand.outcomeLabels);
+  });
+});
+
+describe('getDemoScenarios', () => {
+  it('returns scenarios grouped by agent type with generated IDs', () => {
+    const scenarios = getDemoScenarios(praxisBrand);
+    const agentTypes = [...new Set(praxisBrand.demoScenarios.map(s => s.agentType))];
+    for (const at of agentTypes) {
+      expect(scenarios).toHaveProperty(at);
+      expect(scenarios[at].length).toBeGreaterThanOrEqual(1);
+      for (const s of scenarios[at]) {
+        expect(typeof s.id).toBe('string');
+        expect(s.id.length).toBeGreaterThan(0);
+        expect(typeof s.label).toBe('string');
+        expect(typeof s.description).toBe('string');
+      }
+    }
   });
 });
 
