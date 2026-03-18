@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,700;1,900&family=Roboto+Condensed:wght@400;700&family=Roboto+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,700;1,900&family=Roboto+Condensed:wght@400;700&family=Roboto+Mono:wght@400;500&family=Poppins:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -47,6 +47,37 @@
   /* Vi */
   --vi-teal: #00B9CE;
   --vi-teal-light: #E0F7FA;
+
+  /* Brand theme (defaults to Praxis, overridden by ThemeInjector at runtime) */
+  --brand-primary: 0 185 206;
+  --brand-primary-hex: #00B9CE;
+  --brand-primary-dark: 0 154 173;
+  --brand-primary-dark-hex: #009AAD;
+  --brand-primary-light: 37 200 217;
+  --brand-primary-light-hex: #25C8D9;
+  --brand-secondary: 72 93 97;
+  --brand-secondary-hex: #485D61;
+  --brand-accent: 222 125 0;
+  --brand-accent-hex: #DE7D00;
+  --brand-accent2: 239 188 102;
+  --brand-accent2-hex: #EFBC66;
+  --brand-accent3: 255 125 120;
+  --brand-accent3-hex: #FF7D78;
+  --brand-info: 44 89 171;
+  --brand-info-hex: #2C59AB;
+  --brand-surface: 245 245 245;
+  --brand-surface-hex: #F5F5F5;
+  --brand-border: 226 231 234;
+  --brand-border-hex: #E2E7EA;
+  --brand-text: 0 0 0;
+  --brand-text-hex: #000000;
+  --brand-text-muted: 72 93 97;
+  --brand-text-muted-hex: #485D61;
+  --brand-bg: 255 255 255;
+  --brand-bg-hex: #FFFFFF;
+  --brand-heading-font: 'Roboto', 'Segoe UI', system-ui, sans-serif;
+  --brand-body-font: 'Roboto', 'Segoe UI', system-ui, sans-serif;
+  --brand-radius: 0px;
 }
 
 /* -- Smooth font rendering ----------------------------------------------- */
@@ -57,7 +88,7 @@ html {
 }
 
 body {
-  font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--brand-body-font);
   color: var(--text-primary);
   background-color: var(--bg-cream);
 }
@@ -116,9 +147,9 @@ body {
 
 /* Storyboard animations */
 @keyframes highlight-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(0, 185, 206, 0.4); }
-  50% { box-shadow: 0 0 0 4px rgba(0, 185, 206, 0.2); }
-  100% { box-shadow: 0 0 0 0 rgba(0, 185, 206, 0); }
+  0% { box-shadow: 0 0 0 0 rgb(var(--brand-primary) / 0.4); }
+  50% { box-shadow: 0 0 0 4px rgb(var(--brand-primary) / 0.2); }
+  100% { box-shadow: 0 0 0 0 rgb(var(--brand-primary) / 0); }
 }
 .animate-highlight-pulse { animation: highlight-pulse 1.5s ease-out; }
 
