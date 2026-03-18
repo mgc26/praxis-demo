@@ -45,6 +45,24 @@ Focus exclusively on **ET / ELEX with TETRAS-LITE** as the primary evidence inst
 
 All new types added to `frontend/src/app/lib/types.ts`.
 
+### 3.0 Existing type update: ScreeningInstrumentId
+
+The existing `ScreeningInstrumentId` union in `types.ts` is:
+
+```ts
+export type ScreeningInstrumentId = 'AE-SCREEN' | 'ADHERENCE-CHECK' | 'DOSING-VERIFY' | 'SWITCH-ASSESS';
+```
+
+This must be extended to include the instruments used by the Evidence Engine:
+
+```ts
+export type ScreeningInstrumentId =
+  | 'AE-SCREEN' | 'ADHERENCE-CHECK' | 'DOSING-VERIFY' | 'SWITCH-ASSESS'
+  | 'AE-TRIAGE' | 'C-SSRS-LITE' | 'TETRAS-LITE' | 'MMAS-4';
+```
+
+This is required because `ScreeningResult.instrumentId` is typed as `ScreeningInstrumentId`. Without this update, any screening result with `instrumentId: 'TETRAS-LITE'` will be a TypeScript error, and the Step 5 trigger condition (checking `instrumentId === 'TETRAS-LITE'` on `CallRecord.screeningResults`) will not compile.
+
 ### 3.1 OutcomeTimepoint
 
 ```ts
@@ -65,10 +83,13 @@ export interface PatientOutcomeRecord {
   mmasScores: Partial<Record<OutcomeTimepoint, number>>;   // 0-4
   persistedAt90d: boolean;
   aeReported: boolean;
+  seriousAeReported: boolean;
 }
 ```
 
 **Why `Partial<Record>`:** Patients who discontinue before 90d won't have later timepoint scores. Missing data = realistic. The cohort stats computation skips missing values and reports n at each timepoint.
+
+**`seriousAeReported`:** Needed to compute `PayerEvidenceCard.seriousAeRate`. During seed generation, ~2.3% of total patients are flagged `seriousAeReported: true` (a subset of the ~12% with `aeReported: true`).
 
 ### 3.3 CohortTimepointStats
 
@@ -99,7 +120,7 @@ export interface CohortOutcomeData {
   instrumentLabel: string;
   totalEnrolled: number;
   trajectory: CohortTimepointStats[];
-  persistenceRate: Record<OutcomeTimepoint, number>; // % still on therapy
+  persistenceRate: Record<Exclude<OutcomeTimepoint, 'baseline'>, number>; // % still on therapy at 30d/60d/90d (baseline is always 100% by definition)
   aeIncidenceRate: number;
 }
 ```
@@ -166,7 +187,7 @@ Scores are integers 0-8 (sum of two questions, each 0-4).
 1. For each of 437 patients, generate a baseline TETRAS-LITE score from a clamped normal distribution (mean 5.5, SD 1.2, clamped to 1-8).
 2. For each subsequent timepoint, apply a patient-specific improvement factor (drawn from a normal distribution) multiplied by a timepoint multiplier. Clamp result to 0-8.
 3. At each timepoint, some patients drop out (persistence curve). Dropout is biased toward patients with higher scores (less improvement = more likely to stop). Patients who drop out have no further scores.
-4. ~12% of patients are flagged `aeReported: true` (uniformly distributed).
+4. ~12% of patients are flagged `aeReported: true` (uniformly distributed). Of those, ~19% (i.e., ~2.3% of total) are also flagged `seriousAeReported: true`.
 
 ### 4.3 MMAS-4 distribution
 
@@ -257,10 +278,10 @@ Description text (matching other tabs' pattern):
 - Score labels above each point (e.g., "22%", "31%", "35%")
 - N labels below x-axis (e.g., "n=437", "n=406", "n=376", "n=345")
 
-**Below chart:** 4 inline stat pills:
+**Below chart:** 4 inline stat pills using positive improvement framing (consistent with the upward chart axis — lower TETRAS score = better, shown as positive improvement):
 
 ```
-[Baseline: 5.5/8]  [30d: -22%]  [60d: -31%]  [90d: -35%]
+[Baseline: 5.5/8]  [30d: 22% improved]  [60d: 31% improved]  [90d: 35% improved]
 ```
 
 Style: small rounded badges, teal background at 10%, teal text.
@@ -429,7 +450,7 @@ import {
 
 ### 8.3 Storyboard step conditional logic
 
-The `STORYBOARD_STEPS` constant becomes a computed value based on whether the current scenario includes TETRAS-LITE screening:
+The module-level `STORYBOARD_STEPS` constant (`as const`) becomes a `useMemo` computed from whether the current scenario includes TETRAS-LITE screening:
 
 ```ts
 const storyboardSteps = useMemo(() => {
@@ -446,6 +467,16 @@ const storyboardSteps = useMemo(() => {
   return base;
 }, [currentCallHasTetrasScreening]);
 ```
+
+**Critical: Hard-coded step bounds must be refactored.** The existing code has multiple locations that hard-code `4` as the last step index (0-based, for 5 steps). All of these must be updated to use `storyboardSteps.length - 1` instead:
+
+- `disabled={storyStep === 4}` on the Next button → `disabled={storyStep === storyboardSteps.length - 1}`
+- `storyStep < 4` guards in auto-play advancement → `storyStep < storyboardSteps.length - 1`
+- The `durations` array (currently 5 entries) must gain a 6th entry for the Evidence Capture step: `4000` (4 seconds, matching Section 5.3 timing)
+- Any `STORYBOARD_STEPS.length` references become `storyboardSteps.length`
+- Any `STORYBOARD_STEPS.map(...)` references become `storyboardSteps.map(...)`
+
+Without these changes, auto-play stops at Call Log and the Next button disables before Evidence Capture is reachable.
 
 ---
 
@@ -488,7 +519,7 @@ All styling uses existing PX design tokens. No new colors, fonts, or spacing val
 
 | File | Changes | Estimated lines |
 |------|---------|----------------|
-| `frontend/src/app/lib/types.ts` | Add OutcomeTimepoint, PatientOutcomeRecord, CohortTimepointStats, CohortOutcomeData, PayerEvidenceCard types | ~50 |
+| `frontend/src/app/lib/types.ts` | Extend ScreeningInstrumentId union; add OutcomeTimepoint, PatientOutcomeRecord, CohortTimepointStats, CohortOutcomeData, PayerEvidenceCard types | ~55 |
 | `frontend/src/app/lib/seed-data.ts` | Add cohort generation functions, PATIENT_OUTCOMES, COHORT_OUTCOME_DATA, PAYER_EVIDENCE_CARD exports | ~150 |
 | `frontend/src/app/dashboard/page.tsx` | Add Tab type union member, storyboard Step 5, Outcomes & Evidence tab content, contract simulator state, SVG chart components | ~350 |
 
