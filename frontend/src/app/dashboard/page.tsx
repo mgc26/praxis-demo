@@ -10,6 +10,7 @@ import type {
   ContactRecord,
   ContactSignalFeed,
   MSLFollowUpRequest,
+  PatientOutcomeRecord,
   SupportPathwayId,
   TherapeuticArea,
   AgentPersona,
@@ -17,12 +18,12 @@ import type {
   UrgencyLevel,
 } from '@/app/lib/types';
 import { CONVERSION_OUTCOMES } from '@/app/lib/constants';
-import { getCohortOutcomeData, getPayerEvidenceCard } from '@/app/lib/seed-data';
+import { getCohortOutcomeData, getPatientOutcomes, getPayerEvidenceCard } from '@/app/lib/seed-data';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-type Tab = 'agent-storyboard' | 'interaction-data' | 'medical-intelligence' | 'performance' | 'implementation';
+type Tab = 'agent-storyboard' | 'interaction-data' | 'medical-intelligence' | 'performance' | 'outcomes-evidence' | 'implementation';
 
 // ---------------------------------------------------------------------------
 // Praxis Design Tokens
@@ -160,6 +161,7 @@ const TAB_ITEMS: Array<{
   { id: 'interaction-data', label: 'Interaction Data', getBadge: (d) => `${d.calls}` },
   { id: 'medical-intelligence', label: 'Medical Intelligence', getBadge: (d) => d.mslFollowUps > 0 ? `${d.mslFollowUps}` : '' },
   { id: 'performance', label: 'Performance', getBadge: () => '' },
+  { id: 'outcomes-evidence', label: 'Outcomes & Evidence', getBadge: () => `${getCohortOutcomeData().totalEnrolled}` },
   { id: 'implementation', label: 'Implementation & Compliance', getBadge: () => '' },
 ];
 
@@ -772,6 +774,61 @@ function EvidenceMiniChart({ data, height = 120, patientScore }: {
 }
 
 // ---------------------------------------------------------------------------
+// Evidence Full Chart (SVG) -- larger trajectory chart for Outcomes tab
+// ---------------------------------------------------------------------------
+function EvidenceFullChart({ data, height = 240 }: {
+  data: CohortTimepointStats[];
+  height?: number;
+}) {
+  const width = 500;
+  const pad = { top: 20, right: 30, bottom: 48, left: 45 };
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+
+  const baselineMean = data[0]?.mean ?? 0;
+  const improvements = data.map(d => d.timepoint === 'baseline' ? 0 : ((baselineMean - d.mean) / baselineMean) * 100);
+  const maxImpr = Math.ceil(Math.max(...improvements, 10) / 5) * 5 + 5;
+  const tpLabels = ['Baseline', '30d', '60d', '90d'];
+
+  const x = (i: number) => pad.left + (i / (data.length - 1)) * plotW;
+  const y = (pct: number) => pad.top + plotH - (pct / maxImpr) * plotH;
+
+  const ciUpper = data.map((d, i) => {
+    const impr = d.timepoint === 'baseline' ? 0 : ((baselineMean - d.ci95Lower) / baselineMean) * 100;
+    return `${x(i)},${y(Math.max(impr, 0))}`;
+  });
+  const ciLower = data.map((d, i) => {
+    const impr = d.timepoint === 'baseline' ? 0 : ((baselineMean - d.ci95Upper) / baselineMean) * 100;
+    return `${x(i)},${y(Math.max(impr, 0))}`;
+  }).reverse();
+  const ciPath = `M${ciUpper.join(' L')} L${ciLower.join(' L')} Z`;
+  const linePoints = improvements.map((pct, i) => `${x(i)},${y(pct)}`).join(' ');
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height}>
+      {/* Y-axis grid lines */}
+      {Array.from({ length: Math.floor(maxImpr / 10) + 1 }, (_, i) => i * 10).map(pct => (
+        <g key={pct}>
+          <line x1={pad.left} y1={y(pct)} x2={width - pad.right} y2={y(pct)} stroke={PX.cardBorder} strokeWidth={0.5} />
+          <text x={pad.left - 8} y={y(pct) + 3} textAnchor="end" fontSize={9} fill={PX.textMuted}>{pct}%</text>
+        </g>
+      ))}
+      <text x={12} y={pad.top + plotH / 2} textAnchor="middle" fontSize={9} fill={PX.textMuted} transform={`rotate(-90, 12, ${pad.top + plotH / 2})`}>% Improvement</text>
+      <path d={ciPath} fill={PX.teal} opacity={0.08} />
+      <polyline points={linePoints} fill="none" stroke={PX.teal} strokeWidth={2.5} strokeLinejoin="round" />
+      {data.map((d, i) => (
+        <g key={d.timepoint}>
+          <circle cx={x(i)} cy={y(improvements[i])} r={5} fill={PX.teal} stroke="white" strokeWidth={2} />
+          {i > 0 && <text x={x(i)} y={y(improvements[i]) - 12} textAnchor="middle" fontSize={11} fontWeight="bold" fill={PX.navy}>{improvements[i].toFixed(0)}%</text>}
+          <text x={x(i)} y={pad.top + plotH + 16} textAnchor="middle" fontSize={10} fill={PX.textSecondary}>{tpLabels[i]}</text>
+          <text x={x(i)} y={pad.top + plotH + 30} textAnchor="middle" fontSize={8} fill={PX.textMuted}>n={d.n}</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // MAIN DASHBOARD
 // ---------------------------------------------------------------------------
 export default function DashboardPage() {
@@ -817,6 +874,34 @@ export default function DashboardPage() {
   const [callLogHighlight, setCallLogHighlight] = useState(false);
   const [sliderAnimated, setSliderAnimated] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+
+  // ---- Outcomes-Based Contract Simulator ----
+  const [contractThreshold, setContractThreshold] = useState(30);
+  const [contractRebate, setContractRebate] = useState(50);
+
+  const contractResults = useMemo(() => {
+    const patients = getPatientOutcomes();
+    const eligible = patients.filter(p =>
+      p.tetrasScores.baseline !== undefined && p.tetrasScores['90d'] !== undefined
+    );
+    const meeting = eligible.filter(p => {
+      const bl = p.tetrasScores.baseline!;
+      const d90 = p.tetrasScores['90d']!;
+      return bl > 0 && ((bl - d90) / bl) >= contractThreshold / 100;
+    });
+    const pctMeeting = eligible.length > 0 ? meeting.length / eligible.length : 0;
+    const rebateExposure = (1 - pctMeeting) * (contractRebate / 100);
+    const confidence: 'HIGH' | 'MODERATE' | 'LOW' = pctMeeting > 0.7 ? 'HIGH' : pctMeeting > 0.5 ? 'MODERATE' : 'LOW';
+    return {
+      eligible: eligible.length,
+      meeting: meeting.length,
+      notMeeting: eligible.length - meeting.length,
+      pctMeeting,
+      rebateExposure,
+      confidence,
+      dropped: patients.length - eligible.length,
+    };
+  }, [contractThreshold, contractRebate]);
 
   // -- Auth check --
   useEffect(() => {
@@ -3138,6 +3223,234 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
+
+        {/* ---- OUTCOMES & EVIDENCE TAB ---- */}
+        {activeTab === 'outcomes-evidence' && (() => {
+          const cohort = getCohortOutcomeData();
+          const payer = getPayerEvidenceCard();
+          const trajectory = cohort.trajectory;
+          const baselineMean = trajectory[0]?.mean ?? 0;
+
+          const persistenceData = [
+            { label: 'Enrolled', pct: 100, n: cohort.totalEnrolled },
+            { label: '30-day', pct: Math.round(cohort.persistenceRate['30d'] * 100), n: Math.round(cohort.totalEnrolled * cohort.persistenceRate['30d']) },
+            { label: '60-day', pct: Math.round(cohort.persistenceRate['60d'] * 100), n: Math.round(cohort.totalEnrolled * cohort.persistenceRate['60d']) },
+            { label: '90-day', pct: Math.round(cohort.persistenceRate['90d'] * 100), n: Math.round(cohort.totalEnrolled * cohort.persistenceRate['90d']) },
+          ];
+
+          const disconReasons = [
+            { label: 'Cost', pct: 34 },
+            { label: 'Side effects', pct: 28 },
+            { label: 'Insufficient efficacy', pct: 22 },
+            { label: 'Other', pct: 16 },
+          ];
+
+          const confidenceColors: Record<string, { text: string; bg: string; border: string }> = {
+            HIGH: { text: PX.success, bg: `${PX.success}10`, border: `${PX.success}30` },
+            MODERATE: { text: PX.warning, bg: `${PX.warning}10`, border: `${PX.warning}30` },
+            LOW: { text: PX.coral, bg: `${PX.coral}10`, border: `${PX.coral}30` },
+          };
+
+          return (
+            <div className="space-y-6 animate-fade-in">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                {/* ===== Panel 1: TETRAS-LITE Cohort Trajectory ===== */}
+                <div className="border bg-white p-6" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
+                  <h2 className="text-base font-bold mb-1" style={{ color: PX.navy }}>TETRAS-LITE Score Trajectory — ELEX Cohort</h2>
+                  <p className="text-xs mb-4" style={{ color: PX.textMuted }}>Mean % improvement from baseline (95% CI shaded)</p>
+                  <EvidenceFullChart data={trajectory} />
+                  <div className="flex items-center gap-3 mt-4 flex-wrap">
+                    <span className="text-xs px-3 py-1.5 font-semibold" style={{ backgroundColor: `${PX.navy}08`, color: PX.navy, border: `1px solid ${PX.navy}20` }}>
+                      Baseline: {baselineMean.toFixed(1)}
+                    </span>
+                    {trajectory.slice(1).map(tp => {
+                      const impr = ((baselineMean - tp.mean) / baselineMean) * 100;
+                      return (
+                        <span key={tp.timepoint} className="text-xs px-3 py-1.5 font-semibold" style={{ backgroundColor: `${PX.teal}10`, color: PX.teal, border: `1px solid ${PX.teal}30` }}>
+                          {tp.timepoint}: {impr.toFixed(0)}% improved
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ===== Panel 2: Therapy Persistence ===== */}
+                <div className="border bg-white p-6" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
+                  <h2 className="text-base font-bold mb-1" style={{ color: PX.navy }}>Therapy Persistence — ELEX Cohort</h2>
+                  <p className="text-xs mb-5" style={{ color: PX.textMuted }}>Patients remaining on therapy at each timepoint</p>
+                  <div className="space-y-3">
+                    {persistenceData.map((d, i) => (
+                      <div key={d.label}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-semibold" style={{ color: PX.navy }}>{d.label}</span>
+                          <span className="text-xs font-bold" style={{ color: PX.teal }}>{d.pct}% <span style={{ color: PX.textMuted, fontWeight: 400 }}>(n={d.n})</span></span>
+                        </div>
+                        <div className="h-6 w-full rounded-sm" style={{ backgroundColor: `${PX.teal}08` }}>
+                          <div
+                            className="h-full rounded-sm transition-all duration-700"
+                            style={{
+                              width: `${d.pct}%`,
+                              backgroundColor: PX.teal,
+                              opacity: 1 - (i * 0.15),
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-6 pt-4" style={{ borderTop: `1px solid ${PX.cardBorder}` }}>
+                    <h3 className="text-xs font-bold mb-3" style={{ color: PX.navy }}>Discontinuation Reasons</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {disconReasons.map(r => (
+                        <div key={r.label} className="flex items-center justify-between text-xs px-3 py-2" style={{ backgroundColor: `${PX.coral}06`, border: `1px solid ${PX.coral}15` }}>
+                          <span style={{ color: PX.textSecondary }}>{r.label}</span>
+                          <span className="font-bold" style={{ color: PX.coral }}>{r.pct}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ===== Panel 3: Payer Evidence Card ===== */}
+                <div className="border bg-white p-6" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow, borderLeft: `4px solid ${PX.teal}` }}>
+                  <div className="flex items-start justify-between mb-1">
+                    <div>
+                      <h2 className="text-base font-bold" style={{ color: PX.navy }}>Real-World Evidence Summary</h2>
+                      <p className="text-sm font-semibold mt-0.5" style={{ color: PX.teal }}>ELEX (Euloxacaltenamide) — Essential Tremor</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] font-medium px-2 py-0.5" style={{ backgroundColor: PX.tealBg, color: PX.teal }}>PRAXIS BIOSCIENCES</div>
+                    </div>
+                  </div>
+                  <p className="text-[10px] mb-5" style={{ color: PX.textMuted }}>Generated {new Date(payer.generatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+
+                  <div className="text-xs font-semibold px-3 py-2 mb-5" style={{ backgroundColor: `${PX.teal}08`, color: PX.navy, borderLeft: `3px solid ${PX.teal}` }}>
+                    {payer.headline}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { label: 'Cohort Size', value: `n=${payer.cohortSize}`, sub: 'ELEX-treated patients' },
+                      { label: 'Mean TETRAS Improvement', value: `${payer.meanImprovementPct.toFixed(1)}%`, sub: `95% CI: [${payer.ci95[0].toFixed(1)}%, ${payer.ci95[1].toFixed(1)}%]` },
+                      { label: '90-Day Persistence', value: `${(payer.persistenceRate90d * 100).toFixed(0)}%`, sub: 'On therapy at 90 days' },
+                      { label: 'Adherence Rate', value: `${(payer.adherenceRate90d * 100).toFixed(0)}%`, sub: 'MMAS-4 adherent at 90d' },
+                      { label: 'AE Incidence', value: `${(payer.aeRate * 100).toFixed(1)}%`, sub: 'Any adverse event' },
+                      { label: 'Serious AE', value: `${(payer.seriousAeRate * 100).toFixed(1)}%`, sub: 'SAE requiring intervention' },
+                    ].map(m => (
+                      <div key={m.label} className="text-center p-3" style={{ backgroundColor: `${PX.navy}04`, border: `1px solid ${PX.cardBorder}` }}>
+                        <div className="text-[10px] font-medium mb-1" style={{ color: PX.textMuted }}>{m.label}</div>
+                        <div className="text-lg font-bold" style={{ color: PX.navy }}>{m.value}</div>
+                        <div className="text-[9px] mt-0.5" style={{ color: PX.textMuted }}>{m.sub}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 pt-3 text-[9px]" style={{ borderTop: `1px solid ${PX.cardBorder}`, color: PX.textMuted }}>
+                    Data source: Vi Operate patient engagement platform. Observational cohort, not a controlled trial. TETRAS-LITE validated screening instrument administered via AI voice agent. All scores subject to confirmation by treating physician.
+                  </div>
+                </div>
+
+                {/* ===== Panel 4: Contract Simulator ===== */}
+                <div className="border bg-white p-6" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
+                  <h2 className="text-base font-bold mb-1" style={{ color: PX.navy }}>Outcomes-Based Contract Simulator</h2>
+                  <p className="text-xs mb-5" style={{ color: PX.textMuted }}>Adjust thresholds to model rebate exposure in real time</p>
+
+                  <div className="space-y-5">
+                    {/* Threshold slider */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-semibold" style={{ color: PX.navy }}>Required TETRAS Improvement</label>
+                        <span className="text-sm font-bold tabular-nums" style={{ color: PX.teal }}>{contractThreshold}%</span>
+                      </div>
+                      <input
+                        type="range" min={20} max={50} step={1}
+                        value={contractThreshold}
+                        onChange={e => setContractThreshold(Number(e.target.value))}
+                        className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to right, ${PX.teal} ${((contractThreshold - 20) / 30) * 100}%, ${PX.cardBorder} ${((contractThreshold - 20) / 30) * 100}%)`,
+                          accentColor: PX.teal,
+                        }}
+                      />
+                      <div className="flex justify-between text-[10px] mt-1" style={{ color: PX.textMuted }}>
+                        <span>20%</span><span>50%</span>
+                      </div>
+                    </div>
+
+                    {/* Rebate slider */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-semibold" style={{ color: PX.navy }}>Rebate if Threshold Not Met</label>
+                        <span className="text-sm font-bold tabular-nums" style={{ color: PX.teal }}>{contractRebate}%</span>
+                      </div>
+                      <input
+                        type="range" min={25} max={75} step={5}
+                        value={contractRebate}
+                        onChange={e => setContractRebate(Number(e.target.value))}
+                        className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to right, ${PX.teal} ${((contractRebate - 25) / 50) * 100}%, ${PX.cardBorder} ${((contractRebate - 25) / 50) * 100}%)`,
+                          accentColor: PX.teal,
+                        }}
+                      />
+                      <div className="flex justify-between text-[10px] mt-1" style={{ color: PX.textMuted }}>
+                        <span>25%</span><span>75%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Results */}
+                  <div className="mt-5 pt-5 space-y-3" style={{ borderTop: `1px solid ${PX.cardBorder}` }}>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="text-center p-3" style={{ backgroundColor: `${PX.success}08`, border: `1px solid ${PX.success}20` }}>
+                        <div className="text-lg font-bold" style={{ color: PX.success }}>{contractResults.meeting}</div>
+                        <div className="text-[10px]" style={{ color: PX.textMuted }}>Meeting threshold</div>
+                      </div>
+                      <div className="text-center p-3" style={{ backgroundColor: `${PX.coral}08`, border: `1px solid ${PX.coral}20` }}>
+                        <div className="text-lg font-bold" style={{ color: PX.coral }}>{contractResults.notMeeting}</div>
+                        <div className="text-[10px]" style={{ color: PX.textMuted }}>Not meeting</div>
+                      </div>
+                      <div className="text-center p-3" style={{ backgroundColor: `${PX.teal}08`, border: `1px solid ${PX.teal}20` }}>
+                        <div className="text-lg font-bold" style={{ color: PX.teal }}>{(contractResults.pctMeeting * 100).toFixed(0)}%</div>
+                        <div className="text-[10px]" style={{ color: PX.textMuted }}>Success rate</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3" style={{ backgroundColor: `${PX.navy}04`, border: `1px solid ${PX.cardBorder}` }}>
+                      <div>
+                        <div className="text-xs font-semibold" style={{ color: PX.navy }}>Rebate Exposure</div>
+                        <div className="text-[10px]" style={{ color: PX.textMuted }}>% of WAC at risk</div>
+                      </div>
+                      <div className="text-xl font-bold tabular-nums" style={{ color: PX.navy }}>{(contractResults.rebateExposure * 100).toFixed(1)}%</div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3" style={{ backgroundColor: confidenceColors[contractResults.confidence].bg, border: `1px solid ${confidenceColors[contractResults.confidence].border}` }}>
+                      <div>
+                        <div className="text-xs font-semibold" style={{ color: PX.navy }}>Contract Confidence</div>
+                        <div className="text-[10px]" style={{ color: PX.textMuted }}>Based on {contractResults.eligible} evaluable patients</div>
+                      </div>
+                      <span className="text-xs font-bold px-3 py-1" style={{ color: confidenceColors[contractResults.confidence].text, backgroundColor: confidenceColors[contractResults.confidence].bg, border: `1px solid ${confidenceColors[contractResults.confidence].border}` }}>
+                        {contractResults.confidence}
+                      </span>
+                    </div>
+
+                    <p className="text-[10px]" style={{ color: PX.textMuted }}>
+                      {contractResults.dropped} patients excluded (no 90-day TETRAS score — dropouts or pending assessment).
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* DEE placeholder */}
+              <div className="border bg-white p-5 text-center" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
+                <p className="text-xs" style={{ color: PX.textMuted }}>
+                  DEE / Relutrigine outcomes tracking will appear here once the Phase III readout populates the evidence engine. Currently pre-launch.
+                </p>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ---- IMPLEMENTATION & COMPLIANCE TAB ---- */}
         {activeTab === 'implementation' && (
