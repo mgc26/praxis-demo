@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Vi Operate -- Praxis BioSciences Pharma Engagement Platform
+// Vi Operate -- Praxis Precision Medicines Pharma Engagement Platform
 // Seed data: 12 contacts, 20 call records, signal feed entries
 // Deterministic PRNG (mulberry32) -- stable across reloads
 // ---------------------------------------------------------------------------
@@ -9,12 +9,18 @@ import type {
   BehavioralSignal,
   CallRecord,
   Classification,
+  CohortOutcomeData,
+  CohortTimepointStats,
   ContactRecord,
   ContactSignalFeed,
   DrugProduct,
   InteractionOutcome,
   KPIData,
   LiaisonSummary,
+  MSLFollowUpRequest,
+  OutcomeTimepoint,
+  PatientOutcomeRecord,
+  PayerEvidenceCard,
   PriorityTier,
   ScreeningResult,
   ScreeningQuestionResponse,
@@ -399,7 +405,8 @@ function generateTranscript(
     entries.push({ speaker, text, timestamp: ts });
   };
 
-  const firstName = contactName.split(' ').pop() || contactName.split(' ')[0];
+  const firstName = contactName.split(' ')[0];
+  const lastName = contactName.split(' ').pop() || firstName;
   const drugName = drug === 'euloxacaltenamide' ? 'ELEX' : 'Relutrigine';
 
   if (outcome === 'no-answer') {
@@ -413,18 +420,18 @@ function generateTranscript(
     add('agent', `Outbound call to ${contactName}...`);
     ts += 15;
     if (contactType === 'patient') {
-      add('agent', `Hi, this is Aria from Praxis BioSciences patient support. I'm calling regarding your ${drugName} therapy. Please call us back at 1-800-PRAXIS-1. Thank you!`);
+      add('agent', `Hi, this is Emma from Praxis Precision Medicines patient support. I'm calling regarding your ${drugName} therapy. Please call us back at 1-800-PRAXIS-1. Thank you!`);
     } else {
-      add('agent', `Good day, this is a follow-up from Praxis BioSciences medical affairs regarding ${drugName}. Please call us at your convenience at 1-800-PRAXIS-2. Thank you, Doctor.`);
+      add('agent', `Good day, this is Emma from Praxis Precision Medicines medical affairs following up regarding ${drugName}. Please call us at your convenience at 1-800-PRAXIS-2. Thank you, Doctor.`);
     }
     return entries;
   }
 
   // Connected call
   if (contactType === 'patient') {
-    add('agent', `Hi, may I please speak with ${contactName}?`);
+    add('agent', `Hello, this is Emma calling from Praxis Precision Medicines patient support. Am I speaking with ${contactName}?`);
     add('contact', pick(['Speaking.', "Yes, that's me.", `Yes, this is ${firstName}.`] as const));
-    add('agent', `Hi ${firstName}, my name is Aria and I'm calling from Praxis BioSciences patient support regarding your ${drugName} therapy. How are you doing today?`);
+    add('agent', `Wonderful, hi ${firstName}! Thank you for taking my call. I'm your dedicated support specialist for your ${drugName} therapy. How are you doing today?`);
     add('contact', pick([
       "I'm doing okay. I had some questions actually.",
       "Not bad. My doctor mentioned you might call.",
@@ -432,13 +439,13 @@ function generateTranscript(
       "Pretty good. I've been meaning to call you all.",
     ] as const));
   } else {
-    add('agent', `Good day, may I speak with Dr. ${firstName}?`);
-    add('contact', pick(['Speaking.', 'Yes, this is they.', `This is Dr. ${firstName}.`] as const));
-    add('agent', `Dr. ${firstName}, this is ${agentType === 'hcp-outbound' ? 'Rachel' : 'Marcus'} from Praxis BioSciences. ${agentType === 'hcp-outbound' ? `I'm reaching out to share some updates on ${drugName}.` : `How can I assist you today regarding ${drugName}?`}`);
+    add('agent', `Good day, may I speak with Dr. ${lastName}?`);
+    add('contact', pick(['Speaking.', 'Yes, go ahead.', `This is Dr. ${lastName}.`] as const));
+    add('agent', `Dr. ${lastName}, this is Emma from Praxis Precision Medicines. ${agentType === 'hcp-outbound' ? `I'm reaching out to share some updates on ${drugName}.` : `How can I assist you today regarding ${drugName}?`}`);
     add('contact', pick([
-      `Yes, I've been wanting to discuss ${drugName} for some of my patients.`,
-      "Go ahead, I have a few minutes.",
-      `Actually, I have some questions about the clinical data.`,
+      `I have a few patients I'm considering for ${drugName}. Go ahead.`,
+      "You have two minutes. What do you have?",
+      `I need the latest efficacy data. Be brief.`,
     ] as const));
   }
 
@@ -449,7 +456,7 @@ function generateTranscript(
     add('agent', `I can get you enrolled right now over the phone. I'll need to verify some basic information and then we'll get your benefits investigation started. The hub also provides a dedicated care coordinator who can help with any questions about your therapy.`);
     add('contact', "Okay, let's do it. I've been worried about the costs.");
   } else if (pathway === 'copay-assistance') {
-    add('agent', `I'm calling to help you activate your ${drugName} copay card. Many patients qualify to pay as little as $0 out of pocket for their prescriptions.`);
+    add('agent', `I'm calling to help you activate your ${drugName} copay card. Our program can significantly reduce your out-of-pocket costs for your prescriptions.`);
     add('contact', pick(["That would be amazing. The specialty pharmacy quoted me a really high copay.", "Yes, I definitely need help with the cost.", "How do I qualify for that?"] as const));
     add('agent', `Based on your insurance information, you are eligible for our copay assistance program. I can activate your card right now and it will be applied to your next fill at the specialty pharmacy.`);
     add('contact', "Yes, please. That's such a relief.");
@@ -473,66 +480,90 @@ function generateTranscript(
     add('agent', `I appreciate your honesty. Consistent dosing is really important for ${drugName} to work effectively. Let me help coordinate your refill and we can talk through some strategies to help with adherence.`);
     add('contact', "That would be helpful. Sometimes I just forget the evening dose.");
   } else if (pathway === 'sample-request') {
-    add('agent', `Dr. ${firstName}, I understand you're interested in ${drugName} samples for your practice. We can arrange a shipment to your office within 3-5 business days.`);
-    add('contact', `Yes, I have several ${drug === 'euloxacaltenamide' ? 'essential tremor' : 'Dravet syndrome'} patients who might benefit. I'd like to try them on ${drugName} before committing to a full prescription.`);
-    add('agent', `That's a great approach. I can ship a starter kit that includes ${drug === 'euloxacaltenamide' ? 'a 2-week titration pack' : 'a 4-week supply at the starting dose'}, along with patient education materials and our quick-start guide.`);
-    add('contact', "Perfect. Can you also send the Phase 3 efficacy data? I'd like to review it with my patients.");
+    if (contactType === 'patient') {
+      add('agent', `${firstName}, I'd like to let you know about our ${drugName} starter support program. We can work with your prescriber to ensure you have everything you need to get started.`);
+      add('contact', "That would be great. My doctor mentioned it but I wasn't sure how it worked.");
+      add('agent', `I'll coordinate with your prescriber's office and make sure the patient education materials and quick-start guide are sent your way as well.`);
+      add('contact', "Thank you, I appreciate that.");
+    } else {
+      add('agent', `Dr. ${lastName}, I understand you're interested in ${drugName} samples for your practice. We can arrange a shipment to your office within 3-5 business days.`);
+      add('contact', `I have several ${drug === 'euloxacaltenamide' ? 'essential tremor' : 'Dravet syndrome'} patients who may benefit. I want to trial them on ${drugName} before writing full scripts.`);
+      add('agent', `Absolutely. I can ship a starter kit that includes ${drug === 'euloxacaltenamide' ? 'a 2-week titration pack' : 'a 4-week supply at the starting dose'}, along with patient education materials and our quick-start guide.`);
+      add('contact', "Send the Phase 3 data too. I'll review it before starting anyone.");
+    }
   } else if (pathway === 'medical-inquiry') {
-    add('agent', `Dr. ${firstName}, how can I help you today with your ${drugName} inquiry?`);
-    add('contact', pick([
-      `I'm looking for the Phase 3 trial data, specifically the primary endpoint results.`,
-      `I have a patient with a complex case and need to understand the drug interaction profile.`,
-      `What's the recommended titration schedule for patients switching from ${drug === 'euloxacaltenamide' ? 'propranolol' : 'fenfluramine'}?`,
-    ] as const));
-    add('agent', `Great question. I can provide you with the full clinical data package. ${drug === 'euloxacaltenamide' ? 'The TREMOR-1 trial showed a 62% reduction in TETRAS tremor scores vs placebo at 12 weeks.' : 'The NAVIGATE trial demonstrated a 52% median reduction in convulsive seizure frequency vs placebo over 14 weeks.'} I'll email the complete publication and prescribing information to your office.`);
-    add('contact', "That's very helpful. Can you also arrange a peer-to-peer with one of your KOLs?");
+    if (contactType === 'patient') {
+      add('agent', `${firstName}, I'd be happy to help answer your questions about ${drugName}. What would you like to know?`);
+      add('contact', pick([
+        `I've been reading about the clinical trials and want to understand the results better.`,
+        `My doctor started me on this and I want to know more about how it works.`,
+        `I'm curious about the side effect profile compared to my previous medication.`,
+      ] as const));
+      add('agent', `Those are great questions, ${firstName}. I can share our patient-friendly summary of the clinical results with you. For specific medical questions about your treatment, I'd also recommend discussing with your prescriber. Would you like me to send you our patient information packet?`);
+      add('contact', "Yes, please send that over. That would be really helpful.");
+    } else {
+      add('agent', `Dr. ${lastName}, how can I help you today with your ${drugName} inquiry?`);
+      add('contact', pick([
+        `I need the Phase 3 primary endpoint results.`,
+        `Complex case -- need the drug interaction profile.`,
+        `What's the titration schedule for patients switching from ${drug === 'euloxacaltenamide' ? 'propranolol' : 'fenfluramine'}?`,
+      ] as const));
+      add('agent', `I can provide the full clinical data package. ${drug === 'euloxacaltenamide' ? 'The STEADY trial demonstrated a 4.2-point improvement on TETRAS-P vs placebo.' : 'The PROTECT trial showed a 48% median reduction in convulsive seizure frequency vs placebo.'} I'll email the complete publication and prescribing information to your office.`);
+      add('contact', "Fine. Arrange a peer-to-peer with one of your KOLs as well.");
+    }
   }
 
   // Outcome-specific closing
   switch (outcome) {
     case 'hub-enrolled':
-      add('agent', `Excellent, ${contactType === 'patient' ? firstName : `Dr. ${firstName}`}. You're now enrolled in the Praxis Support Hub. You'll receive a welcome packet via email and a dedicated coordinator will reach out within 48 hours.`);
-      add('contact', "Thank you so much. This is very helpful.");
+      add('agent', `Excellent, ${contactType === 'patient' ? firstName : `Dr. ${lastName}`}. You're now enrolled in the Praxis Support Hub. You'll receive a welcome packet via email and a dedicated coordinator will reach out within 48 hours.`);
+      add('contact', contactType === 'patient' ? "Thank you so much. This is very helpful." : "Good. Have the coordinator reach out to my office.");
       break;
     case 'copay-card-issued':
-      add('agent', `Your copay card is now active. The ID number is PRAX-${randInt(10000, 99999)}. Your next fill should show the reduced copay. I'll send all the details via text.`);
+      add('agent', `Your copay card is now active, ${firstName}. The ID number is PRAX-${randInt(10000, 99999)}. Your next fill should show the reduced copay. I'll send all the details via text.`);
       add('contact', "That's wonderful. Thank you for making this so easy.");
       break;
     case 'ae-report-filed':
-      add('agent', `I've filed the adverse event report -- case number AE-${randInt(100000, 999999)}. Our pharmacovigilance team will follow up within 24 hours. Please don't hesitate to call our 24/7 line if anything changes.`);
-      add('contact', "Okay, thank you. I'll keep monitoring it.");
+      add('agent', `I've filed the adverse event report -- case number AE-${randInt(100000, 999999)}. Our pharmacovigilance team will follow up within 24 hours. ${contactType === 'patient' ? "Please don't hesitate to call our 24/7 line if anything changes." : "We'll send the case documentation to your office for review."}`);
+      add('contact', contactType === 'patient' ? "Okay, thank you. I'll keep monitoring it." : "Understood. Route the case summary to my office.");
       break;
     case 'adherence-counseling':
-      add('agent', `I've set up a refill reminder and your next adherence check-in for ${pick(['next Tuesday', 'next Thursday', 'next Monday'] as const)}. Remember, consistent dosing is key to seeing the best results with ${drugName}.`);
+      add('agent', `I've set up a refill reminder and your next adherence check-in for ${pick(['next Tuesday', 'next Thursday', 'next Monday'] as const)}, ${firstName}. Remember, consistent dosing is key to seeing the best results with ${drugName}.`);
       add('contact', "I'll do my best. Thanks for the support.");
       break;
     case 'sample-shipped':
-      add('agent', `The sample shipment has been initiated, Dr. ${firstName}. You should receive it within 3-5 business days at your ${pick(['office', 'clinic', 'practice location'] as const)}. I'll also include our patient starter kit materials.`);
-      add('contact', "Great, I'll look for it. Thanks for the quick turnaround.");
+      add('agent', contactType === 'hcp'
+        ? `The sample shipment has been initiated, Dr. ${lastName}. You should receive it within 3-5 business days at your ${pick(['office', 'clinic', 'practice location'] as const)}. I'll also include our patient starter kit materials.`
+        : `I've coordinated with your prescriber's office, ${firstName}. The starter materials will be sent along with your prescription. You should have everything within 3-5 business days.`);
+      add('contact', contactType === 'hcp' ? "Good. I'll look for it." : "Great, thank you so much!");
       break;
     case 'medical-info-provided':
-      add('agent', `I'll email the complete clinical data package to your office today, Dr. ${firstName}. I'm also arranging a peer-to-peer discussion for next week. Is there anything else I can help with?`);
-      add('contact', "No, that covers it. Thank you for the thorough response.");
+      add('agent', contactType === 'hcp'
+        ? `I'll email the complete clinical data package to your office today, Dr. ${lastName}. I'm also arranging a peer-to-peer discussion for next week. Is there anything else I can help with?`
+        : `I'll send the patient information packet to you right away, ${firstName}. And remember, your prescriber is the best resource for any specific medical questions about your treatment.`);
+      add('contact', contactType === 'hcp' ? "That covers it. Thank you." : "That sounds great. Thank you for explaining everything.");
       break;
     case 'hcp-detail-completed':
-      add('agent', `Thank you for your time today, Dr. ${firstName}. To summarize -- ${drugName} offers ${drug === 'euloxacaltenamide' ? 'significant tremor reduction with a favorable safety profile' : 'meaningful seizure frequency reduction with a novel mechanism of action'}. I'll send the detail materials and PI to your office.`);
-      add('contact', "I appreciate the update. I'll consider it for appropriate patients.");
+      add('agent', contactType === 'hcp'
+        ? `Thank you for your time, Dr. ${lastName}. To summarize -- ${drugName} offers ${drug === 'euloxacaltenamide' ? 'significant tremor reduction with a favorable safety profile' : 'meaningful seizure frequency reduction with a novel mechanism of action'}. I'll send the detail materials and PI to your office.`
+        : `Thank you for your time today, ${firstName}. I'll make sure all the information we discussed is sent to you and your care team.`);
+      add('contact', contactType === 'hcp' ? "I'll review it. Thank you." : "I appreciate all the help.");
       break;
     case 'prior-auth-initiated':
-      add('agent', `I've initiated the prior authorization process. Our team will work directly with the payer. You should have a determination within 5-7 business days. I'll keep you updated.`);
-      add('contact', "Thank you. My patients really need this medication.");
+      add('agent', `I've initiated the prior authorization process. Our team will work directly with the payer. ${contactType === 'patient' ? `You should have a determination within 5-7 business days, ${firstName}. I'll keep you updated.` : `Determination expected within 5-7 business days, Dr. ${lastName}. We'll keep your office informed.`}`);
+      add('contact', contactType === 'patient' ? "Thank you. I really need this medication." : "Good. Keep my office in the loop.");
       break;
     case 'follow-up-scheduled':
-      add('agent', `I've scheduled a follow-up for ${pick(['next Tuesday at 2 PM', 'Thursday at 10 AM', 'next Monday at 3 PM'] as const)}. I'll have all the information ready for you.`);
-      add('contact', "Sounds good. Talk to you then.");
+      add('agent', `I've scheduled a follow-up for ${pick(['next Tuesday at 2 PM', 'Thursday at 10 AM', 'next Monday at 3 PM'] as const)}, ${contactType === 'patient' ? firstName : `Dr. ${lastName}`}. I'll have all the information ready for you.`);
+      add('contact', contactType === 'patient' ? "Sounds good. Talk to you then." : "Fine. Make sure you have the data ready.");
       break;
     case 'callback-requested':
-      add('contact', "Can you call me back? I'm in between patients right now.");
-      add('agent', `Of course. I'll call you back at ${pick(['3 PM', '4:30 PM', 'tomorrow morning'] as const)}. Thank you, Dr. ${firstName}.`);
+      add('contact', contactType === 'hcp' ? "Call me back. I'm between patients." : "Can you call me back? Now isn't a great time.");
+      add('agent', `Of course. I'll call you back at ${pick(['3 PM', '4:30 PM', 'tomorrow morning'] as const)}. Thank you, ${contactType === 'patient' ? firstName : `Dr. ${lastName}`}.`);
       break;
     case 'declined':
-      add('contact', "I appreciate the call but I'm not interested at this time.");
-      add('agent', `I completely understand. I'll note your preference. If anything changes, we're always here to help. Thank you for your time.`);
+      add('contact', contactType === 'hcp' ? "Not interested at this time." : "I appreciate the call but I'm not interested at this time.");
+      add('agent', `I completely understand. I'll note your preference. If anything changes, we're always here to help. Thank you for your time${contactType === 'hcp' ? `, Dr. ${lastName}` : `, ${firstName}`}.`);
       break;
   }
 
@@ -574,13 +605,82 @@ function generateLiaisonSummary(
   if (signals.some(s => s.category === 'ADHERENCE_SIGNAL')) indicators.push('Adherence gap confirmed -- therapy continuity at risk');
 
   const narrativeMap: Record<SupportPathwayId, string> = {
-    'hub-enrollment': `${agentType === 'patient-support' ? 'Aria' : 'Agent'} completed hub enrollment for ${contactName} on ${drugName}. ${isConversion ? 'Patient successfully enrolled in Praxis Support Hub. Benefits investigation initiated. Dedicated coordinator to contact within 48 hours.' : 'Patient expressed interest but did not complete enrollment. Follow-up recommended within 5 business days.'}`,
-    'copay-assistance': `Copay assistance interaction for ${contactName}. ${isConversion ? `Copay card activated -- patient eligible for $0 copay on ${drugName}. Specialty pharmacy notified.` : 'Copay assistance discussed. Patient needs follow-up on eligibility determination.'}`,
+    'hub-enrollment': `Emma completed hub enrollment for ${contactName} on ${drugName}. ${isConversion ? 'Patient successfully enrolled in Praxis Support Hub. Benefits investigation initiated. Dedicated coordinator to contact within 48 hours.' : 'Patient expressed interest but did not complete enrollment. Follow-up recommended within 5 business days.'}`,
+    'copay-assistance': `Copay assistance interaction for ${contactName}. ${isConversion ? `Copay card activated -- patient eligible for reduced out-of-pocket costs on ${drugName}. Specialty pharmacy notified.` : 'Copay assistance discussed. Patient needs follow-up on eligibility determination.'}`,
     'ae-reporting': `PHARMACOVIGILANCE ALERT -- AE screening for ${contactName} on ${drugName}. ${aeDetected ? 'Adverse event captured and documented. Case submitted to pharmacovigilance team for 24-hour review. Follow-up with prescribing physician required.' : 'No reportable adverse events identified during screening. Routine monitoring continues.'}`,
     'adherence-support': `Adherence support call for ${contactName} on ${drugName}. ${signals.some(s => s.category === 'ADHERENCE_SIGNAL') ? 'Adherence gap confirmed. Refill coordination initiated and reminder system established.' : 'Patient reports adequate adherence. Next scheduled check-in logged.'}`,
     'sample-request': `Sample request processed for ${contactName}. ${isConversion ? `${drugName} sample shipment initiated -- delivery in 3-5 business days. Clinical materials included in package.` : 'Sample request noted. Awaiting DEA/state license verification.'}`,
     'medical-inquiry': `Medical inquiry from ${contactName} regarding ${drugName}. ${isConversion ? 'Clinical data package sent. Peer-to-peer discussion arranged.' : 'Inquiry documented. Medical affairs team to provide detailed response within 48 hours.'} ${signals.some(s => s.category === 'COMPETITIVE_INTEL') ? 'COMPETITIVE INTELLIGENCE: Prescriber evaluating alternatives -- priority follow-up recommended.' : ''}`,
   };
+
+  // Block 1: Context summary
+  const contextSummary = contactType === 'hcp'
+    ? `${contactName}, ${contactType === 'hcp' ? 'HCP' : 'patient'}, ${drug === 'euloxacaltenamide' ? 'Essential Tremor' : 'DEE/Dravet'}, ${drugName}, ${priorityTier} risk tier`
+    : `${contactName}, patient, ${drug === 'euloxacaltenamide' ? 'Essential Tremor' : 'DEE/Dravet'}, ${drugName}, ${priorityTier} risk tier`;
+
+  // Block 2: What happened
+  const whatHappenedMap: Record<SupportPathwayId, string> = {
+    'hub-enrollment': `${isConversion ? 'Successful hub enrollment completed' : 'Hub enrollment discussed but not completed'}. ${aeDetected ? 'AE identified during interaction.' : 'No safety signals.'} ${contactType === 'hcp' ? 'HCP engaged with clinical questions.' : 'Patient receptive to support services.'}`,
+    'copay-assistance': `${isConversion ? 'Copay card activated successfully' : 'Copay assistance discussed'}. Patient expressed ${isConversion ? 'relief about cost reduction' : 'concern about medication costs'}.`,
+    'ae-reporting': `AE screening call completed. ${aeDetected ? 'Adverse event captured and documented -- routed to pharmacovigilance.' : 'No reportable AEs identified.'} Patient was ${isConversion ? 'cooperative and thorough' : 'briefly engaged'}.`,
+    'adherence-support': `Adherence check-in completed. ${signals.some(s => s.category === 'ADHERENCE_SIGNAL') ? 'Confirmed adherence gap -- refill coordination initiated.' : 'Adherence appears adequate.'} ${isConversion ? 'Intervention plan established.' : 'Monitoring continues.'}`,
+    'sample-request': `${isConversion ? 'Sample shipment initiated' : 'Sample request discussed'}. ${contactType === 'hcp' ? 'HCP plans to trial with appropriate patients.' : 'Sample logistics coordinated.'} Clinical materials included.`,
+    'medical-inquiry': `${isConversion ? 'Clinical data package sent and peer-to-peer arranged' : 'Medical inquiry documented for follow-up'}. ${contactType === 'hcp' ? 'HCP asked substantive clinical questions.' : 'Patient/caregiver seeking detailed information.'}`,
+  };
+
+  // Block 3: What changed since last touch
+  const whatChangedSinceLastTouch = signals.length > 0
+    ? signals.map(s => {
+        if (s.severity === 'high') return `HIGH signal: ${s.detail.slice(0, 80)}`;
+        return `${s.category}: ${s.detail.slice(0, 60)}`;
+      }).join('; ')
+    : 'No new signals since last interaction';
+
+  // Block 4: Clinical questions raised
+  const clinicalQuestionsPool: Record<SupportPathwayId, string[][]> = {
+    'hub-enrollment': [
+      ['What is the expected titration timeline for new patients?'],
+      ['Are there dietary restrictions while on therapy?'],
+      [],
+    ],
+    'copay-assistance': [
+      ['Will the copay card work with Medicare Part D?'],
+      [],
+      [],
+    ],
+    'ae-reporting': [
+      ['Is dizziness dose-related and will it resolve with continued use?', 'Should the dose be reduced or held?'],
+      ['What is the expected timeline for side effect resolution?'],
+      ['Are there drug interactions with current concomitant medications?'],
+    ],
+    'adherence-support': [
+      ['Can the dosing schedule be simplified to once daily?'],
+      ['What happens if doses are missed -- is re-titration needed?'],
+      [],
+    ],
+    'sample-request': [
+      [`What is the head-to-head efficacy vs ${drug === 'euloxacaltenamide' ? 'propranolol' : 'fenfluramine'}?`],
+      ['What is the recommended titration for treatment-naive patients?'],
+      [`Are there subgroup analyses for ${drug === 'euloxacaltenamide' ? 'elderly patients with comorbidities' : 'pediatric patients under age 6'}?`],
+    ],
+    'medical-inquiry': [
+      [`What are the Phase 3 primary endpoint results for ${drugName}?`, 'Is there real-world evidence data available?'],
+      [`How does the safety profile compare to ${drug === 'euloxacaltenamide' ? 'propranolol and primidone' : 'fenfluramine and cannabidiol'}?`],
+      ['Are there ongoing trials for additional indications?', 'What is the mechanism of action differentiation?'],
+    ],
+  };
+  const clinicalQuestionsRaised = pick(clinicalQuestionsPool[pathway]);
+
+  // Block 5: Recommended action
+  const recommendedActionBlock = aeDetected
+    ? 'Pharmacovigilance team to complete AE review within 24 hours. Prescribing physician to be notified.'
+    : isConversion && contactType === 'hcp'
+    ? `MSL to follow up with ${contactName} within 5 business days to address outstanding clinical questions`
+    : isConversion
+    ? `Care coordinator to contact ${contactName} within 48 hours to confirm enrollment and next steps`
+    : outcome === 'declined'
+    ? `Re-engage in 30 days or upon new clinical signal. Do not contact before then.`
+    : `Schedule follow-up via ${priorityTier === 'HIGH' ? 'voice within 48 hours' : 'preferred channel within 7 days'}`;
 
   return {
     engagementScore,
@@ -657,6 +757,12 @@ function generateLiaisonSummary(
           `Patient experienced headache and tremor worsening. Onset: 5 days post-initiation. Severity: moderate. Prescriber notified.`,
         ] as const)
       : undefined,
+    // Structured 5-block liaison summary
+    contextSummary,
+    whatHappened: whatHappenedMap[pathway],
+    whatChangedSinceLastTouch,
+    clinicalQuestionsRaised,
+    recommendedAction: recommendedActionBlock,
   };
 }
 
@@ -668,6 +774,8 @@ function generateClassification(
   pathway: SupportPathwayId,
   signals: BehavioralSignal[],
   liaisonSummary: LiaisonSummary,
+  contactType: 'patient' | 'hcp',
+  drug: DrugProduct,
 ): Classification {
   const isConversion = CONVERSION_OUTCOMES.includes(outcome);
   const isNoConnect = NON_CONNECT_OUTCOMES.includes(outcome);
@@ -693,6 +801,41 @@ function generateClassification(
       keyMoments.push(`${outcome.replace(/-/g, ' ')} confirmed`);
     }
   }
+
+  // Competitive intel notes -- ~30% of HCP calls get realistic CI notes
+  const competitiveIntelNotes: string[] = [];
+  if (contactType === 'hcp' && !isNoConnect && rng() < 0.3) {
+    if (drug === 'euloxacaltenamide') {
+      competitiveIntelNotes.push(...pick([
+        ['Dr. mentioned considering topiramate for patients who cannot tolerate propranolol'],
+        ['Practice currently using primidone as first-line for ET -- interested in alternatives with better side effect profile'],
+        ['Asked about head-to-head data vs propranolol -- wants to see tremor reduction comparison'],
+        ['Mentioned several patients switching from propranolol due to fatigue and bradycardia side effects'],
+        ['Expressed concern about gabapentin being used off-label for ET at competing practice'],
+      ] as const));
+    } else {
+      competitiveIntelNotes.push(...pick([
+        ['Compared Relutrigine seizure reduction data to fenfluramine -- wants to see long-term safety data'],
+        ['Currently prescribing cannabidiol for most Dravet patients -- open to alternatives if seizure control is superior'],
+        ['Mentioned that fenfluramine has formulary preference at two major local payers'],
+        ['Asked about Relutrigine mechanism differentiation vs other sodium channel blockers'],
+        ['Practice seeing good results with stiripentol combination -- wants evidence for Relutrigine add-on therapy'],
+      ] as const));
+    }
+  }
+
+  // MSL follow-up detection -- HCP calls with medical inquiry or sample request
+  const mslFollowupRequested = contactType === 'hcp' && !isNoConnect
+    && (pathway === 'medical-inquiry' || pathway === 'sample-request')
+    && rng() < 0.5;
+  const mslFollowupTopic = mslFollowupRequested
+    ? pick([
+        `Peer-to-peer discussion on ${drug === 'euloxacaltenamide' ? 'ELEX Phase 3 subgroup analysis for elderly patients' : 'Relutrigine long-term safety in pediatric Dravet patients'}`,
+        `Clinical data request: ${drug === 'euloxacaltenamide' ? 'TREMOR-1 trial quality-of-life endpoints' : 'NAVIGATE trial open-label extension results'}`,
+        `Scientific exchange on ${drug === 'euloxacaltenamide' ? 'ELEX mechanism of action and T-type calcium channel selectivity' : 'Relutrigine sodium channel binding profile vs existing SCBs'}`,
+        `Off-label inquiry: use in ${drug === 'euloxacaltenamide' ? 'orthostatic tremor' : 'Lennox-Gastaut syndrome'}`,
+      ] as const)
+    : undefined;
 
   return {
     outcome,
@@ -720,6 +863,9 @@ function generateClassification(
     liaison_summary: liaisonSummary.callSummaryForLiaison,
     aeDetected: liaisonSummary.aeDetected,
     aeNarrative: liaisonSummary.aeDetails,
+    competitiveIntelNotes,
+    mslFollowupRequested: mslFollowupRequested || undefined,
+    mslFollowupTopic,
   };
 }
 
@@ -840,8 +986,45 @@ function buildAllCalls(): CallRecord[] {
 
     const transcript = generateTranscript(outcome, pathway, contact.name, contact.contactType, contact.drugProduct, agentType);
     const liaisonSummary = generateLiaisonSummary(pathway, outcome, signals, priorityTier, contact.name, contact.contactType, contact.drugProduct, agentType);
-    const classification = generateClassification(outcome, pathway, signals, liaisonSummary);
+    const classification = generateClassification(outcome, pathway, signals, liaisonSummary, contact.contactType, contact.drugProduct);
     const screeningResults = generateScreeningResults(pathway, !isNoConnect, callDate.toISOString());
+
+    // FRM-relevant fields for patient calls
+    const isPatient = contact.contactType === 'patient';
+    const payerName = isPatient ? contact.insurancePlan : undefined;
+    let priorAuthStatus: CallRecord['priorAuthStatus'] = undefined;
+    let denialReason: string | undefined = undefined;
+    let timeToTherapyDays: number | undefined = undefined;
+
+    if (isPatient && !isNoConnect) {
+      // Assign prior auth status based on pathway and randomness
+      if (pathway === 'adherence-support' || pathway === 'hub-enrollment') {
+        priorAuthStatus = pick(['approved', 'approved', 'not-needed', 'pending'] as const);
+      } else if (outcome === 'prior-auth-initiated' || signals.some(s => s.detail.toLowerCase().includes('prior auth'))) {
+        priorAuthStatus = pick(['pending', 'pending', 'denied', 'appealing'] as const);
+      } else if (rng() < 0.3) {
+        priorAuthStatus = pick(['approved', 'not-needed'] as const);
+      }
+
+      if (priorAuthStatus === 'denied') {
+        denialReason = pick([
+          'Step therapy requirement not met -- propranolol trial required first',
+          'Medical necessity documentation insufficient',
+          'Non-formulary -- preferred alternative available',
+          'Prior authorization expired -- resubmission required',
+          'Quantity limit exceeded -- dosing justification needed',
+        ] as const);
+      }
+
+      // Time to therapy -- shorter for approved, longer for denied/pending
+      if (priorAuthStatus === 'approved' || priorAuthStatus === 'not-needed') {
+        timeToTherapyDays = randInt(3, 14);
+      } else if (priorAuthStatus === 'pending') {
+        timeToTherapyDays = randInt(12, 30);
+      } else if (priorAuthStatus === 'denied' || priorAuthStatus === 'appealing') {
+        timeToTherapyDays = randInt(25, 60);
+      }
+    }
 
     calls.push({
       id: pseudoUUID(),
@@ -867,6 +1050,10 @@ function buildAllCalls(): CallRecord[] {
       channel: 'voice',
       screeningResults,
       aeDetected: liaisonSummary.aeDetected,
+      payerName,
+      priorAuthStatus,
+      denialReason,
+      timeToTherapyDays,
     });
   }
 
@@ -1043,6 +1230,99 @@ export function getAnalytics(period: 'today' | 'week' | 'all' = 'all'): Analytic
 }
 
 // ---------------------------------------------------------------------------
+// MSL Follow-Up Requests -- seed entries derived from calls with follow-up flags
+// ---------------------------------------------------------------------------
+function buildMSLFollowUpRequests(): MSLFollowUpRequest[] {
+  const requests: MSLFollowUpRequest[] = [];
+  const hcpCalls = ALL_CALLS.filter(
+    c => c.contactType === 'hcp'
+      && c.classification.mslFollowupRequested
+      && c.classification.mslFollowupTopic,
+  );
+
+  // Generate from flagged calls first
+  for (const call of hcpCalls.slice(0, 3)) {
+    requests.push({
+      id: `msl-req-${pseudoUUID().slice(0, 8)}`,
+      callId: call.id,
+      contactId: call.contactId,
+      contactName: call.contactName,
+      contactType: 'hcp',
+      requestType: call.classification.mslFollowupTopic!.toLowerCase().includes('peer-to-peer')
+        ? 'peer-to-peer'
+        : call.classification.mslFollowupTopic!.toLowerCase().includes('off-label')
+        ? 'off-label-inquiry'
+        : 'clinical-data',
+      topic: call.classification.mslFollowupTopic!,
+      urgency: call.urgency,
+      assignedMSL: pick([undefined, 'Dr. Sarah Mitchell', 'Dr. Kevin Zhao'] as const),
+      status: pick(['new', 'new', 'assigned', 'scheduled'] as const),
+      createdAt: call.timestamp,
+    });
+  }
+
+  // Add 2 static entries to guarantee we always have at least 4 for demo
+  if (requests.length < 4) {
+    requests.push({
+      id: 'msl-req-static-001',
+      callId: ALL_CALLS.find(c => c.contactId === 'HCP-004')?.id ?? ALL_CALLS[0].id,
+      contactId: 'HCP-004',
+      contactName: 'Dr. Lisa Rodriguez',
+      contactType: 'hcp',
+      requestType: 'peer-to-peer',
+      topic: 'Peer-to-peer discussion on Relutrigine efficacy in pediatric Dravet patients under age 6 -- wants to discuss NAVIGATE subgroup data with KOL',
+      urgency: 'soon',
+      assignedMSL: 'Dr. Sarah Mitchell',
+      status: 'assigned',
+      createdAt: new Date('2026-03-15T14:30:00Z').toISOString(),
+    });
+  }
+  if (requests.length < 5) {
+    requests.push({
+      id: 'msl-req-static-002',
+      callId: ALL_CALLS.find(c => c.contactId === 'HCP-001')?.id ?? ALL_CALLS[0].id,
+      contactId: 'HCP-001',
+      contactName: 'Dr. James Thornton',
+      contactType: 'hcp',
+      requestType: 'clinical-data',
+      topic: 'ELEX Phase 3 TREMOR-1 trial subgroup analysis for patients aged 65+ with cardiovascular comorbidities',
+      urgency: 'routine',
+      assignedMSL: undefined,
+      status: 'new',
+      createdAt: new Date('2026-03-16T09:15:00Z').toISOString(),
+    });
+  }
+  if (requests.length < 5) {
+    requests.push({
+      id: 'msl-req-static-003',
+      callId: ALL_CALLS.find(c => c.contactId === 'HCP-005')?.id ?? ALL_CALLS[0].id,
+      contactId: 'HCP-005',
+      contactName: 'Dr. David Kim',
+      contactType: 'hcp',
+      requestType: 'scientific-exchange',
+      topic: 'Scientific exchange on Relutrigine sodium channel selectivity profile vs fenfluramine mechanism -- preparing for advisory board presentation',
+      urgency: 'soon',
+      assignedMSL: 'Dr. Kevin Zhao',
+      status: 'scheduled',
+      createdAt: new Date('2026-03-14T11:00:00Z').toISOString(),
+    });
+  }
+
+  return requests;
+}
+
+const ALL_MSL_FOLLOWUP_REQUESTS = buildMSLFollowUpRequests();
+
+export function getMSLFollowUpRequests(): MSLFollowUpRequest[] {
+  return ALL_MSL_FOLLOWUP_REQUESTS;
+}
+
+export function getMSLFollowUpRequestsByStatus(status?: MSLFollowUpRequest['status']): MSLFollowUpRequest[] {
+  if (!status) return ALL_MSL_FOLLOWUP_REQUESTS;
+  return ALL_MSL_FOLLOWUP_REQUESTS.filter(r => r.status === status);
+}
+
+// ---------------------------------------------------------------------------
 // Signal Feed builder
 // ---------------------------------------------------------------------------
 export function buildSignalFeed(calls: CallRecord[]): ContactSignalFeed[] {
@@ -1062,4 +1342,238 @@ export function buildSignalFeed(calls: CallRecord[]): ContactSignalFeed[] {
       })),
     )
     .slice(0, 15);
+}
+
+// ---------------------------------------------------------------------------
+// Evidence Cohort -- 437 ET/ELEX patients with TETRAS-LITE trajectories
+// ---------------------------------------------------------------------------
+
+/** Box-Muller normal distribution using the module-level PRNG. */
+function normalRng(mean: number, sd: number): number {
+  const u1 = rng();
+  const u2 = rng();
+  const z = Math.sqrt(-2 * Math.log(u1 || 0.0001)) * Math.cos(2 * Math.PI * u2);
+  return mean + z * sd;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+/** Generate the 437-patient cohort once at module load. */
+function buildPatientCohort(): PatientOutcomeRecord[] {
+  const COHORT_SIZE = 437;
+  const timepoints: OutcomeTimepoint[] = ['baseline', '30d', '60d', '90d'];
+  // Improvement factors per timepoint (multiplied against baseline score)
+  const improvementFactors: Record<Exclude<OutcomeTimepoint, 'baseline'>, number> = {
+    '30d': 0.78,
+    '60d': 0.69,
+    '90d': 0.65,
+  };
+  // Dropout probability at each follow-up timepoint
+  const dropoutProbs: Record<Exclude<OutcomeTimepoint, 'baseline'>, number> = {
+    '30d': 0.07,
+    '60d': 0.08,
+    '90d': 0.09,
+  };
+
+  const patients: PatientOutcomeRecord[] = [];
+
+  for (let i = 0; i < COHORT_SIZE; i++) {
+    const patientId = `cohort-${String(i + 1).padStart(4, '0')}`;
+    const enrolledAt = new Date(Date.UTC(2024, 6, 1) + i * 12 * 60 * 60 * 1000).toISOString();
+
+    // Baseline score: clamped normal (mean 5.5, SD 1.2, range 1-8), rounded to integer
+    const baselineRaw = normalRng(5.5, 1.2);
+    const baselineScore = Math.round(clamp(baselineRaw, 1, 8));
+
+    const tetrasScores: Partial<Record<OutcomeTimepoint, number>> = {
+      baseline: baselineScore,
+    };
+    const mmasScores: Partial<Record<OutcomeTimepoint, number>> = {
+      baseline: Math.round(clamp(normalRng(2.5, 0.8), 0, 4)),
+    };
+
+    let droppedOut = false;
+
+    for (const tp of ['30d', '60d', '90d'] as const) {
+      if (droppedOut) break;
+      // Dropout probability is slightly higher for patients with less improvement
+      const factor = improvementFactors[tp];
+      const baseDropout = dropoutProbs[tp];
+      // Patients with higher baseline (worse disease) persist slightly more
+      const adjustedDropout = baseDropout + (baselineScore < 4 ? 0.02 : -0.01);
+      if (rng() < adjustedDropout) {
+        droppedOut = true;
+        break;
+      }
+      // Score at this timepoint: improvement factor × baseline, with noise, clamped 0-8
+      const rawScore = baselineScore * factor + normalRng(0, 0.3);
+      tetrasScores[tp] = Math.round(clamp(rawScore, 0, 8));
+      mmasScores[tp] = Math.round(clamp(normalRng(3.0, 0.6), 0, 4));
+    }
+
+    const persistedAt90d = !droppedOut;
+
+    // ~12% AE rate, ~2.3% serious AE rate (subset of AE)
+    const aeReported = rng() < 0.12;
+    const seriousAeReported = aeReported && rng() < 0.19; // ~2.3% of total = 19% of 12%
+
+    patients.push({
+      patientId,
+      therapeuticArea: 'essential-tremor',
+      drugProduct: 'euloxacaltenamide',
+      enrolledAt,
+      tetrasScores,
+      mmasScores,
+      persistedAt90d,
+      aeReported,
+      seriousAeReported,
+    });
+  }
+
+  return patients;
+}
+
+function computeCohortStats(
+  patients: PatientOutcomeRecord[],
+  timepoint: OutcomeTimepoint,
+): CohortTimepointStats {
+  const scores = patients
+    .map(p => p.tetrasScores[timepoint])
+    .filter((s): s is number => s !== undefined);
+
+  const n = scores.length;
+  const mean = scores.reduce((a, b) => a + b, 0) / n;
+
+  const sorted = [...scores].sort((a, b) => a - b);
+  const mid = Math.floor(n / 2);
+  const median = n % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+
+  const variance = scores.reduce((acc, s) => acc + (s - mean) ** 2, 0) / n;
+  const stdDev = Math.sqrt(variance);
+
+  const sem = stdDev / Math.sqrt(n);
+  const ci95Lower = mean - 1.96 * sem;
+  const ci95Upper = mean + 1.96 * sem;
+
+  // Percent improved vs baseline (score decreased)
+  let improvedCount = 0;
+  if (timepoint !== 'baseline') {
+    for (const p of patients) {
+      const baselineScore = p.tetrasScores.baseline;
+      const tpScore = p.tetrasScores[timepoint];
+      if (baselineScore !== undefined && tpScore !== undefined && tpScore < baselineScore) {
+        improvedCount++;
+      }
+    }
+  }
+  const percentImprovedFromBaseline =
+    timepoint === 'baseline' ? 0 : improvedCount / patients.length;
+
+  return {
+    timepoint,
+    n,
+    mean,
+    median,
+    stdDev,
+    ci95Lower,
+    ci95Upper,
+    percentImprovedFromBaseline,
+  };
+}
+
+function computePayerCard(
+  patients: PatientOutcomeRecord[],
+  cohort: CohortOutcomeData,
+): PayerEvidenceCard {
+  // Point estimate AND CI computed from same eligible patient set (both baseline and 90d scores)
+  const eligible = patients.filter(
+    p => p.tetrasScores.baseline !== undefined && p.tetrasScores['90d'] !== undefined,
+  );
+
+  const improvements = eligible.map(p => {
+    const baseline = p.tetrasScores.baseline!;
+    const score90d = p.tetrasScores['90d']!;
+    return baseline > 0 ? (baseline - score90d) / baseline : 0;
+  });
+
+  const n = improvements.length;
+  const meanImprovementPct = improvements.reduce((a, b) => a + b, 0) / n;
+
+  const variance = improvements.reduce((acc, v) => acc + (v - meanImprovementPct) ** 2, 0) / n;
+  const sem = Math.sqrt(variance) / Math.sqrt(n);
+  const ci95: [number, number] = [meanImprovementPct - 1.96 * sem, meanImprovementPct + 1.96 * sem];
+
+  const baselineStats = cohort.trajectory.find(t => t.timepoint === 'baseline')!;
+  const stats90d = cohort.trajectory.find(t => t.timepoint === '90d')!;
+
+  const aeRate = patients.filter(p => p.aeReported).length / patients.length;
+  const seriousAeRate = patients.filter(p => p.seriousAeReported).length / patients.length;
+
+  // MMAS-4 adherence at 90d (score 3-4 = adherent)
+  const adherentAt90d = patients.filter(p => {
+    const score = p.mmasScores['90d'];
+    return score !== undefined && score >= 3;
+  });
+  const adherenceRate90d = adherentAt90d.length / patients.length;
+
+  const improvementPctRounded = Math.round(meanImprovementPct * 100);
+  const headline = `${improvementPctRounded}% mean TETRAS-LITE improvement at 90 days in ${patients.length} ET patients on ELEX`;
+
+  return {
+    generatedAt: new Date(Date.UTC(2024, 11, 1)).toISOString(),
+    cohortSize: patients.length,
+    meanBaselineScore: baselineStats.mean,
+    mean90dScore: stats90d.mean,
+    meanImprovementPct,
+    ci95,
+    persistenceRate90d: cohort.persistenceRate['90d'],
+    adherenceRate90d,
+    aeRate,
+    seriousAeRate,
+    headline,
+  };
+}
+
+// Module-level singletons (generated once, deterministic)
+const ALL_PATIENT_OUTCOMES: PatientOutcomeRecord[] = buildPatientCohort();
+
+const ALL_COHORT_OUTCOME_DATA: CohortOutcomeData = (() => {
+  const timepoints: OutcomeTimepoint[] = ['baseline', '30d', '60d', '90d'];
+  const trajectory = timepoints.map(tp => computeCohortStats(ALL_PATIENT_OUTCOMES, tp));
+  const total = ALL_PATIENT_OUTCOMES.length;
+  const persistenceRate: Record<Exclude<OutcomeTimepoint, 'baseline'>, number> = {
+    '30d': trajectory.find(t => t.timepoint === '30d')!.n / total,
+    '60d': trajectory.find(t => t.timepoint === '60d')!.n / total,
+    '90d': trajectory.find(t => t.timepoint === '90d')!.n / total,
+  };
+  const aeIncidenceRate = ALL_PATIENT_OUTCOMES.filter(p => p.aeReported).length / total;
+  return {
+    therapeuticArea: 'essential-tremor',
+    drugProduct: 'euloxacaltenamide',
+    instrumentId: 'TETRAS-LITE',
+    instrumentLabel: 'TETRAS-LITE Tremor Score',
+    totalEnrolled: total,
+    trajectory,
+    persistenceRate,
+    aeIncidenceRate,
+  };
+})();
+
+const ALL_PAYER_EVIDENCE_CARD: PayerEvidenceCard = computePayerCard(
+  ALL_PATIENT_OUTCOMES,
+  ALL_COHORT_OUTCOME_DATA,
+);
+
+export function getPatientOutcomes(): PatientOutcomeRecord[] {
+  return ALL_PATIENT_OUTCOMES;
+}
+
+export function getCohortOutcomeData(): CohortOutcomeData {
+  return ALL_COHORT_OUTCOME_DATA;
+}
+
+export function getPayerEvidenceCard(): PayerEvidenceCard {
+  return ALL_PAYER_EVIDENCE_CARD;
 }
