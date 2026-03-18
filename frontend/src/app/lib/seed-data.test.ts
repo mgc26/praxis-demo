@@ -46,7 +46,7 @@ describe('getContactQueue (seed contacts)', () => {
       expect(c.phone.length).toBeGreaterThan(0);
       expect(['patient', 'hcp']).toContain(c.contactType);
       expect(['patient-support', 'hcp-support', 'hcp-outbound', 'medcomms-qa', undefined]).toContain(
-        (c as Record<string, unknown>).agentType,
+        (c as unknown as Record<string, unknown>).agentType,
       );
       expect(['essential-tremor', 'dee']).toContain(c.therapeuticArea);
     }

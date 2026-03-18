@@ -1251,7 +1251,7 @@ export function getAnalytics(period: 'today' | 'week' | 'all' = 'all'): Analytic
     agentTypeDistribution[c.agentType]++;
   }
 
-  const therapeuticAreaDistribution: Record<TherapeuticArea, number> = {
+  const therapeuticAreaDistribution: Record<string, number> = {
     'essential-tremor': 0,
     'dee': 0,
   };

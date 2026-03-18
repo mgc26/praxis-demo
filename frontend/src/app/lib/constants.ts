@@ -1,17 +1,16 @@
 import type {
   AgentPersona,
   AgentType,
-  DrugProduct,
-  InteractionOutcome,
-  SignalCategory,
   SupportPathway,
   SupportPathwayId,
   TherapeuticArea,
   UrgencyLevel,
 } from './types';
+import type { BrandPack } from './brands';
+import { praxisBrand } from './brands/praxis';
 
 // ---------------------------------------------------------------------------
-// Brand palette -- Praxis + Vi
+// Brand palette -- Praxis + Vi (kept as-is; already CSS-variable-driven)
 // ---------------------------------------------------------------------------
 export const COLORS = {
   // Praxis official (scraped from praxismedicines.com)
@@ -48,7 +47,7 @@ export const COLORS = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// Agent Types (4)
+// Agent Types (4) -- structural, same across all brands
 // ---------------------------------------------------------------------------
 export const AGENT_TYPE_CONFIG: Record<AgentType, { label: string; description: string; color: string }> = {
   'patient-support': {
@@ -74,17 +73,79 @@ export const AGENT_TYPE_CONFIG: Record<AgentType, { label: string; description: 
 };
 
 // ---------------------------------------------------------------------------
-// Therapeutic Areas
+// Brand-aware lookup functions
 // ---------------------------------------------------------------------------
-export const THERAPEUTIC_AREAS: Record<TherapeuticArea, { label: string; color: string }> = {
+
+/** Return a Record mapping drug product IDs to their brand/generic/TA info. */
+export function getDrugProducts(brand: BrandPack) {
+  return Object.fromEntries(
+    brand.products.map(p => [
+      p.id,
+      {
+        label: `${p.genericName} (${p.brandName})`,
+        brandName: p.brandName,
+        genericName: p.genericName,
+        therapeuticArea: p.therapeuticArea,
+        therapeuticAreaLabel: p.therapeuticAreaLabel,
+        indication: p.indication,
+      },
+    ]),
+  );
+}
+
+/** Return a Record mapping therapeutic area IDs to { label }. */
+export function getTherapeuticAreas(brand: BrandPack) {
+  return Object.fromEntries(brand.therapeuticAreas.map(ta => [ta.id, { label: ta.label }]));
+}
+
+/** Return a Record mapping support pathway IDs to { label, color }. */
+export function getSupportPathways(brand: BrandPack) {
+  return Object.fromEntries(brand.supportPathways.map(sp => [sp.id, { label: sp.label, color: sp.color }]));
+}
+
+/** Return a Record mapping agent types to persona { name, greeting, description }. */
+export function getDefaultPersonas(brand: BrandPack) {
+  return Object.fromEntries(
+    brand.agentPersonas.map(p => [p.agentType, { name: p.name, greeting: p.greeting, description: p.description }]),
+  );
+}
+
+/** Return the outcome labels Record from a brand pack. */
+export function getOutcomeLabels(brand: BrandPack) {
+  return brand.outcomeLabels;
+}
+
+/** Return demo scenarios grouped by agent type from a brand pack. */
+export function getDemoScenarios(brand: BrandPack) {
+  const grouped: Record<string, Array<{ id: string; label: string; description: string }>> = {};
+
+  for (const s of brand.demoScenarios) {
+    if (!grouped[s.agentType]) {
+      grouped[s.agentType] = [];
+    }
+    const prefix = s.agentType === 'patient-support' ? 'ps'
+      : s.agentType === 'hcp-support' ? 'hcp'
+      : s.agentType === 'hcp-outbound' ? 'hco'
+      : 'mqa';
+    const slug = s.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    grouped[s.agentType].push({ id: `${prefix}-${slug}`, label: s.label, description: s.description });
+  }
+
+  return grouped;
+}
+
+// ---------------------------------------------------------------------------
+// Legacy static exports -- Praxis defaults for backward compatibility
+// ---------------------------------------------------------------------------
+
+/** @deprecated Use getTherapeuticAreas(brand) instead */
+export const THERAPEUTIC_AREAS: Record<string, { label: string; color: string }> = {
   'essential-tremor': { label: 'Essential Tremor (ET)', color: '#00B9CE' },
   'dee': { label: 'DEE (Dravet Epilepsy)', color: '#7C3AED' },
 };
 
-// ---------------------------------------------------------------------------
-// Drug Products
-// ---------------------------------------------------------------------------
-export const DRUG_PRODUCTS: Record<DrugProduct, { label: string; brandName: string; therapeuticArea: TherapeuticArea; color: string }> = {
+/** @deprecated Use getDrugProducts(brand) instead */
+export const DRUG_PRODUCTS: Record<string, { label: string; brandName: string; therapeuticArea: TherapeuticArea; color: string }> = {
   'euloxacaltenamide': {
     label: 'Euloxacaltenamide (ELEX)',
     brandName: 'ELEX',
@@ -99,9 +160,7 @@ export const DRUG_PRODUCTS: Record<DrugProduct, { label: string; brandName: stri
   },
 };
 
-// ---------------------------------------------------------------------------
-// Support Pathways (6)
-// ---------------------------------------------------------------------------
+/** @deprecated Use getSupportPathways(brand) instead */
 export const SUPPORT_PATHWAYS: SupportPathway[] = [
   {
     id: 'hub-enrollment',
@@ -166,23 +225,10 @@ export const SUPPORT_PATHWAY_MAP: Record<SupportPathwayId, SupportPathway> = Obj
 // ---------------------------------------------------------------------------
 // Interaction Outcomes (13)
 // ---------------------------------------------------------------------------
-export const OUTCOME_LABELS: Record<InteractionOutcome, string> = {
-  'hub-enrolled': 'Hub Enrolled',
-  'copay-card-issued': 'Copay Card Issued',
-  'ae-report-filed': 'AE Report Filed',
-  'adherence-counseling': 'Adherence Counseling',
-  'sample-shipped': 'Sample Shipped',
-  'medical-info-provided': 'Medical Info Provided',
-  'hcp-detail-completed': 'HCP Detail Completed',
-  'prior-auth-initiated': 'Prior Auth Initiated',
-  'callback-requested': 'Callback Requested',
-  'follow-up-scheduled': 'Follow-Up Scheduled',
-  'declined': 'Declined',
-  'no-answer': 'No Answer',
-  'voicemail': 'Voicemail Left',
-};
+/** @deprecated Use getOutcomeLabels(brand) instead */
+export const OUTCOME_LABELS: Record<string, string> = getOutcomeLabels(praxisBrand);
 
-export const OUTCOME_COLORS: Record<InteractionOutcome, string> = {
+export const OUTCOME_COLORS: Record<string, string> = {
   'hub-enrolled': '#059669',
   'copay-card-issued': '#7C3AED',
   'ae-report-filed': '#DC2626',
@@ -198,7 +244,7 @@ export const OUTCOME_COLORS: Record<InteractionOutcome, string> = {
   'voicemail': '#A1A1AA',
 };
 
-export const CONVERSION_OUTCOMES: InteractionOutcome[] = [
+export const CONVERSION_OUTCOMES: string[] = [
   'hub-enrolled',
   'copay-card-issued',
   'ae-report-filed',
@@ -210,15 +256,15 @@ export const CONVERSION_OUTCOMES: InteractionOutcome[] = [
   'follow-up-scheduled',
 ];
 
-export const NON_CONNECT_OUTCOMES: InteractionOutcome[] = [
+export const NON_CONNECT_OUTCOMES: string[] = [
   'no-answer',
   'voicemail',
 ];
 
 // ---------------------------------------------------------------------------
-// Signal Category definitions
+// Signal Category definitions (generic, not brand-specific)
 // ---------------------------------------------------------------------------
-export const SIGNAL_CATEGORY_LABELS: Record<SignalCategory, string> = {
+export const SIGNAL_CATEGORY_LABELS: Record<string, string> = {
   SEARCH_INTENT: 'Search Intent',
   RX_PATTERN: 'Rx Pattern',
   CLAIMS_SIGNAL: 'Claims Signal',
@@ -227,7 +273,7 @@ export const SIGNAL_CATEGORY_LABELS: Record<SignalCategory, string> = {
   COMPETITIVE_INTEL: 'Competitive Intel',
 };
 
-export const SIGNAL_CATEGORY_COLORS: Record<SignalCategory, string> = {
+export const SIGNAL_CATEGORY_COLORS: Record<string, string> = {
   SEARCH_INTENT: '#0891B2',
   RX_PATTERN: '#7C3AED',
   CLAIMS_SIGNAL: '#D97706',
@@ -237,7 +283,7 @@ export const SIGNAL_CATEGORY_COLORS: Record<SignalCategory, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Urgency levels
+// Urgency levels (generic, not brand-specific)
 // ---------------------------------------------------------------------------
 export const URGENCY_LABELS: Record<UrgencyLevel, string> = {
   urgent: 'Urgent',
@@ -252,22 +298,23 @@ export const URGENCY_COLORS: Record<UrgencyLevel, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Languages
+// Languages (generic, not brand-specific)
 // ---------------------------------------------------------------------------
 export const LANGUAGES = [
-  { value: 'en-US', label: 'English (US)' },
-  { value: 'es-US', label: 'Spanish (US)' },
-  { value: 'zh-CN', label: 'Chinese (Simplified)' },
+  { value: 'en-US', label: 'English' },
+  { value: 'es-US', label: 'Spanish' },
+  { value: 'zh-CN', label: 'Mandarin' },
   { value: 'fr-FR', label: 'French' },
-  { value: 'de-DE', label: 'German' },
-  { value: 'pt-BR', label: 'Portuguese (BR)' },
-  { value: 'ja-JP', label: 'Japanese' },
+  { value: 'pt-BR', label: 'Portuguese' },
   { value: 'ko-KR', label: 'Korean' },
+  { value: 'vi-VN', label: 'Vietnamese' },
+  { value: 'ar-SA', label: 'Arabic' },
 ] as const;
 
 // ---------------------------------------------------------------------------
 // Default Agent Personas -- 4 agents
 // ---------------------------------------------------------------------------
+/** @deprecated Use getDefaultPersonas(brand) instead */
 export const DEFAULT_PERSONAS: Record<AgentType, AgentPersona> = {
   'patient-support': {
     name: 'Aria',
@@ -330,29 +377,9 @@ export const DEFAULT_PERSONAS: Record<AgentType, AgentPersona> = {
 // ---------------------------------------------------------------------------
 // Demo scenarios per agent type
 // ---------------------------------------------------------------------------
-export const DEMO_SCENARIOS: Record<AgentType, Array<{ id: string; label: string; description: string }>> = {
-  'patient-support': [
-    { id: 'ps-hub-enroll', label: 'Hub Enrollment', description: 'New patient enrolling in Praxis Support Hub for ELEX' },
-    { id: 'ps-copay', label: 'Copay Card Activation', description: 'Patient activating copay assistance for Relutrigine' },
-    { id: 'ps-ae', label: 'AE Report', description: 'Patient reports adverse event during adherence check-in' },
-    { id: 'ps-adherence', label: 'Adherence Check-in', description: 'Proactive adherence support call for ELEX patient' },
-  ],
-  'hcp-support': [
-    { id: 'hcp-medinfo', label: 'Medical Inquiry', description: 'Neurologist requesting ELEX clinical trial data' },
-    { id: 'hcp-sample', label: 'Sample Request', description: 'Movement disorder specialist requesting ELEX samples' },
-    { id: 'hcp-formulary', label: 'Formulary Support', description: 'HCP needs prior auth support for Relutrigine' },
-  ],
-  'hcp-outbound': [
-    { id: 'hco-detail', label: 'Product Detail', description: 'Proactive ELEX detail call to neurologist' },
-    { id: 'hco-switch', label: 'Switch Opportunity', description: 'Competitive switch discussion for ET patients' },
-    { id: 'hco-launch', label: 'Launch Update', description: 'Relutrigine launch update to epileptologist' },
-  ],
-  'medcomms-qa': [
-    { id: 'mqa-review', label: 'Transcript Review', description: 'QA review of patient support interaction' },
-    { id: 'mqa-offlabel', label: 'Off-Label Check', description: 'Off-label mention detection in HCP call' },
-    { id: 'mqa-ae-audit', label: 'AE Audit', description: 'Audit AE capture completeness across interactions' },
-  ],
-};
+/** @deprecated Use getDemoScenarios(brand) instead */
+export const DEMO_SCENARIOS: Record<AgentType, Array<{ id: string; label: string; description: string }>> =
+  getDemoScenarios(praxisBrand) as Record<AgentType, Array<{ id: string; label: string; description: string }>>;
 
 // ---------------------------------------------------------------------------
 // Backend URL

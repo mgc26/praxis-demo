@@ -9,46 +9,21 @@ export type AgentType =
   | 'hcp-outbound'
   | 'medcomms-qa';
 
-export type TherapeuticArea = 'essential-tremor' | 'dee';
+export type TherapeuticArea = string;
 
-export type DrugProduct = 'euloxacaltenamide' | 'relutrigine';
+export type DrugProduct = string;
 
 export type PriorityTier = 'HIGH' | 'MEDIUM' | 'LOW';
 
-export type SupportPathwayId =
-  | 'hub-enrollment'
-  | 'copay-assistance'
-  | 'ae-reporting'
-  | 'adherence-support'
-  | 'sample-request'
-  | 'medical-inquiry';
+export type SupportPathwayId = string;
 
 export type UrgencyLevel = 'routine' | 'soon' | 'urgent';
 
-export type InteractionOutcome =
-  | 'hub-enrolled'
-  | 'copay-card-issued'
-  | 'ae-report-filed'
-  | 'adherence-counseling'
-  | 'sample-shipped'
-  | 'medical-info-provided'
-  | 'hcp-detail-completed'
-  | 'prior-auth-initiated'
-  | 'callback-requested'
-  | 'follow-up-scheduled'
-  | 'declined'
-  | 'no-answer'
-  | 'voicemail';
+export type InteractionOutcome = string;
 
 export type ChannelType = 'voice' | 'sms' | 'web';
 
-export type SignalCategory =
-  | 'SEARCH_INTENT'
-  | 'RX_PATTERN'
-  | 'CLAIMS_SIGNAL'
-  | 'HCP_ACTIVITY'
-  | 'ADHERENCE_SIGNAL'
-  | 'COMPETITIVE_INTEL';
+export type SignalCategory = string;
 
 // ---------------------------------------------------------------------------
 // Behavioral Signal -- enrichment layer

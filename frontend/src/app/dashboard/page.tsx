@@ -122,12 +122,12 @@ const PRIORITY_COLORS: Record<string, { text: string; bg: string; border: string
   LOW: { text: PX.success, bg: `${PX.success}10`, border: `${PX.success}30` },
 };
 
-const TA_LABELS: Record<TherapeuticArea, string> = {
+const TA_LABELS: Record<string, string> = {
   'essential-tremor': 'ET / ELEX',
   'dee': 'DEE / Relutrigine',
 };
 
-const TA_COLORS: Record<TherapeuticArea, string> = {
+const TA_COLORS: Record<string, string> = {
   'essential-tremor': PX.teal,
   'dee': PX.purple,
 };
