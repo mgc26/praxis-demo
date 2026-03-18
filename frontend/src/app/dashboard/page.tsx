@@ -19,6 +19,7 @@ import type {
 } from '@/app/lib/types';
 import { CONVERSION_OUTCOMES } from '@/app/lib/constants';
 import { getCohortOutcomeData, getPatientOutcomes, getPayerEvidenceCard } from '@/app/lib/seed-data';
+import { useBrand } from '@/app/components/BrandContext';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -26,37 +27,37 @@ import { getCohortOutcomeData, getPatientOutcomes, getPayerEvidenceCard } from '
 type Tab = 'agent-storyboard' | 'interaction-data' | 'medical-intelligence' | 'performance' | 'outcomes-evidence' | 'implementation';
 
 // ---------------------------------------------------------------------------
-// Praxis Design Tokens
+// Brand Design Tokens (resolved via CSS variables from ThemeInjector)
 // ---------------------------------------------------------------------------
-const PX = {
-  bg: '#F5F5F5',
-  cardBg: '#FFFFFF',
-  cardBorder: '#E2E7EA',
+const PX: Record<string, string> = {
+  bg: 'var(--brand-surface-hex)',
+  cardBg: 'var(--brand-bg-hex)',
+  cardBorder: 'var(--brand-border-hex)',
   cardShadow: '0 1px 3px rgba(0,0,0,0.06)',
-  teal: '#00B9CE',
-  tealLight: '#25C8D9',
+  teal: 'var(--brand-primary-hex)',
+  tealLight: 'var(--brand-primary-light-hex)',
   tealBg: '#E0F7FA',
-  navy: '#485D61',
-  navyDeep: '#333F42',
-  textPrimary: '#000000',
-  textSecondary: '#485D61',
+  navy: 'var(--brand-secondary-hex)',
+  navyDeep: 'var(--brand-primary-dark-hex)',
+  textPrimary: 'var(--brand-text-hex)',
+  textSecondary: 'var(--brand-text-muted-hex)',
   textMuted: '#ACB0B3',
-  btnDark: '#485D61',
-  btnDarkHover: '#333F42',
+  btnDark: 'var(--brand-secondary-hex)',
+  btnDarkHover: 'var(--brand-primary-dark-hex)',
   success: '#34A853',
-  error: '#FF7D78',
-  warning: '#DE7D00',
-  purple: '#2C59AB',
-  priorityHigh: '#FF7D78',
-  priorityMedium: '#DE7D00',
+  error: 'var(--brand-accent3-hex)',
+  warning: 'var(--brand-accent-hex)',
+  purple: 'var(--brand-info-hex)',
+  priorityHigh: 'var(--brand-accent3-hex)',
+  priorityMedium: 'var(--brand-accent-hex)',
   priorityLow: '#34A853',
-  skelBase: '#E2E7EA',
+  skelBase: 'var(--brand-border-hex)',
   skelShimmer: '#F0F2F3',
-  accent: '#DE7D00',
-  gold: '#EFBC66',
-  coral: '#FF7D78',
-  blue: '#2C59AB',
-} as const;
+  accent: 'var(--brand-accent-hex)',
+  gold: 'var(--brand-accent2-hex)',
+  coral: 'var(--brand-accent3-hex)',
+  blue: 'var(--brand-info-hex)',
+};
 
 const AGENT_TYPE_LABELS: Record<AgentType, { label: string; color: string }> = {
   'patient-support': { label: 'Patient Support', color: PX.teal },
@@ -148,6 +149,93 @@ const SIGNAL_COLORS: Record<string, string> = {
   ADHERENCE_SIGNAL: PX.coral,
   COMPETITIVE_INTEL: PX.accent,
 };
+
+// ---------------------------------------------------------------------------
+// Per-agent guardrail & escalation sets (pharma-specific)
+// ---------------------------------------------------------------------------
+const AGENT_GUARDRAILS: Record<AgentType, { active: string[]; available: string[] }> = {
+  'patient-support': {
+    active: ['No medical advice', 'No dosage recommendations', 'No coverage guarantees', 'No off-label information', 'Anti-kickback copay screening', 'AE capture mandatory'],
+    available: ['Caregiver crisis detection', 'Break-in-therapy escalation', 'REMS compliance check', 'Pediatric safeguards', 'Pregnancy exposure protocol'],
+  },
+  'hcp-support': {
+    active: ['On-label only', 'No comparative claims', 'No patient-specific advice', 'AE capture mandatory', 'Solicited/unsolicited tracking'],
+    available: ['Special population warnings', 'Off-label intake workflow', 'Fair balance enforcement', 'MSL escalation criteria', 'Product complaint capture'],
+  },
+  'hcp-outbound': {
+    active: ['No off-label promotion', 'No competitor disparagement', 'Fair balance required', 'AE capture mandatory', 'No prescribing volume bias'],
+    available: ['Gatekeeper protocol', 'Do-not-call compliance', 'Speaker program disclosure', 'Autonomy preservation', 'Clinical data only — no promotional claims'],
+  },
+  'medcomms-qa': {
+    active: ['FDA-approved labeling only', 'AE capture mandatory', 'Balanced response required', 'No patient-specific advice'],
+    available: ['Custom MI response workflow', 'Crisis protocol', 'Pregnancy exposure reporting', 'Off-label intake documentation', 'Literature citation required'],
+  },
+};
+
+const AGENT_ESCALATIONS: Record<AgentType, { active: string[]; available: string[] }> = {
+  'patient-support': {
+    active: ['Suicidal ideation (C-SSRS)', 'Adverse event reported', 'Pregnancy exposure', 'Medical emergency'],
+    available: ['Caregiver burnout crisis', 'Medication out-of-stock', 'Insurance denial', 'Seizure escalation', 'Treatment discontinuation'],
+  },
+  'hcp-support': {
+    active: ['Serious adverse event', 'Off-label request', 'Pregnancy report'],
+    available: ['Product quality complaint', 'Medication error', 'Overdose report', 'Lack of effectiveness', 'Patient safety concern'],
+  },
+  'hcp-outbound': {
+    active: ['Adverse event mentioned', 'Hostile response / DNC'],
+    available: ['Pregnancy exposure', 'Off-label interest detected', 'Crisis mention', 'Product complaint', 'Competitive switch signal'],
+  },
+  'medcomms-qa': {
+    active: ['Adverse event reported', 'Crisis / suicidality', 'Pregnancy exposure'],
+    available: ['Off-label inquiry escalation', 'Product complaint', 'Medical emergency', 'Complex clinical question', 'Regulatory reporting trigger'],
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Personality presets per agent type
+// ---------------------------------------------------------------------------
+interface PersonalityPreset {
+  label: string;
+  warmth: number;
+  empathy: number;
+  clinicalDepth: number;
+  formality: number;
+}
+
+const PERSONALITY_PRESETS: Record<AgentType, PersonalityPreset[]> = {
+  'patient-support': [
+    { label: 'Warm & Supportive', warmth: 90, empathy: 95, clinicalDepth: 40, formality: 30 },
+    { label: 'Professional & Clear', warmth: 65, empathy: 70, clinicalDepth: 60, formality: 60 },
+    { label: 'Clinical Nurse', warmth: 50, empathy: 60, clinicalDepth: 85, formality: 75 },
+  ],
+  'hcp-support': [
+    { label: 'Medical Information Standard', warmth: 40, empathy: 45, clinicalDepth: 90, formality: 85 },
+    { label: 'Approachable Expert', warmth: 60, empathy: 55, clinicalDepth: 85, formality: 65 },
+    { label: 'Concise & Direct', warmth: 30, empathy: 35, clinicalDepth: 95, formality: 90 },
+  ],
+  'hcp-outbound': [
+    { label: 'Consultative Partner', warmth: 70, empathy: 60, clinicalDepth: 75, formality: 55 },
+    { label: 'Data-Driven Presenter', warmth: 45, empathy: 40, clinicalDepth: 90, formality: 70 },
+    { label: 'Relationship Builder', warmth: 85, empathy: 75, clinicalDepth: 60, formality: 45 },
+  ],
+  'medcomms-qa': [
+    { label: 'Precise & Referenced', warmth: 35, empathy: 40, clinicalDepth: 95, formality: 90 },
+    { label: 'Patient-Friendly', warmth: 75, empathy: 80, clinicalDepth: 55, formality: 45 },
+    { label: 'Balanced Generalist', warmth: 55, empathy: 60, clinicalDepth: 75, formality: 65 },
+  ],
+};
+
+// Language options for agent config
+const AGENT_LANGUAGES = [
+  { value: 'en', label: 'English' },
+  { value: 'es', label: 'Spanish' },
+  { value: 'zh', label: 'Mandarin' },
+  { value: 'fr', label: 'French' },
+  { value: 'pt', label: 'Portuguese' },
+  { value: 'ko', label: 'Korean' },
+  { value: 'vi', label: 'Vietnamese' },
+  { value: 'ar', label: 'Arabic' },
+];
 
 // ---------------------------------------------------------------------------
 // Tab config
@@ -832,6 +920,7 @@ function EvidenceFullChart({ data, height = 240 }: {
 // MAIN DASHBOARD
 // ---------------------------------------------------------------------------
 export default function DashboardPage() {
+  const { brand } = useBrand();
   const router = useRouter();
   const [authed, setAuthed] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('agent-storyboard');
@@ -865,6 +954,10 @@ export default function DashboardPage() {
   const [configScenario, setConfigScenario] = useState('');
   const [configPhone, setConfigPhone] = useState('+1');
   const [demoCallStatus, setDemoCallStatus] = useState<string | null>(null);
+  const [liveContactName, setLiveContactName] = useState('');
+  const [liveCallSid, setLiveCallSid] = useState<string | null>(null);
+  const [liveCallStatus, setLiveCallStatus] = useState<string | null>(null);
+  const [liveCallResult, setLiveCallResult] = useState<{ outcome?: string; summary?: string; duration?: number } | null>(null);
 
   // ---- Storyboard state ----
   const [storyStep, setStoryStep] = useState(0);
@@ -874,6 +967,39 @@ export default function DashboardPage() {
   const [callLogHighlight, setCallLogHighlight] = useState(false);
   const [sliderAnimated, setSliderAnimated] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+
+  // ---- Agent Config interactive state ----
+  const [activeGuardrails, setActiveGuardrails] = useState<Record<AgentType, string[]>>({
+    'patient-support': [...AGENT_GUARDRAILS['patient-support'].active],
+    'hcp-support': [...AGENT_GUARDRAILS['hcp-support'].active],
+    'hcp-outbound': [...AGENT_GUARDRAILS['hcp-outbound'].active],
+    'medcomms-qa': [...AGENT_GUARDRAILS['medcomms-qa'].active],
+  });
+  const [activeEscalations, setActiveEscalations] = useState<Record<AgentType, string[]>>({
+    'patient-support': [...AGENT_ESCALATIONS['patient-support'].active],
+    'hcp-support': [...AGENT_ESCALATIONS['hcp-support'].active],
+    'hcp-outbound': [...AGENT_ESCALATIONS['hcp-outbound'].active],
+    'medcomms-qa': [...AGENT_ESCALATIONS['medcomms-qa'].active],
+  });
+  const [selectedPreset, setSelectedPreset] = useState<Record<AgentType, number>>({
+    'patient-support': 0,
+    'hcp-support': 0,
+    'hcp-outbound': 0,
+    'medcomms-qa': 0,
+  });
+  const [presetSliders, setPresetSliders] = useState<Record<AgentType, { warmth: number; empathy: number; clinicalDepth: number; formality: number }>>({
+    'patient-support': { ...PERSONALITY_PRESETS['patient-support'][0] },
+    'hcp-support': { ...PERSONALITY_PRESETS['hcp-support'][0] },
+    'hcp-outbound': { ...PERSONALITY_PRESETS['hcp-outbound'][0] },
+    'medcomms-qa': { ...PERSONALITY_PRESETS['medcomms-qa'][0] },
+  });
+  const [agentLanguage, setAgentLanguage] = useState('en');
+  const [autoDetectLang, setAutoDetectLang] = useState(true);
+  const [showGuardrailInput, setShowGuardrailInput] = useState(false);
+  const [showEscalationInput, setShowEscalationInput] = useState(false);
+  const [customGuardrailText, setCustomGuardrailText] = useState('');
+  const [customEscalationText, setCustomEscalationText] = useState('');
+  const [requestToast, setRequestToast] = useState<string | null>(null);
 
   // ---- Outcomes-Based Contract Simulator ----
   const [contractThreshold, setContractThreshold] = useState(30);
@@ -1029,6 +1155,46 @@ export default function DashboardPage() {
     setTimeout(() => setDemoCallStatus(null), 5000);
   }
 
+  function isValidUSPhone(phone: string): boolean {
+    return /^\+1[2-9]\d{9}$/.test(phone) && !/^\+1(900|976)/.test(phone);
+  }
+
+  async function handleLiveCall() {
+    if (!isValidUSPhone(configPhone) || !configScenario || liveCallSid) return;
+    setLiveCallResult(null);
+    setLiveCallStatus(null);
+    setDemoCallStatus('Initiating...');
+    try {
+      const res = await fetch('/api/demo-call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: configPhone,
+          scenarioId: configScenario,
+          agentType: configAgent,
+          ...(liveContactName.trim() ? { contactName: liveContactName.trim() } : {}),
+        }),
+      });
+      const data = await res.json();
+      if (data.callSid) {
+        setLiveCallSid(data.callSid);
+        setDemoCallStatus(null);
+      } else if (data.status === 'simulated') {
+        setDemoCallStatus('Simulated (backend offline)');
+        setTimeout(() => setDemoCallStatus(null), 5000);
+      } else if (data.status === 'error') {
+        setDemoCallStatus(`Error: ${data.message}`);
+        setTimeout(() => setDemoCallStatus(null), 5000);
+      } else {
+        setDemoCallStatus('Call initiated');
+        setTimeout(() => setDemoCallStatus(null), 5000);
+      }
+    } catch {
+      setDemoCallStatus('Error connecting to backend');
+      setTimeout(() => setDemoCallStatus(null), 5000);
+    }
+  }
+
   // -- Filtered calls --
   const filteredCalls = useMemo(() => {
     return calls.filter((c) => {
@@ -1066,7 +1232,7 @@ export default function DashboardPage() {
   // Demo scenarios
   const demoScenarios: Record<AgentType, Array<{ id: string; label: string; description: string }>> = {
     'patient-support': [
-      { id: 'ps-hub-enroll', label: 'Hub Enrollment', description: 'New patient enrolling in Praxis Support Hub for ELEX' },
+      { id: 'ps-hub-enroll', label: 'Hub Enrollment', description: `New patient enrolling in ${brand.shortName} Support Hub for ELEX` },
       { id: 'ps-copay', label: 'Copay Card Activation', description: 'Patient activating copay assistance for Relutrigine' },
       { id: 'ps-ae', label: 'AE Report', description: 'Patient reports adverse event during adherence check-in' },
       { id: 'ps-adherence', label: 'Adherence Check-in', description: 'Proactive adherence support call for ELEX patient' },
@@ -1164,28 +1330,33 @@ export default function DashboardPage() {
     return () => timers.forEach(clearTimeout);
   }, [storyStep, currentCallHasTetras, storyboardSteps.length]);
 
-  // Reset storyboard on agent type change
+  // Reset storyboard on agent type change — skip animation, show data instantly
   useEffect(() => {
     setStoryStep(0);
-    setDataDropPhase(0);
     setConversationIndex(0);
     setCallLogHighlight(false);
     setStoryAutoPlay(false);
     setSliderAnimated(false);
+    // Show all data items immediately on agent switch (no re-animation)
+    setDataDropPhase(999);
   }, [configAgent]);
 
-  // Data drop animation (step 0)
+  // Data drop animation (step 0) — only animate on explicit reset/auto-play, not agent switch
+  const dataDropAnimateRef = useRef(false);
   useEffect(() => {
     if (storyStep !== 0 || storyDataDropItems.length === 0) return;
-    setDataDropPhase(0);
+    // If dataDropPhase is already >= items count, data is loaded — skip animation
+    if (dataDropPhase >= storyDataDropItems.length) return;
+    // Only animate if explicitly triggered (phase was reset to 0 by Reset button or auto-play)
+    if (dataDropPhase !== 0) return;
     let phase = 0;
     const timer = setInterval(() => {
       phase++;
       setDataDropPhase(phase);
       if (phase >= storyDataDropItems.length) clearInterval(timer);
-    }, 120);
+    }, 80);
     return () => clearInterval(timer);
-  }, [storyStep, storyDataDropItems.length]);
+  }, [storyStep, storyDataDropItems.length, dataDropPhase]);
 
   // Slider animation (step 1)
   useEffect(() => {
@@ -1245,6 +1416,27 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storyAutoPlay, storyStep, storyDataDropItems.length]);
 
+  // -- Live call status polling --
+  useEffect(() => {
+    if (!liveCallSid) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/call-status?callSid=${encodeURIComponent(liveCallSid)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setLiveCallStatus(data.status);
+          if (['completed', 'failed', 'no-answer', 'busy', 'canceled'].includes(data.status)) {
+            setLiveCallResult({ outcome: data.outcome, summary: data.summary, duration: data.duration });
+            setLiveCallSid(null);
+          }
+        }
+      } catch {
+        // Silently ignore polling errors — will retry on next interval
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [liveCallSid]);
+
   // -- Auth loading --
   if (!authed) {
     return (
@@ -1279,10 +1471,10 @@ export default function DashboardPage() {
       {/* ========== HEADER ========== */}
       <header className="sticky top-0 z-30 flex h-16 items-center justify-between px-6" style={{ backgroundColor: PX.navy }}>
         <div className="flex items-center gap-3">
-          <img src="/brand-assets/praxis/logo-nav.png" alt="Praxis" className="h-7" />
+          <img src={brand.logoAsset} alt={brand.shortName} className="h-7" />
           <span className="mx-1 text-white/30">|</span>
-          <span className="text-[13px] font-bold text-white/90">Praxis</span>
-          <span className="text-[12px] text-white/50">Precision Medicines</span>
+          <span className="text-[13px] font-bold text-white/90">{brand.shortName}</span>
+          <span className="text-[12px] text-white/50">{brand.tagline}</span>
         </div>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
@@ -2689,53 +2881,329 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* Persona Config */}
-                  <div className="border bg-white p-6" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
-                    <div className="text-sm font-bold mb-4" style={{ color: PX.navy }}>
+                  {/* Persona Config — Interactive */}
+                  <div className="border bg-white p-6 overflow-y-auto" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow, maxHeight: '80vh' }}>
+                    <div className="text-sm font-bold mb-5" style={{ color: PX.navy }}>
                       Agent Persona: {personas[configAgent].name}
                     </div>
-                    <div className="space-y-4">
-                      {[
-                        { label: 'Warmth', key: 'warmth' as const, color: '#F59E0B' },
-                        { label: 'Empathy', key: 'empathy' as const, color: '#EC4899' },
-                        { label: 'Clinical Depth', key: 'clinicalDepth' as const, color: PX.teal },
-                        { label: 'Formality', key: 'formality' as const, color: PX.navy },
-                      ].map((slider) => (
-                        <div key={slider.key}>
-                          <div className="flex items-center justify-between mb-1">
-                            <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: PX.textSecondary }}>{slider.label}</label>
-                            <span className="text-xs font-bold" style={{ color: slider.color }}>{personas[configAgent][slider.key]}</span>
-                          </div>
-                          <div className="h-2 rounded-full bg-[#E2E7EA] overflow-hidden">
-                            <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: sliderAnimated ? `${personas[configAgent][slider.key]}%` : '0%', backgroundColor: slider.color }} />
-                          </div>
-                        </div>
-                      ))}
-                      <div>
-                        <label className="text-[10px] font-semibold uppercase tracking-wider block mb-1" style={{ color: PX.textSecondary }}>Greeting</label>
-                        <div className="border px-3 py-2 text-xs" style={{ borderColor: PX.cardBorder, color: PX.textPrimary }}>
-                          {personas[configAgent].greeting
-                            .replace('{contactName}', storyData.contact.name)
-                            .replace('{drugProduct}', storyData.contact.drugProduct === 'euloxacaltenamide' ? 'ELEX' : 'Relutrigine')}
-                        </div>
+
+                    {/* --- Personality Presets --- */}
+                    <div className="mb-5">
+                      <label className="text-[10px] font-semibold uppercase tracking-wider block mb-2" style={{ color: PX.textSecondary }}>Personality Profile</label>
+                      <div className="grid grid-cols-3 gap-2 mb-4">
+                        {PERSONALITY_PRESETS[configAgent].map((preset, pi) => {
+                          const isSelected = selectedPreset[configAgent] === pi;
+                          return (
+                            <button
+                              key={pi}
+                              onClick={() => {
+                                setSelectedPreset(prev => ({ ...prev, [configAgent]: pi }));
+                                setPresetSliders(prev => ({
+                                  ...prev,
+                                  [configAgent]: { warmth: preset.warmth, empathy: preset.empathy, clinicalDepth: preset.clinicalDepth, formality: preset.formality },
+                                }));
+                              }}
+                              className="border p-2.5 text-left transition-all duration-200"
+                              style={{
+                                borderColor: isSelected ? PX.teal : PX.cardBorder,
+                                backgroundColor: isSelected ? PX.tealBg : 'white',
+                                boxShadow: isSelected ? `0 0 0 1px ${PX.teal}` : 'none',
+                              }}
+                            >
+                              <div className="text-[10px] font-bold mb-1" style={{ color: isSelected ? PX.teal : PX.navy }}>{preset.label}</div>
+                              <div className="text-[9px] leading-tight" style={{ color: PX.textSecondary }}>
+                                W{preset.warmth} E{preset.empathy} C{preset.clinicalDepth} F{preset.formality}
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
-                      <div>
-                        <label className="text-[10px] font-semibold uppercase tracking-wider block mb-1" style={{ color: PX.textSecondary }}>Guardrails</label>
-                        <div className="flex flex-wrap gap-1">
-                          {(personas[configAgent].guardrails || []).map((g, gi) => (
-                            <span key={gi} className="inline-block rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ color: PX.error, backgroundColor: '#FF7D7810' }}>{g}</span>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-semibold uppercase tracking-wider block mb-1" style={{ color: PX.textSecondary }}>Escalation Triggers</label>
-                        <div className="flex flex-wrap gap-1">
-                          {(personas[configAgent].escalationTriggers || []).map((t, ti) => (
-                            <span key={ti} className="inline-block rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ color: PX.warning, backgroundColor: '#DE7D0010' }}>{t}</span>
-                          ))}
-                        </div>
+
+                      {/* Sliders */}
+                      <div className="space-y-3">
+                        {([
+                          { label: 'Warmth', key: 'warmth' as const, color: '#F59E0B' },
+                          { label: 'Empathy', key: 'empathy' as const, color: '#EC4899' },
+                          { label: 'Clinical Depth', key: 'clinicalDepth' as const, color: PX.teal },
+                          { label: 'Formality', key: 'formality' as const, color: PX.navy },
+                        ]).map((slider) => (
+                          <div key={slider.key}>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: PX.textSecondary }}>{slider.label}</label>
+                              <span className="text-xs font-bold" style={{ color: slider.color }}>{presetSliders[configAgent]?.[slider.key] ?? personas[configAgent][slider.key]}</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-[#E2E7EA] overflow-hidden">
+                              <div className="h-full rounded-full transition-all duration-700 ease-out" style={{
+                                width: sliderAnimated ? `${presetSliders[configAgent]?.[slider.key] ?? personas[configAgent][slider.key]}%` : '0%',
+                                backgroundColor: slider.color,
+                              }} />
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
+
+                    {/* --- Greeting --- */}
+                    <div className="mb-5">
+                      <label className="text-[10px] font-semibold uppercase tracking-wider block mb-1" style={{ color: PX.textSecondary }}>Greeting</label>
+                      <div className="border px-3 py-2 text-xs" style={{ borderColor: PX.cardBorder, color: PX.textPrimary }}>
+                        {personas[configAgent].greeting
+                          .replace('{contactName}', storyData.contact.name)
+                          .replace('{drugProduct}', storyData.contact.drugProduct === 'euloxacaltenamide' ? 'ELEX' : 'Relutrigine')}
+                      </div>
+                    </div>
+
+                    {/* --- Language Selector --- */}
+                    <div className="mb-5">
+                      <label className="text-[10px] font-semibold uppercase tracking-wider block mb-2" style={{ color: PX.textSecondary }}>Language</label>
+                      <div className="flex items-center gap-3 mb-2">
+                        <select
+                          value={agentLanguage}
+                          onChange={(e) => setAgentLanguage(e.target.value)}
+                          disabled={autoDetectLang}
+                          className="border px-2 py-1.5 text-xs flex-1"
+                          style={{
+                            borderColor: PX.cardBorder,
+                            color: autoDetectLang ? PX.textMuted : PX.textPrimary,
+                            backgroundColor: autoDetectLang ? '#F5F5F5' : 'white',
+                          }}
+                        >
+                          {AGENT_LANGUAGES.map((lang) => (
+                            <option key={lang.value} value={lang.value}>{lang.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <button
+                          onClick={() => setAutoDetectLang(!autoDetectLang)}
+                          className="relative flex-shrink-0"
+                          style={{ width: 32, height: 18 }}
+                        >
+                          <div className="absolute inset-0 rounded-full transition-colors duration-200" style={{ backgroundColor: autoDetectLang ? PX.teal : '#E2E7EA' }} />
+                          <div className="absolute top-0.5 rounded-full bg-white transition-all duration-200 shadow-sm" style={{ width: 14, height: 14, left: autoDetectLang ? 16 : 2 }} />
+                        </button>
+                        <span className="text-[10px] font-medium" style={{ color: PX.textSecondary }}>Auto-detect language</span>
+                      </label>
+                      {autoDetectLang && (
+                        <div className="mt-1.5 text-[10px] px-2 py-1.5 border" style={{ color: PX.teal, borderColor: `${PX.teal}30`, backgroundColor: `${PX.teal}08` }}>
+                          Agent will automatically detect the caller&apos;s language and switch mid-conversation
+                        </div>
+                      )}
+                    </div>
+
+                    {/* --- Interactive Guardrails --- */}
+                    <div className="mb-5">
+                      <label className="text-[10px] font-semibold uppercase tracking-wider block mb-2" style={{ color: PX.textSecondary }}>Guardrails</label>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {/* Active guardrails */}
+                        {activeGuardrails[configAgent].map((g, gi) => (
+                          <button
+                            key={`active-${gi}`}
+                            onClick={() => {
+                              setActiveGuardrails(prev => ({
+                                ...prev,
+                                [configAgent]: prev[configAgent].filter((_, i) => i !== gi),
+                              }));
+                            }}
+                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium transition-all duration-200 hover:opacity-80"
+                            style={{ color: 'white', backgroundColor: PX.teal }}
+                          >
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6.5 11.5L2.5 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            {g}
+                          </button>
+                        ))}
+                        {/* Available guardrails (not yet active) */}
+                        {AGENT_GUARDRAILS[configAgent].available
+                          .filter(g => !activeGuardrails[configAgent].includes(g))
+                          .map((g, gi) => (
+                            <button
+                              key={`avail-${gi}`}
+                              onClick={() => {
+                                setActiveGuardrails(prev => ({
+                                  ...prev,
+                                  [configAgent]: [...prev[configAgent], g],
+                                }));
+                              }}
+                              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium border border-dashed transition-all duration-200 hover:border-solid"
+                              style={{ color: PX.textSecondary, borderColor: PX.textMuted, backgroundColor: 'transparent' }}
+                            >
+                              <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                              {g}
+                            </button>
+                          ))}
+                        {/* Also show any previously-available items that were toggled off (from active defaults) */}
+                        {AGENT_GUARDRAILS[configAgent].active
+                          .filter(g => !activeGuardrails[configAgent].includes(g))
+                          .map((g, gi) => (
+                            <button
+                              key={`re-${gi}`}
+                              onClick={() => {
+                                setActiveGuardrails(prev => ({
+                                  ...prev,
+                                  [configAgent]: [...prev[configAgent], g],
+                                }));
+                              }}
+                              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium border border-dashed transition-all duration-200 hover:border-solid"
+                              style={{ color: PX.textSecondary, borderColor: PX.textMuted, backgroundColor: 'transparent' }}
+                            >
+                              <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                              {g}
+                            </button>
+                          ))}
+                      </div>
+                      {/* Request Additional Guardrail */}
+                      {!showGuardrailInput ? (
+                        <button
+                          onClick={() => setShowGuardrailInput(true)}
+                          className="inline-flex items-center gap-1 border px-2.5 py-1 text-[10px] font-semibold transition-colors hover:bg-gray-50"
+                          style={{ color: PX.navy, borderColor: PX.navy }}
+                        >
+                          <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                          Request Additional Guardrail
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={customGuardrailText}
+                            onChange={(e) => setCustomGuardrailText(e.target.value)}
+                            placeholder="Describe guardrail..."
+                            className="flex-1 border px-2 py-1 text-[10px]"
+                            style={{ borderColor: PX.cardBorder, color: PX.textPrimary }}
+                          />
+                          <button
+                            onClick={() => {
+                              setShowGuardrailInput(false);
+                              setCustomGuardrailText('');
+                              setRequestToast('Guardrail request submitted');
+                              window.setTimeout(() => setRequestToast(null), 3000);
+                            }}
+                            className="border px-2.5 py-1 text-[10px] font-semibold text-white"
+                            style={{ backgroundColor: PX.navy, borderColor: PX.navy }}
+                          >
+                            Submit
+                          </button>
+                          <button
+                            onClick={() => { setShowGuardrailInput(false); setCustomGuardrailText(''); }}
+                            className="text-[10px] font-medium px-1"
+                            style={{ color: PX.textMuted }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* --- Interactive Escalation Triggers --- */}
+                    <div className="mb-4">
+                      <label className="text-[10px] font-semibold uppercase tracking-wider block mb-2" style={{ color: PX.textSecondary }}>Escalation Triggers</label>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {/* Active escalations */}
+                        {activeEscalations[configAgent].map((t, ti) => (
+                          <button
+                            key={`active-${ti}`}
+                            onClick={() => {
+                              setActiveEscalations(prev => ({
+                                ...prev,
+                                [configAgent]: prev[configAgent].filter((_, i) => i !== ti),
+                              }));
+                            }}
+                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium transition-all duration-200 hover:opacity-80"
+                            style={{ color: 'white', backgroundColor: PX.coral }}
+                          >
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6.5 11.5L2.5 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            {t}
+                          </button>
+                        ))}
+                        {/* Available escalations */}
+                        {AGENT_ESCALATIONS[configAgent].available
+                          .filter(t => !activeEscalations[configAgent].includes(t))
+                          .map((t, ti) => (
+                            <button
+                              key={`avail-${ti}`}
+                              onClick={() => {
+                                setActiveEscalations(prev => ({
+                                  ...prev,
+                                  [configAgent]: [...prev[configAgent], t],
+                                }));
+                              }}
+                              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium border border-dashed transition-all duration-200 hover:border-solid"
+                              style={{ color: PX.textSecondary, borderColor: PX.textMuted, backgroundColor: 'transparent' }}
+                            >
+                              <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                              {t}
+                            </button>
+                          ))}
+                        {/* Previously-active items toggled off */}
+                        {AGENT_ESCALATIONS[configAgent].active
+                          .filter(t => !activeEscalations[configAgent].includes(t))
+                          .map((t, ti) => (
+                            <button
+                              key={`re-${ti}`}
+                              onClick={() => {
+                                setActiveEscalations(prev => ({
+                                  ...prev,
+                                  [configAgent]: [...prev[configAgent], t],
+                                }));
+                              }}
+                              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium border border-dashed transition-all duration-200 hover:border-solid"
+                              style={{ color: PX.textSecondary, borderColor: PX.textMuted, backgroundColor: 'transparent' }}
+                            >
+                              <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                              {t}
+                            </button>
+                          ))}
+                      </div>
+                      {/* Request Additional Escalation */}
+                      {!showEscalationInput ? (
+                        <button
+                          onClick={() => setShowEscalationInput(true)}
+                          className="inline-flex items-center gap-1 border px-2.5 py-1 text-[10px] font-semibold transition-colors hover:bg-gray-50"
+                          style={{ color: PX.navy, borderColor: PX.navy }}
+                        >
+                          <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                          Request Additional Escalation
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={customEscalationText}
+                            onChange={(e) => setCustomEscalationText(e.target.value)}
+                            placeholder="Describe escalation trigger..."
+                            className="flex-1 border px-2 py-1 text-[10px]"
+                            style={{ borderColor: PX.cardBorder, color: PX.textPrimary }}
+                          />
+                          <button
+                            onClick={() => {
+                              setShowEscalationInput(false);
+                              setCustomEscalationText('');
+                              setRequestToast('Escalation request submitted');
+                              window.setTimeout(() => setRequestToast(null), 3000);
+                            }}
+                            className="border px-2.5 py-1 text-[10px] font-semibold text-white"
+                            style={{ backgroundColor: PX.navy, borderColor: PX.navy }}
+                          >
+                            Submit
+                          </button>
+                          <button
+                            onClick={() => { setShowEscalationInput(false); setCustomEscalationText(''); }}
+                            className="text-[10px] font-medium px-1"
+                            style={{ color: PX.textMuted }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Request toast */}
+                    {requestToast && (
+                      <div className="border px-3 py-2 mt-2 flex items-center gap-2" style={{ borderColor: PX.success, backgroundColor: `${PX.success}10` }}>
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6.5 11.5L2.5 7.5" stroke={PX.success} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <span className="text-[10px] font-semibold" style={{ color: PX.success }}>{requestToast}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -3221,6 +3689,195 @@ export default function DashboardPage() {
                 Next
               </button>
             </div>
+
+            {/* ---- TRY IT LIVE ---- */}
+            <div className="border bg-white p-6" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
+              <div className="mb-4">
+                <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: PX.navyDeep }}>Try It Live</h3>
+                <p className="mt-1 text-xs" style={{ color: PX.textSecondary }}>Place a real outbound call using the selected agent configuration.</p>
+              </div>
+
+              {/* Agent type buttons */}
+              <div className="mb-4">
+                <label className="mb-1.5 block text-xs font-semibold" style={{ color: PX.textSecondary }}>Agent Type</label>
+                <div className="flex gap-2 flex-wrap">
+                  {(['patient-support', 'hcp-support', 'hcp-outbound', 'medcomms-qa'] as AgentType[]).map((at) => {
+                    const conf = AGENT_TYPE_LABELS[at];
+                    const isActive = configAgent === at;
+                    return (
+                      <button
+                        key={`live-${at}`}
+                        onClick={() => { setConfigAgent(at); setConfigScenario(''); }}
+                        className={cn('px-3 py-1.5 text-xs font-semibold transition-all border', isActive ? 'text-white' : '')}
+                        style={{
+                          backgroundColor: isActive ? conf.color : 'white',
+                          color: isActive ? 'white' : conf.color,
+                          borderColor: isActive ? conf.color : PX.cardBorder,
+                        }}
+                      >
+                        {conf.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Scenario dropdown */}
+              <div className="mb-4">
+                <label className="mb-1.5 block text-xs font-semibold" style={{ color: PX.textSecondary }}>Scenario</label>
+                <select
+                  value={configScenario}
+                  onChange={(e) => setConfigScenario(e.target.value)}
+                  className="w-full border px-3 py-2 text-sm outline-none transition-colors focus:border-current"
+                  style={{ borderColor: PX.cardBorder, color: PX.textPrimary }}
+                >
+                  <option value="">Select a scenario...</option>
+                  {(demoScenarios[configAgent] || []).map((s) => (
+                    <option key={s.id} value={s.id}>{s.label} — {s.description}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Phone number + Contact name row */}
+              <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold" style={{ color: PX.textSecondary }}>Phone Number</label>
+                  <div className="flex border" style={{ borderColor: configPhone.length > 2 && !isValidUSPhone(configPhone) ? PX.coral : PX.cardBorder }}>
+                    <span className="flex items-center px-3 text-xs font-semibold" style={{ backgroundColor: PX.bg, color: PX.textSecondary, borderRight: `1px solid ${PX.cardBorder}` }}>+1</span>
+                    <input
+                      type="tel"
+                      value={configPhone.startsWith('+1') ? configPhone.slice(2) : configPhone}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        setConfigPhone(`+1${digits}`);
+                      }}
+                      placeholder="2125551234"
+                      className="flex-1 px-3 py-2 text-sm outline-none"
+                      style={{ color: PX.textPrimary }}
+                    />
+                  </div>
+                  {configPhone.length > 2 && !isValidUSPhone(configPhone) && (
+                    <p className="mt-1 text-xs" style={{ color: PX.coral }}>Enter a valid 10-digit US number</p>
+                  )}
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold" style={{ color: PX.textSecondary }}>Contact Name <span style={{ color: PX.textMuted }}>(optional)</span></label>
+                  <input
+                    type="text"
+                    value={liveContactName}
+                    onChange={(e) => setLiveContactName(e.target.value)}
+                    placeholder="e.g. Dr. Smith"
+                    className="w-full border px-3 py-2 text-sm outline-none transition-colors focus:border-current"
+                    style={{ borderColor: PX.cardBorder, color: PX.textPrimary }}
+                  />
+                </div>
+              </div>
+
+              {/* Place Call button + cost note */}
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handleLiveCall}
+                  disabled={!isValidUSPhone(configPhone) || !configScenario || !!liveCallSid}
+                  className="px-6 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: PX.teal }}
+                >
+                  {liveCallSid ? 'Call In Progress...' : 'Place Call'}
+                </button>
+                <span className="text-xs" style={{ color: PX.textMuted }}>~$0.10 per call</span>
+              </div>
+
+              {/* Call status indicator */}
+              {(demoCallStatus || liveCallSid || liveCallStatus || liveCallResult) && (
+                <div className="mt-4 border-t pt-4" style={{ borderColor: PX.cardBorder }}>
+                  {/* Initiating state */}
+                  {demoCallStatus === 'Initiating...' && !liveCallSid && (
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 animate-spin border-2 border-t-transparent" style={{ borderColor: PX.teal, borderTopColor: 'transparent', borderRadius: '50%' }} />
+                      <span className="text-sm font-semibold" style={{ color: PX.navy }}>Initiating...</span>
+                    </div>
+                  )}
+
+                  {/* Simulated / error from demoCallStatus */}
+                  {demoCallStatus && demoCallStatus !== 'Initiating...' && !liveCallSid && !liveCallResult && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm" style={{ color: demoCallStatus.startsWith('Error') ? PX.coral : PX.textSecondary }}>{demoCallStatus}</span>
+                    </div>
+                  )}
+
+                  {/* Polling states: call in progress */}
+                  {liveCallSid && (!liveCallStatus || liveCallStatus === 'queued') && (
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 animate-spin border-2 border-t-transparent" style={{ borderColor: PX.teal, borderTopColor: 'transparent', borderRadius: '50%' }} />
+                      <span className="text-sm font-semibold" style={{ color: PX.navy }}>Initiating call...</span>
+                    </div>
+                  )}
+
+                  {liveCallSid && (liveCallStatus === 'initiated' || liveCallStatus === 'ringing') && (
+                    <div className="flex items-center gap-2">
+                      <div className="relative h-3 w-3">
+                        <div className="absolute inset-0 animate-ping opacity-75" style={{ backgroundColor: PX.gold, borderRadius: '50%' }} />
+                        <div className="relative h-3 w-3" style={{ backgroundColor: PX.gold, borderRadius: '50%' }} />
+                      </div>
+                      <span className="text-sm font-semibold" style={{ color: PX.navy }}>Ringing...</span>
+                    </div>
+                  )}
+
+                  {liveCallSid && liveCallStatus === 'in-progress' && (
+                    <div className="flex items-center gap-2">
+                      <div className="relative h-3 w-3">
+                        <div className="absolute inset-0 animate-ping opacity-75" style={{ backgroundColor: PX.success, borderRadius: '50%' }} />
+                        <div className="relative h-3 w-3" style={{ backgroundColor: PX.success, borderRadius: '50%' }} />
+                      </div>
+                      <span className="text-sm font-semibold" style={{ color: PX.success }}>Connected</span>
+                    </div>
+                  )}
+
+                  {/* Terminal states */}
+                  {liveCallResult && (
+                    <div className="space-y-2">
+                      {liveCallResult.outcome === 'no-answer' || liveCallStatus === 'no-answer' ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold" style={{ color: PX.coral }}>No Answer</span>
+                          {liveCallResult.duration != null && (
+                            <span className="text-xs" style={{ color: PX.textMuted }}>{liveCallResult.duration}s</span>
+                          )}
+                        </div>
+                      ) : liveCallStatus === 'failed' || liveCallStatus === 'busy' || liveCallStatus === 'canceled' ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold" style={{ color: PX.coral }}>
+                            {liveCallStatus === 'failed' ? 'Call Failed' : liveCallStatus === 'busy' ? 'Line Busy' : 'Call Canceled'}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-semibold" style={{ color: PX.success }}>Call Complete</span>
+                            {liveCallResult.outcome && (
+                              <span className="border px-2 py-0.5 text-xs font-semibold" style={{ borderColor: PX.teal, color: PX.teal, backgroundColor: PX.tealBg }}>
+                                {OUTCOME_LABELS[liveCallResult.outcome] || liveCallResult.outcome}
+                              </span>
+                            )}
+                            {liveCallResult.duration != null && (
+                              <span className="text-xs" style={{ color: PX.textMuted }}>{Math.floor(liveCallResult.duration / 60)}m {liveCallResult.duration % 60}s</span>
+                            )}
+                          </div>
+                          {liveCallResult.summary && (
+                            <p className="text-xs leading-relaxed" style={{ color: PX.textSecondary }}>{liveCallResult.summary}</p>
+                          )}
+                          <button
+                            onClick={() => { setActiveTab('interaction-data'); setLiveCallResult(null); setLiveCallStatus(null); }}
+                            className="border px-4 py-1.5 text-xs font-semibold transition-all"
+                            style={{ borderColor: PX.teal, color: PX.teal }}
+                          >
+                            View in Call Log
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -3477,7 +4134,7 @@ export default function DashboardPage() {
                   ]},
                   { title: 'HIPAA / PHI', items: [
                     { key: 'h-token', text: 'PHI tokenization at rest + in transit' },
-                    { key: 'h-baa', text: 'BAA with Praxis' },
+                    { key: 'h-baa', text: `BAA with ${brand.shortName}` },
                     { key: 'h-sub', text: 'BAA with sub-processors' },
                     { key: 'h-min', text: 'Minimum necessary PHI access' },
                     { key: 'h-audit', text: 'Audit trail with access controls' },
@@ -3497,7 +4154,7 @@ export default function DashboardPage() {
                     { key: 'd-uc', text: 'Unity Catalog access controls' },
                     { key: 'd-ev', text: 'Structured events + audit lineage' },
                     { key: 'd-ret', text: 'FDA-aligned retention policies' },
-                    { key: 'd-port', text: 'Data portability (Praxis-owned)' },
+                    { key: 'd-port', text: `Data portability (${brand.shortName}-owned)` },
                   ]},
                   { title: 'AI Governance', items: [
                     { key: 'a-inj', text: 'Prompt injection protection' },
@@ -3568,7 +4225,7 @@ export default function DashboardPage() {
             <div>
               <h2 className="text-lg font-bold" style={{ color: PX.navy }}>System Integration Architecture</h2>
               <p className="mt-1 text-sm" style={{ color: PX.textSecondary }}>
-                How Vi Operate connects to Praxis systems of record. Every agent interaction produces structured data that flows downstream.
+                How Vi Operate connects to {brand.shortName} systems of record. Every agent interaction produces structured data that flows downstream.
               </p>
             </div>
 
@@ -4007,7 +4664,7 @@ export default function DashboardPage() {
             <div className="rounded-none border-l-2 py-4 pl-5 pr-4" style={{ borderColor: PX.teal, backgroundColor: `${PX.teal}06` }}>
               <p className="text-xs font-bold" style={{ color: PX.navy }}>Architecture Principle</p>
               <p className="mt-1 text-[12px] leading-relaxed" style={{ color: PX.textSecondary }}>
-                Vi Operate is the <strong>interaction layer</strong>, not the system of record. It produces rich, structured data from every conversation and pushes it wherever Praxis needs it. CRMs become single sources of truth that agents write <em>back to</em> — not systems agents operate <em>within</em>.
+                Vi Operate is the <strong>interaction layer</strong>, not the system of record. It produces rich, structured data from every conversation and pushes it wherever {brand.shortName} needs it. CRMs become single sources of truth that agents write <em>back to</em> — not systems agents operate <em>within</em>.
               </p>
             </div>
 
