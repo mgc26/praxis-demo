@@ -189,6 +189,8 @@ Scores are integers 0-8 (sum of two questions, each 0-4).
 3. At each timepoint, some patients drop out (persistence curve). Dropout is biased toward patients with higher scores (less improvement = more likely to stop). Patients who drop out have no further scores.
 4. ~12% of patients are flagged `aeReported: true` (uniformly distributed). Of those, ~19% (i.e., ~2.3% of total) are also flagged `seriousAeReported: true`.
 
+**Target values are aspirational, not hard constraints.** The table above describes the intended distribution shape. Tune the generation parameters (mean, SD, improvement multipliers, dropout probability) to aim for these targets, then accept whatever the deterministic PRNG produces. The `PayerEvidenceCard` and `CohortOutcomeData` aggregations are computed from the actual generated data, not hardcoded to match the table. If the PRNG produces a mean improvement of 33.8% instead of 35%, that's fine — the payer card will show 33.8%. Do not spend time parameter-tuning to hit exact targets.
+
 ### 4.3 MMAS-4 distribution
 
 Scores are integers 0-4.
@@ -209,6 +211,16 @@ At module load, compute and export:
 - `PATIENT_OUTCOMES: PatientOutcomeRecord[]` — raw patient array (needed for contract simulator filtering)
 
 These are exported alongside existing `SEED_CALLS`, `SEED_CONTACTS`, etc.
+
+### 4.5 Seed call screening results update
+
+The existing 20 seed calls use `AE-SCREEN` and `ADHERENCE-CHECK` instruments only. **Step 5 will never trigger unless at least some ET patient calls include TETRAS-LITE screening results.** The following seed calls must be updated to include a completed TETRAS-LITE screening result:
+
+- **All seed calls for ET patients (PAT-001 Margaret Sullivan, PAT-002 Robert Chen, PAT-003 Diana Morales)** that use `patient-support` agent type should have a `TETRAS-LITE` screening result appended to their `screeningResults` array (in addition to any existing AE-SCREEN or ADHERENCE-CHECK results).
+- The TETRAS-LITE score for each call should be drawn from the patient's cohort trajectory (e.g., Margaret Sullivan at 30d might score 4/8).
+- At minimum, the storyboard default scenario (Margaret Sullivan — adherence check-in) must include a TETRAS-LITE screening result, since she is the first contact selected in the demo walkthrough.
+
+This ensures Step 5 triggers during the primary demo flow without requiring the operator to hunt for a specific scenario.
 
 ---
 
@@ -350,14 +362,15 @@ Each metric: label in muted text (10px uppercase), value in bold primary text (1
 
 Results area below the sliders with clear visual hierarchy:
 
-- **Primary metric (large):** "Patients meeting threshold: **312 / 437 (71.4%)**"
-  - Horizontal bar visualization: teal portion (71.4%) + coral portion (28.6%)
+- **Primary metric (large):** "Patients meeting threshold: **312 / 345 (90.4%)**"
+  - Denominator is eligible patients (those with both baseline and 90d scores), NOT total enrolled. Dropouts are excluded from the threshold calculation entirely.
+  - Horizontal bar visualization: teal portion (90.4%) + coral portion (9.6%)
 
 - **Secondary metrics (smaller):**
-  - "Patients NOT meeting threshold: 125 / 437 (28.6%)"
-  - "Estimated rebate exposure: **14.3% of gross revenue**"
-    - Calculation: (patients below threshold / total) × rebate %
-    - i.e., 28.6% × 50% = 14.3%
+  - "Patients NOT meeting threshold: 33 / 345 (9.6%)"
+  - "Estimated rebate exposure: **4.8% of gross revenue**"
+    - Calculation: (patients below threshold / eligible) × rebate %
+    - i.e., 9.6% × 50% = 4.8%
 
 - **Confidence badge:**
   - GREEN "HIGH CONFIDENCE" if >70% meet threshold
@@ -368,14 +381,15 @@ Results area below the sliders with clear visual hierarchy:
 **Computation logic:**
 
 ```
-For each patient in PATIENT_OUTCOMES where tetrasScores.baseline and tetrasScores['90d'] both exist:
+eligible = patients in PATIENT_OUTCOMES where tetrasScores.baseline AND tetrasScores['90d'] both exist
+For each eligible patient:
   improvement = (baseline - score90d) / baseline
   if improvement >= thresholdPct / 100 → meets threshold
-pctMeeting = meetingCount / eligibleCount
+pctMeeting = meetingCount / eligible.length
 rebateExposure = (1 - pctMeeting) * (rebatePct / 100)
 ```
 
-Patients without 90d scores (dropouts) are excluded from the threshold calculation but noted: "92 patients discontinued before 90-day assessment — excluded from threshold calculation."
+**Denominator is eligible (patients with 90d data), not total enrolled.** Dropouts are excluded from the threshold calculation and noted separately: "92 patients discontinued before 90-day assessment — not included in contract threshold analysis." This is the clinically correct approach (you can't measure an outcome on a patient who left the study) and makes the contract numbers more favorable, which is the honest framing.
 
 **Bottom caption:**
 > "Adjust thresholds to model contract terms. Data updates in real-time from hub-collected TETRAS-LITE scores."
