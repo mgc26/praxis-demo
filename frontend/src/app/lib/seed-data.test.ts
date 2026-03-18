@@ -920,3 +920,34 @@ describe('getPayerEvidenceCard', () => {
     expect(card.headline.length).toBeGreaterThan(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// ET seed calls TETRAS-LITE screening
+// ---------------------------------------------------------------------------
+describe('ET seed calls have TETRAS-LITE screening', () => {
+  let calls: CallRecord[];
+
+  beforeAll(() => {
+    calls = getAllCalls();
+  });
+
+  it('at least one ET patient-support call has TETRAS-LITE screening result', () => {
+    const etPatientCalls = calls.filter(
+      c => c.therapeuticArea === 'essential-tremor' &&
+           c.agentType === 'patient-support' &&
+           c.screeningResults?.some(s => s.instrumentId === 'TETRAS-LITE')
+    );
+    expect(etPatientCalls.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('TETRAS-LITE screening results have valid scores (0-8)', () => {
+    const tetrasResults = calls.flatMap(c =>
+      (c.screeningResults || []).filter(s => s.instrumentId === 'TETRAS-LITE')
+    );
+    for (const r of tetrasResults) {
+      expect(r.totalScore).toBeGreaterThanOrEqual(0);
+      expect(r.totalScore).toBeLessThanOrEqual(8);
+      expect(r.status).toBe('completed');
+    }
+  });
+});

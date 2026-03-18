@@ -934,6 +934,51 @@ function generateScreeningResults(
 }
 
 // ---------------------------------------------------------------------------
+// TETRAS-LITE screening result factory
+// ---------------------------------------------------------------------------
+function makeTetrasScreening(score: number, callTimestamp: string): ScreeningResult {
+  const baseTime = new Date(callTimestamp).getTime() / 1000 + 120;
+  const q1Score = Math.min(Math.round(score / 2), 4);
+  const q2Score = Math.min(score - q1Score, 4);
+  const isPositive = score >= 4;
+
+  const q1Options = ['No tremor', 'Slight tremor', 'Moderate tremor', 'Significant tremor', 'Severe tremor'];
+  const q2Options = ['No interference', 'Slight interference', 'Moderate interference', 'Significant interference', 'Severe interference'];
+
+  return {
+    instrumentId: 'TETRAS-LITE',
+    instrumentName: 'TETRAS-LITE Tremor Assessment',
+    status: 'completed',
+    responses: [
+      {
+        questionIndex: 0,
+        questionText: 'Over the past week, how would you rate the severity of your tremor?',
+        contactResponse: q1Options[q1Score],
+        scoreValue: q1Score,
+        timestamp: baseTime,
+      },
+      {
+        questionIndex: 1,
+        questionText: 'How much does your tremor interfere with daily activities like eating, writing, or dressing?',
+        contactResponse: q2Options[q2Score],
+        scoreValue: q2Score,
+        timestamp: baseTime + 30,
+      },
+    ],
+    totalScore: score,
+    maxScore: 8,
+    isPositiveScreen: isPositive,
+    clinicalInterpretation: isPositive
+      ? 'Tremor severity indicates suboptimal control — recommend discussion with prescribing physician about dose optimization.'
+      : 'Tremor appears well-controlled with current therapy.',
+    reportRequired: false,
+    reportType: null,
+    startedAt: new Date(baseTime * 1000).toISOString(),
+    completedAt: new Date((baseTime + 60) * 1000).toISOString(),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Priority tier assignment
 // ---------------------------------------------------------------------------
 function assignPriorityTier(pathway: SupportPathwayId, signals: BehavioralSignal[]): PriorityTier {
@@ -1058,6 +1103,31 @@ function buildAllCalls(): CallRecord[] {
   }
 
   calls.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  // Post-process: append TETRAS-LITE screening results to ET patient-support calls
+  // PAT-001 (Margaret Sullivan): score 4 — moderate, positive screen (most interesting for demo)
+  // PAT-002 (Robert Chen): score 3 — negative screen
+  // PAT-003 (Diana Morales): score 5 — positive screen
+  const tetrasScores: Record<string, number> = {
+    'PAT-001': 4,
+    'PAT-002': 3,
+    'PAT-003': 5,
+  };
+  for (const call of calls) {
+    if (
+      call.therapeuticArea === 'essential-tremor' &&
+      call.agentType === 'patient-support' &&
+      call.contactId in tetrasScores
+    ) {
+      const screening = makeTetrasScreening(tetrasScores[call.contactId], call.timestamp);
+      if (call.screeningResults == null) {
+        call.screeningResults = [screening];
+      } else {
+        call.screeningResults.push(screening);
+      }
+    }
+  }
+
   return calls;
 }
 
