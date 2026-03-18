@@ -1569,11 +1569,15 @@ function computePayerCard(
   });
 
   const n = improvements.length;
-  const meanImprovementPct = improvements.reduce((a, b) => a + b, 0) / n;
+  const meanFraction = improvements.reduce((a, b) => a + b, 0) / n;
+  const meanImprovementPct = Math.round(meanFraction * 1000) / 10; // e.g., 34.2
 
-  const variance = improvements.reduce((acc, v) => acc + (v - meanImprovementPct) ** 2, 0) / n;
+  const variance = improvements.reduce((acc, v) => acc + (v - meanFraction) ** 2, 0) / n;
   const sem = Math.sqrt(variance) / Math.sqrt(n);
-  const ci95: [number, number] = [meanImprovementPct - 1.96 * sem, meanImprovementPct + 1.96 * sem];
+  const ci95: [number, number] = [
+    Math.round((meanFraction - 1.96 * sem) * 1000) / 10,
+    Math.round((meanFraction + 1.96 * sem) * 1000) / 10,
+  ];
 
   const baselineStats = cohort.trajectory.find(t => t.timepoint === 'baseline')!;
   const stats90d = cohort.trajectory.find(t => t.timepoint === '90d')!;
@@ -1581,18 +1585,15 @@ function computePayerCard(
   const aeRate = patients.filter(p => p.aeReported).length / patients.length;
   const seriousAeRate = patients.filter(p => p.seriousAeReported).length / patients.length;
 
-  // MMAS-4 adherence at 90d (score 3-4 = adherent)
-  const adherentAt90d = patients.filter(p => {
-    const score = p.mmasScores['90d'];
-    return score !== undefined && score >= 3;
-  });
-  const adherenceRate90d = adherentAt90d.length / patients.length;
+  // MMAS-4 adherence at 90d (score >= 3 = high adherence in generated data)
+  const withMmas90d = patients.filter(p => p.mmasScores['90d'] !== undefined);
+  const adherentAt90d = withMmas90d.filter(p => p.mmasScores['90d']! >= 3);
+  const adherenceRate90d = withMmas90d.length > 0 ? adherentAt90d.length / withMmas90d.length : 0;
 
-  const improvementPctRounded = Math.round(meanImprovementPct * 100);
-  const headline = `${improvementPctRounded}% mean TETRAS-LITE improvement at 90 days in ${patients.length} ET patients on ELEX`;
+  const headline = `${meanImprovementPct}% mean TETRAS-LITE improvement at 90 days in ${patients.length} ET patients on ELEX`;
 
   return {
-    generatedAt: new Date(Date.UTC(2024, 11, 1)).toISOString(),
+    generatedAt: '2026-03-18',
     cohortSize: patients.length,
     meanBaselineScore: baselineStats.mean,
     mean90dScore: stats90d.mean,
