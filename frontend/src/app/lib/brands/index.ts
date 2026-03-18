@@ -40,6 +40,31 @@ export interface BrandPack {
   website: string;
   logoAsset: string;
   theme: BrandPackTheme;
+
+  // Product content (Phase 2)
+  products: {
+    id: string;
+    brandName: string;
+    genericName: string;
+    therapeuticArea: string;
+    therapeuticAreaLabel: string;
+    indication: string;
+  }[];
+  therapeuticAreas: { id: string; label: string }[];
+  supportPathways: { id: string; label: string; color: string }[];
+  hubName: string;
+  agentPersonas: {
+    agentType: string;
+    name: string;
+    greeting: string;
+    description: string;
+  }[];
+  outcomeLabels: Record<string, string>;
+  demoScenarios: {
+    agentType: string;
+    label: string;
+    description: string;
+  }[];
 }
 
 // ---------------------------------------------------------------------------

@@ -28,4 +28,159 @@ export const ptcBrand: BrandPack = {
     shadow: 'none',
     buttonStyle: 'solid',
   },
+
+  // -- Phase 2: Product content -----------------------------------------------
+
+  products: [
+    {
+      id: 'sepiapterin',
+      brandName: 'Sephience',
+      genericName: 'Sepiapterin',
+      therapeuticArea: 'pku',
+      therapeuticAreaLabel: 'PKU (Phenylketonuria)',
+      indication:
+        'Treatment of hyperphenylalaninemia in sepiapterin-responsive PKU',
+    },
+    {
+      id: 'deflazacort',
+      brandName: 'Emflaza',
+      genericName: 'Deflazacort',
+      therapeuticArea: 'dmd',
+      therapeuticAreaLabel: 'DMD (Duchenne Muscular Dystrophy)',
+      indication:
+        'Treatment of Duchenne muscular dystrophy in patients 2 years and older',
+    },
+  ],
+
+  therapeuticAreas: [
+    { id: 'pku', label: 'PKU (Phenylketonuria)' },
+    { id: 'dmd', label: 'DMD (Duchenne Muscular Dystrophy)' },
+  ],
+
+  supportPathways: [
+    { id: 'hub-enrollment', label: 'PTC Cares', color: '#231D35' },
+    { id: 'copay-assistance', label: 'Copay Assistance', color: '#38518F' },
+    { id: 'ae-reporting', label: 'AE Reporting', color: '#D34531' },
+    { id: 'adherence-support', label: 'Adherence Support', color: '#4BC1E1' },
+    { id: 'genetic-testing-referral', label: 'Genetic Testing Referral', color: '#5C0F8C' },
+    { id: 'medical-inquiry', label: 'Medical Inquiry', color: '#EE7624' },
+  ],
+
+  hubName: 'PTC Cares',
+
+  agentPersonas: [
+    {
+      agentType: 'patient-support',
+      name: 'Hannah',
+      greeting:
+        "Hi {contactName}, this is Hannah from PTC Cares. I'm here to help you with your therapy.",
+      description: 'Inbound/outbound patient hub services, copay, adherence, AE capture',
+    },
+    {
+      agentType: 'hcp-support',
+      name: 'Dr. Rivera',
+      greeting:
+        'Good day, Dr. {contactName}. This is Dr. Rivera from PTC Medical Information. How can I assist you today?',
+      description: 'Inbound HCP medical information, samples, formulary questions',
+    },
+    {
+      agentType: 'hcp-outbound',
+      name: 'Claire',
+      greeting:
+        "Hi Dr. {contactName}, this is Claire from PTC Therapeutics. I'm reaching out to share some updates on our rare disease portfolio.",
+      description: 'Proactive HCP engagement, detail calls, competitive intelligence',
+    },
+    {
+      agentType: 'medcomms-qa',
+      name: 'Compliance',
+      greeting:
+        'This is the PTC MedComms QA review system. Analyzing interaction transcript for compliance.',
+      description: 'Medical communications review, off-label monitoring, compliance checks',
+    },
+  ],
+
+  outcomeLabels: {
+    'hub-enrolled': 'PTC Cares Enrolled',
+    'copay-card-issued': 'Copay Card Activated',
+    'ae-report-filed': 'AE Report Filed',
+    'adherence-counseling': 'Adherence Counseling',
+    'sample-shipped': 'Sample Shipped',
+    'medical-info-provided': 'Medical Info Provided',
+    'hcp-detail-completed': 'HCP Detail Completed',
+    'prior-auth-initiated': 'Prior Auth Initiated',
+    'callback-requested': 'Callback Requested',
+    'follow-up-scheduled': 'Follow-Up Scheduled',
+    'nurse-educator-referral': 'Case Manager Referral',
+    'declined': 'Declined',
+    'no-answer': 'No Answer',
+    'voicemail': 'Voicemail Left',
+  },
+
+  demoScenarios: [
+    {
+      agentType: 'patient-support',
+      label: 'Hub Enrollment',
+      description: 'New patient enrolling in PTC Cares for Sephience',
+    },
+    {
+      agentType: 'patient-support',
+      label: 'Copay Card Activation',
+      description: 'Patient activating copay assistance for Emflaza',
+    },
+    {
+      agentType: 'patient-support',
+      label: 'AE Report',
+      description: 'Patient reports adverse event during Sephience adherence check-in',
+    },
+    {
+      agentType: 'patient-support',
+      label: 'Adherence Check-in',
+      description: 'Proactive adherence support call for Emflaza patient',
+    },
+    {
+      agentType: 'hcp-support',
+      label: 'Medical Inquiry',
+      description: 'Metabolic specialist requesting Sephience clinical trial data',
+    },
+    {
+      agentType: 'hcp-support',
+      label: 'Genetic Testing Referral',
+      description: 'HCP requesting genetic testing referral for suspected PKU patient',
+    },
+    {
+      agentType: 'hcp-support',
+      label: 'Formulary Support',
+      description: 'HCP needs prior auth support for Emflaza',
+    },
+    {
+      agentType: 'hcp-outbound',
+      label: 'Product Detail',
+      description: 'Proactive Sephience detail call to metabolic specialist',
+    },
+    {
+      agentType: 'hcp-outbound',
+      label: 'Switch Opportunity',
+      description: 'Competitive switch discussion for PKU patients on dietary management',
+    },
+    {
+      agentType: 'hcp-outbound',
+      label: 'Launch Update',
+      description: 'Emflaza label update to pediatric neurologist',
+    },
+    {
+      agentType: 'medcomms-qa',
+      label: 'Transcript Review',
+      description: 'QA review of patient support interaction',
+    },
+    {
+      agentType: 'medcomms-qa',
+      label: 'Off-Label Check',
+      description: 'Off-label mention detection in HCP call',
+    },
+    {
+      agentType: 'medcomms-qa',
+      label: 'AE Audit',
+      description: 'Audit AE capture completeness across interactions',
+    },
+  ],
 };
