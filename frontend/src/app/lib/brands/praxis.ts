@@ -44,7 +44,7 @@ export const praxisBrand: BrandPack = {
       id: 'relutrigine',
       brandName: 'Relutrigine',
       genericName: 'Relutrigine',
-      therapeuticArea: 'dee',
+      therapeuticArea: 'dee-dravet',
       therapeuticAreaLabel: 'DEE (Dravet Epilepsy)',
       indication: 'Treatment of seizures associated with Dravet syndrome',
     },
@@ -52,16 +52,16 @@ export const praxisBrand: BrandPack = {
 
   therapeuticAreas: [
     { id: 'essential-tremor', label: 'Essential Tremor (ET)' },
-    { id: 'dee', label: 'DEE (Dravet Epilepsy)' },
+    { id: 'dee-dravet', label: 'DEE (Dravet Epilepsy)' },
   ],
 
   supportPathways: [
-    { id: 'hub-enrollment', label: 'Hub Enrollment', color: '#00B9CE' },
-    { id: 'copay-assistance', label: 'Copay Assistance', color: '#2C59AB' },
-    { id: 'ae-reporting', label: 'AE Reporting', color: '#FF7D78' },
-    { id: 'adherence-support', label: 'Adherence Support', color: '#EFBC66' },
-    { id: 'sample-request', label: 'Sample Request', color: '#DE7D00' },
-    { id: 'medical-inquiry', label: 'Medical Inquiry', color: '#485D61' },
+    { id: 'medication-access', label: 'Medication Access & Reimbursement', color: '#00B9CE' },
+    { id: 'safety-reporting', label: 'Safety & Adverse Event Reporting', color: '#FF7D78' },
+    { id: 'clinical-education', label: 'Clinical Education & Medical Information', color: '#2C59AB' },
+    { id: 'patient-education', label: 'Patient & Caregiver Education', color: '#EFBC66' },
+    { id: 'adherence-support', label: 'Adherence & Persistence Support', color: '#DE7D00' },
+    { id: 'crisis-support', label: 'Crisis Intervention & Escalation', color: '#485D61' },
   ],
 
   hubName: 'PraxisConnect',
@@ -71,46 +71,49 @@ export const praxisBrand: BrandPack = {
       agentType: 'patient-support',
       name: 'Emma',
       greeting:
-        "Hi {contactName}, this is Emma from Praxis patient support. I'm here to help you with your therapy.",
+        'Hi, this is Emma calling from Praxis Patient Support.',
       description: 'Inbound/outbound patient hub services, copay, adherence, AE capture',
     },
     {
       agentType: 'hcp-support',
-      name: 'Marcus',
+      name: 'Aria',
       greeting:
-        'Good day, Dr. {contactName}. This is Marcus from Praxis Medical Information. How can I assist you today?',
+        'Hello, this is the Praxis Medical Information line. Thank you for calling.',
       description: 'Inbound HCP medical information, samples, formulary questions',
     },
     {
       agentType: 'hcp-outbound',
-      name: 'Rachel',
+      name: 'Marcus',
       greeting:
-        "Hi Dr. {contactName}, this is Rachel from Praxis BioSciences. I'm reaching out to share some updates on our neurology portfolio.",
+        'Hello, this is Emma from Praxis BioSciences.',
       description: 'Proactive HCP engagement, detail calls, competitive intelligence',
     },
     {
       agentType: 'medcomms-qa',
-      name: 'Compliance',
+      name: 'Rachel',
       greeting:
-        'This is the Praxis MedComms QA review system. Analyzing interaction transcript for compliance.',
+        'Thank you for contacting Praxis BioSciences Medical Information.',
       description: 'Medical communications review, off-label monitoring, compliance checks',
     },
   ],
 
   outcomeLabels: {
-    'hub-enrolled': 'Hub Enrolled',
-    'copay-card-issued': 'Copay Card Issued',
-    'ae-report-filed': 'AE Report Filed',
-    'adherence-counseling': 'Adherence Counseling',
-    'sample-shipped': 'Sample Shipped',
+    'ae-reported': 'Adverse Event Reported',
+    'ae-escalated': 'Adverse Event Escalated',
     'medical-info-provided': 'Medical Info Provided',
-    'hcp-detail-completed': 'HCP Detail Completed',
-    'prior-auth-initiated': 'Prior Auth Initiated',
+    'sample-request': 'Sample Request',
+    'copay-card-issued': 'Copay Card Issued',
+    'hub-enrollment': 'Hub Enrollment',
+    'prior-auth-assist': 'Prior Auth Assistance',
+    'nurse-educator-referral': 'Nurse Educator Referral',
+    'speaker-program-interest': 'Speaker Program Interest',
+    'appointment-scheduled': 'Appointment Scheduled',
+    'information-provided': 'Information Provided',
     'callback-requested': 'Callback Requested',
-    'follow-up-scheduled': 'Follow-Up Scheduled',
     'declined': 'Declined',
     'no-answer': 'No Answer',
     'voicemail': 'Voicemail Left',
+    'crisis-escalation': 'Crisis Escalation',
   },
 
   demoScenarios: [

@@ -104,7 +104,7 @@ describe('AGENT_TYPE_CONFIG', () => {
 describe('THERAPEUTIC_AREAS', () => {
   it('has both therapeutic areas', () => {
     expect(THERAPEUTIC_AREAS).toHaveProperty('essential-tremor');
-    expect(THERAPEUTIC_AREAS).toHaveProperty('dee');
+    expect(THERAPEUTIC_AREAS).toHaveProperty('dee-dravet');
   });
 
   it('each area has label and color', () => {
@@ -128,7 +128,7 @@ describe('DRUG_PRODUCTS', () => {
     for (const drug of Object.values(DRUG_PRODUCTS)) {
       expect(typeof drug.label).toBe('string');
       expect(typeof drug.brandName).toBe('string');
-      expect(['essential-tremor', 'dee']).toContain(drug.therapeuticArea);
+      expect(['essential-tremor', 'dee-dravet']).toContain(drug.therapeuticArea);
       expect(drug.color).toMatch(HEX_RE);
     }
   });
@@ -139,12 +139,12 @@ describe('DRUG_PRODUCTS', () => {
 // ---------------------------------------------------------------------------
 describe('SUPPORT_PATHWAYS', () => {
   const expectedIds = [
-    'hub-enrollment',
-    'copay-assistance',
-    'ae-reporting',
+    'medication-access',
+    'safety-reporting',
+    'clinical-education',
+    'patient-education',
     'adherence-support',
-    'sample-request',
-    'medical-inquiry',
+    'crisis-support',
   ];
 
   it('has 6 pathways', () => {
@@ -182,23 +182,26 @@ describe('SUPPORT_PATHWAYS', () => {
 // ---------------------------------------------------------------------------
 describe('OUTCOME_LABELS', () => {
   const outcomes = [
-    'hub-enrolled',
-    'copay-card-issued',
-    'ae-report-filed',
-    'adherence-counseling',
-    'sample-shipped',
+    'ae-reported',
+    'ae-escalated',
     'medical-info-provided',
-    'hcp-detail-completed',
-    'prior-auth-initiated',
+    'sample-request',
+    'copay-card-issued',
+    'hub-enrollment',
+    'prior-auth-assist',
+    'nurse-educator-referral',
+    'speaker-program-interest',
+    'appointment-scheduled',
+    'information-provided',
     'callback-requested',
-    'follow-up-scheduled',
     'declined',
     'no-answer',
     'voicemail',
+    'crisis-escalation',
   ] as const;
 
-  it('has all 13 outcome types', () => {
-    expect(Object.keys(OUTCOME_LABELS)).toHaveLength(13);
+  it('has all 16 outcome types', () => {
+    expect(Object.keys(OUTCOME_LABELS)).toHaveLength(16);
     for (const o of outcomes) {
       expect(OUTCOME_LABELS).toHaveProperty(o);
     }

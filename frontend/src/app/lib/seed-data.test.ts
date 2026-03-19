@@ -700,10 +700,11 @@ describe('Data Integrity -- cross-referential consistency', () => {
   it('should have every call record with a valid outcome from InteractionOutcome', () => {
     // WHY: Invalid outcomes would break outcome-based filtering and analytics aggregation.
     const validOutcomes = [
-      'hub-enrolled', 'copay-card-issued', 'ae-report-filed', 'adherence-counseling',
-      'sample-shipped', 'medical-info-provided', 'hcp-detail-completed',
-      'prior-auth-initiated', 'callback-requested', 'follow-up-scheduled',
-      'declined', 'no-answer', 'voicemail',
+      'ae-reported', 'ae-escalated', 'medical-info-provided', 'sample-request',
+      'copay-card-issued', 'hub-enrollment', 'prior-auth-assist',
+      'nurse-educator-referral', 'speaker-program-interest', 'appointment-scheduled',
+      'information-provided', 'callback-requested', 'declined', 'no-answer', 'voicemail',
+      'crisis-escalation',
     ];
     for (const call of calls) {
       expect(validOutcomes).toContain(call.outcome);

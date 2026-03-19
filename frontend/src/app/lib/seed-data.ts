@@ -128,7 +128,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'SEARCH_INTENT', detail: `Searched "copay help for specialty medications" and "${d0.brandName} patient assistance"`, recency: 'Yesterday', severity: 'high', clinicalImplication: 'Cost barrier -- copay card activation urgent to prevent therapy abandonment', timestamp: new Date('2026-03-16').toISOString() },
     ],
-    recommendedPathway: 'copay-assistance',
+    recommendedPathway: 'medication-access',
     openActions: ['Copay card not yet activated', 'Benefits investigation pending'],
     priorityTier: 'HIGH',
     priorityScore: 82,
@@ -149,7 +149,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'RX_PATTERN', detail: `First ${d0.brandName} fill picked up 3 days ago -- new start`, recency: '3 days ago', severity: 'medium', clinicalImplication: 'New start patient -- onboarding and hub enrollment window', timestamp: new Date('2026-03-14').toISOString() },
     ],
-    recommendedPathway: 'hub-enrollment',
+    recommendedPathway: 'medication-access',
     openActions: ['Hub enrollment not completed', 'Welcome call pending', 'Copay card activation'],
     priorityTier: 'MEDIUM',
     priorityScore: 65,
@@ -193,7 +193,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'RX_PATTERN', detail: `${d1.brandName} first fill -- new start patient (daughter)`, recency: '5 days ago', severity: 'medium', clinicalImplication: 'New start -- hub enrollment and titration support critical', timestamp: new Date('2026-03-12').toISOString() },
     ],
-    recommendedPathway: 'hub-enrollment',
+    recommendedPathway: 'medication-access',
     openActions: ['Hub enrollment', 'Titration schedule education', 'Copay card setup'],
     priorityTier: 'MEDIUM',
     priorityScore: 68,
@@ -214,7 +214,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'CLAIMS_SIGNAL', detail: 'ER visit 6 days ago -- disease-related', recency: '6 days ago', severity: 'high', clinicalImplication: 'Breakthrough event -- therapy assessment and AE screening needed', timestamp: new Date('2026-03-11').toISOString() },
     ],
-    recommendedPathway: 'ae-reporting',
+    recommendedPathway: 'safety-reporting',
     openActions: ['Post-ER follow-up', 'AE assessment', 'Specialist coordination'],
     priorityTier: 'HIGH',
     priorityScore: 88,
@@ -237,7 +237,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'HCP_ACTIVITY', detail: `Attended ${brand.companyName}-sponsored symposium, requested ${d0.brandName} trial reprints`, recency: '1 week ago', severity: 'medium', clinicalImplication: 'High interest -- ready for detailed clinical discussion', timestamp: new Date('2026-03-10').toISOString() },
     ],
-    recommendedPathway: 'sample-request',
+    recommendedPathway: 'clinical-education',
     openActions: ['Sample fulfillment pending', 'Clinical reprint delivery', 'Follow-up detail call'],
     priorityTier: 'HIGH',
     priorityScore: 85,
@@ -259,7 +259,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'COMPETITIVE_INTEL', detail: `Prescribing pattern shifted -- 3 patients moved to ${d0.brandName}`, recency: '2 weeks ago', severity: 'low', clinicalImplication: 'Positive adoption trend -- reinforce with outcomes data', timestamp: new Date('2026-03-03').toISOString() },
     ],
-    recommendedPathway: 'medical-inquiry',
+    recommendedPathway: 'clinical-education',
     openActions: ['Phase 3 data request pending', 'Formulary support needed'],
     priorityTier: 'MEDIUM',
     priorityScore: 62,
@@ -281,7 +281,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'HCP_ACTIVITY', detail: `Downloaded ${d0.brandName} PI from ${brand.website}, viewed MOA video twice`, recency: '4 days ago', severity: 'medium', clinicalImplication: `Evaluating ${d0.brandName} -- high-value target for outbound detail`, timestamp: new Date('2026-03-13').toISOString() },
     ],
-    recommendedPathway: 'sample-request',
+    recommendedPathway: 'clinical-education',
     openActions: ['Introductory detail call', 'Sample shipment', 'Speaker program invitation'],
     priorityTier: 'HIGH',
     priorityScore: 78,
@@ -303,7 +303,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'HCP_ACTIVITY', detail: `Submitted 3 ${d1.brandName} prior auth requests in 2 weeks`, recency: '3 days ago', severity: 'high', clinicalImplication: 'Active prescriber with access challenges -- formulary support needed', timestamp: new Date('2026-03-14').toISOString() },
     ],
-    recommendedPathway: 'medical-inquiry',
+    recommendedPathway: 'clinical-education',
     openActions: ['Prior auth support', 'Formulary challenge data', 'Peer-to-peer scheduling'],
     priorityTier: 'HIGH',
     priorityScore: 90,
@@ -325,7 +325,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'COMPETITIVE_INTEL', detail: `Published review article comparing ${d1.brandName} to competitor therapies`, recency: '1 week ago', severity: 'medium', clinicalImplication: 'KOL influence -- engage for speaker program and advisory board', timestamp: new Date('2026-03-10').toISOString() },
     ],
-    recommendedPathway: 'medical-inquiry',
+    recommendedPathway: 'clinical-education',
     openActions: ['Advisory board invitation', 'Speaker program recruitment', 'Real-world evidence discussion'],
     priorityTier: 'MEDIUM',
     priorityScore: 72,
@@ -347,7 +347,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'SEARCH_INTENT', detail: `Searched "${d1.brandName} trial results" and "${brandTA1Label(brand)}" on medical portals`, recency: '2 days ago', severity: 'medium', clinicalImplication: `Researching ${d1.brandName} -- receptive to clinical data presentation`, timestamp: new Date('2026-03-15').toISOString() },
     ],
-    recommendedPathway: 'sample-request',
+    recommendedPathway: 'clinical-education',
     openActions: ['Clinical data presentation', 'Sample request follow-up', 'Peer-to-peer connection'],
     priorityTier: 'MEDIUM',
     priorityScore: 58,
@@ -361,7 +361,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
 // ---------------------------------------------------------------------------
 function assignAgentType(contactType: 'patient' | 'hcp', pathway: SupportPathwayId): AgentType {
   if (contactType === 'patient') return 'patient-support';
-  if (pathway === 'sample-request' || pathway === 'medical-inquiry') return 'hcp-support';
+  if (pathway === 'clinical-education' || pathway === 'safety-reporting') return 'hcp-support';
   return 'hcp-outbound';
 }
 
@@ -369,26 +369,26 @@ function assignAgentType(contactType: 'patient' | 'hcp', pathway: SupportPathway
 // Outcome distribution -- 20 total calls
 // ---------------------------------------------------------------------------
 const OUTCOME_DISTRIBUTION: { outcome: InteractionOutcome; count: number }[] = [
-  { outcome: 'hub-enrolled', count: 3 },
+  { outcome: 'hub-enrollment', count: 3 },
   { outcome: 'copay-card-issued', count: 2 },
-  { outcome: 'ae-report-filed', count: 2 },
-  { outcome: 'adherence-counseling', count: 3 },
-  { outcome: 'sample-shipped', count: 2 },
+  { outcome: 'ae-reported', count: 2 },
+  { outcome: 'nurse-educator-referral', count: 3 },
+  { outcome: 'sample-request', count: 2 },
   { outcome: 'medical-info-provided', count: 2 },
-  { outcome: 'hcp-detail-completed', count: 2 },
-  { outcome: 'follow-up-scheduled', count: 1 },
+  { outcome: 'information-provided', count: 2 },
+  { outcome: 'appointment-scheduled', count: 1 },
   { outcome: 'no-answer', count: 2 },
   { outcome: 'voicemail', count: 1 },
 ];
 
 // Pathway distribution -- 20 total calls
 const PATHWAY_DISTRIBUTION: { pathway: SupportPathwayId; count: number }[] = [
-  { pathway: 'hub-enrollment', count: 4 },
-  { pathway: 'copay-assistance', count: 3 },
-  { pathway: 'ae-reporting', count: 3 },
-  { pathway: 'adherence-support', count: 4 },
-  { pathway: 'sample-request', count: 3 },
-  { pathway: 'medical-inquiry', count: 3 },
+  { pathway: 'medication-access', count: 4 },
+  { pathway: 'safety-reporting', count: 3 },
+  { pathway: 'clinical-education', count: 3 },
+  { pathway: 'patient-education', count: 4 },
+  { pathway: 'adherence-support', count: 3 },
+  { pathway: 'crisis-support', count: 3 },
 ];
 
 // ---------------------------------------------------------------------------
@@ -481,17 +481,17 @@ function generateTranscript(
   }
 
   // Pathway-specific body
-  if (pathway === 'hub-enrollment') {
+  if (pathway === 'medication-access') {
     add('agent', `I'd like to help get you enrolled in our ${brand.hubName} program. This gives you access to dedicated support, copay assistance, and personalized adherence resources for ${drugName} -- all at no cost to you.`);
     add('contact', pick(["That sounds helpful. What do I need to do?", "My doctor mentioned something about a support program.", "How does the copay help work?"] as const));
     add('agent', `I can get you enrolled right now over the phone. I'll need to verify some basic information and then we'll get your benefits investigation started. The hub also provides a dedicated care coordinator who can help with any questions about your therapy.`);
     add('contact', "Okay, let's do it. I've been worried about the costs.");
-  } else if (pathway === 'copay-assistance') {
-    add('agent', `I'm calling to help you activate your ${drugName} copay card. Our program can significantly reduce your out-of-pocket costs for your prescriptions.`);
-    add('contact', pick(["That would be amazing. The specialty pharmacy quoted me a really high copay.", "Yes, I definitely need help with the cost.", "How do I qualify for that?"] as const));
-    add('agent', `Based on your insurance information, you are eligible for our copay assistance program. I can activate your card right now and it will be applied to your next fill at the specialty pharmacy.`);
-    add('contact', "Yes, please. That's such a relief.");
-  } else if (pathway === 'ae-reporting') {
+  } else if (pathway === 'patient-education') {
+    add('agent', `I'm calling to help you with information about your ${drugName} therapy. Our program can provide educational resources and support to help you get the most from your treatment.`);
+    add('contact', pick(["That would be amazing. I have a lot of questions about what to expect.", "Yes, I definitely want to learn more.", "How can you help me with my treatment?"] as const));
+    add('agent', `I can walk you through what to expect with ${drugName} and answer any questions you have. We also have patient education materials I can send to you.`);
+    add('contact', "Yes, please. That would be really helpful.");
+  } else if (pathway === 'safety-reporting') {
     add('agent', `I'm following up on your ${drugName} therapy. Part of my call today is to check in on how you're tolerating the medication. Have you experienced any new or unusual symptoms since starting ${drugName}?`);
     add('contact', pick([
       `Actually yes, I've been having some dizziness and nausea for the past week.`,
@@ -510,19 +510,7 @@ function generateTranscript(
     ] as const));
     add('agent', `I appreciate your honesty. Consistent dosing is really important for ${drugName} to work effectively. Let me help coordinate your refill and we can talk through some strategies to help with adherence.`);
     add('contact', "That would be helpful. Sometimes I just forget the evening dose.");
-  } else if (pathway === 'sample-request') {
-    if (contactType === 'patient') {
-      add('agent', `${firstName}, I'd like to let you know about our ${drugName} starter support program. We can work with your prescriber to ensure you have everything you need to get started.`);
-      add('contact', "That would be great. My doctor mentioned it but I wasn't sure how it worked.");
-      add('agent', `I'll coordinate with your prescriber's office and make sure the patient education materials and quick-start guide are sent your way as well.`);
-      add('contact', "Thank you, I appreciate that.");
-    } else {
-      add('agent', `Dr. ${lastName}, I understand you're interested in ${drugName} samples for your practice. We can arrange a shipment to your office within 3-5 business days.`);
-      add('contact', `I have several ${taLabel} patients who may benefit. I want to trial them on ${drugName} before writing full scripts.`);
-      add('agent', `Absolutely. I can ship a starter kit that includes ${drug === d0.id ? 'a 2-week titration pack' : 'a 4-week supply at the starting dose'}, along with patient education materials and our quick-start guide.`);
-      add('contact', "Send the Phase 3 data too. I'll review it before starting anyone.");
-    }
-  } else if (pathway === 'medical-inquiry') {
+  } else if (pathway === 'clinical-education') {
     if (contactType === 'patient') {
       add('agent', `${firstName}, I'd be happy to help answer your questions about ${drugName}. What would you like to know?`);
       add('contact', pick([
@@ -542,11 +530,20 @@ function generateTranscript(
       add('agent', `I can provide the full clinical data package for ${drugName}. I'll email the complete publication and prescribing information to your office.`);
       add('contact', "Fine. Arrange a peer-to-peer with one of your KOLs as well.");
     }
+  } else if (pathway === 'crisis-support') {
+    add('agent', `I want to check in with you about how you're doing overall, ${firstName}. Sometimes managing a condition and its treatment can feel overwhelming. How are you feeling?`);
+    add('contact', pick([
+      "Honestly, it's been really tough. I feel overwhelmed.",
+      "I've been struggling a bit. It's a lot to manage.",
+      "I'm okay, but some days are harder than others.",
+    ] as const));
+    add('agent', `I hear you, and I want you to know that support is available. If you ever feel in crisis or have thoughts of harming yourself, please call 988 -- that's the Suicide & Crisis Lifeline, available 24/7. I can also connect you with our dedicated support resources right now.`);
+    add('contact', "Thank you. I appreciate you asking.");
   }
 
   // Outcome-specific closing
   switch (outcome) {
-    case 'hub-enrolled':
+    case 'hub-enrollment':
       add('agent', `Excellent, ${contactType === 'patient' ? firstName : `Dr. ${lastName}`}. You're now enrolled in ${brand.hubName}. You'll receive a welcome packet via email and a dedicated coordinator will reach out within 48 hours.`);
       add('contact', contactType === 'patient' ? "Thank you so much. This is very helpful." : "Good. Have the coordinator reach out to my office.");
       break;
@@ -554,15 +551,15 @@ function generateTranscript(
       add('agent', `Your copay card is now active, ${firstName}. The ID number is ${brand.shortName.toUpperCase()}-${randInt(10000, 99999)}. Your next fill should show the reduced copay. I'll send all the details via text.`);
       add('contact', "That's wonderful. Thank you for making this so easy.");
       break;
-    case 'ae-report-filed':
+    case 'ae-reported':
       add('agent', `I've filed the adverse event report -- case number AE-${randInt(100000, 999999)}. Our pharmacovigilance team will follow up within 24 hours. ${contactType === 'patient' ? "Please don't hesitate to call our 24/7 line if anything changes." : "We'll send the case documentation to your office for review."}`);
       add('contact', contactType === 'patient' ? "Okay, thank you. I'll keep monitoring it." : "Understood. Route the case summary to my office.");
       break;
-    case 'adherence-counseling':
+    case 'nurse-educator-referral':
       add('agent', `I've set up a refill reminder and your next adherence check-in for ${pick(['next Tuesday', 'next Thursday', 'next Monday'] as const)}, ${firstName}. Remember, consistent dosing is key to seeing the best results with ${drugName}.`);
       add('contact', "I'll do my best. Thanks for the support.");
       break;
-    case 'sample-shipped':
+    case 'sample-request':
       add('agent', contactType === 'hcp'
         ? `The sample shipment has been initiated, Dr. ${lastName}. You should receive it within 3-5 business days at your ${pick(['office', 'clinic', 'practice location'] as const)}. I'll also include our patient starter kit materials.`
         : `I've coordinated with your prescriber's office, ${firstName}. The starter materials will be sent along with your prescription. You should have everything within 3-5 business days.`);
@@ -574,17 +571,17 @@ function generateTranscript(
         : `I'll send the patient information packet to you right away, ${firstName}. And remember, your prescriber is the best resource for any specific medical questions about your treatment.`);
       add('contact', contactType === 'hcp' ? "That covers it. Thank you." : "That sounds great. Thank you for explaining everything.");
       break;
-    case 'hcp-detail-completed':
+    case 'information-provided':
       add('agent', contactType === 'hcp'
         ? `Thank you for your time, Dr. ${lastName}. To summarize -- ${drugName} offers a favorable efficacy and safety profile for ${taLabel} patients. I'll send the detail materials and PI to your office.`
         : `Thank you for your time today, ${firstName}. I'll make sure all the information we discussed is sent to you and your care team.`);
       add('contact', contactType === 'hcp' ? "I'll review it. Thank you." : "I appreciate all the help.");
       break;
-    case 'prior-auth-initiated':
+    case 'prior-auth-assist':
       add('agent', `I've initiated the prior authorization process. Our team will work directly with the payer. ${contactType === 'patient' ? `You should have a determination within 5-7 business days, ${firstName}. I'll keep you updated.` : `Determination expected within 5-7 business days, Dr. ${lastName}. We'll keep your office informed.`}`);
       add('contact', contactType === 'patient' ? "Thank you. I really need this medication." : "Good. Keep my office in the loop.");
       break;
-    case 'follow-up-scheduled':
+    case 'appointment-scheduled':
       add('agent', `I've scheduled a follow-up for ${pick(['next Tuesday at 2 PM', 'Thursday at 10 AM', 'next Monday at 3 PM'] as const)}, ${contactType === 'patient' ? firstName : `Dr. ${lastName}`}. I'll have all the information ready for you.`);
       add('contact', contactType === 'patient' ? "Sounds good. Talk to you then." : "Fine. Make sure you have the data ready.");
       break;
@@ -616,17 +613,17 @@ function generateLiaisonSummary(
   brand: BrandPack,
 ): LiaisonSummary {
   const isConversion = CONVERSION_OUTCOMES.includes(outcome);
-  const engagementScore = outcome === 'hub-enrolled' ? randInt(80, 95)
+  const engagementScore = outcome === 'hub-enrollment' ? randInt(80, 95)
     : outcome === 'copay-card-issued' ? randInt(78, 92)
-    : outcome === 'ae-report-filed' ? randInt(70, 88)
-    : outcome === 'hcp-detail-completed' ? randInt(72, 90)
-    : outcome === 'sample-shipped' ? randInt(75, 88)
+    : outcome === 'ae-reported' ? randInt(70, 88)
+    : outcome === 'information-provided' ? randInt(72, 90)
+    : outcome === 'sample-request' ? randInt(75, 88)
     : outcome === 'medical-info-provided' ? randInt(68, 85)
     : outcome === 'declined' ? randInt(20, 40)
     : randInt(40, 65);
 
   const highSigs = signals.filter(s => s.severity === 'high');
-  const aeDetected = outcome === 'ae-report-filed' || (pathway === 'ae-reporting' && rng() > 0.3);
+  const aeDetected = outcome === 'ae-reported' || (pathway === 'safety-reporting' && rng() > 0.3);
   const d0 = brandDrug0(brand);
   const d1 = brandDrug1(brand);
   const drugName = drug === d0.id ? d0.brandName : d1.brandName;
@@ -640,12 +637,12 @@ function generateLiaisonSummary(
   if (signals.some(s => s.category === 'ADHERENCE_SIGNAL')) indicators.push('Adherence gap confirmed -- therapy continuity at risk');
 
   const narrativeMap: Record<SupportPathwayId, string> = {
-    'hub-enrollment': `Completed hub enrollment for ${contactName} on ${drugName}. ${isConversion ? `Patient successfully enrolled in ${brand.hubName}. Benefits investigation initiated. Dedicated coordinator to contact within 48 hours.` : 'Patient expressed interest but did not complete enrollment. Follow-up recommended within 5 business days.'}`,
-    'copay-assistance': `Copay assistance interaction for ${contactName}. ${isConversion ? `Copay card activated -- patient eligible for reduced out-of-pocket costs on ${drugName}. Specialty pharmacy notified.` : 'Copay assistance discussed. Patient needs follow-up on eligibility determination.'}`,
-    'ae-reporting': `PHARMACOVIGILANCE ALERT -- AE screening for ${contactName} on ${drugName}. ${aeDetected ? 'Adverse event captured and documented. Case submitted to pharmacovigilance team for 24-hour review. Follow-up with prescribing physician required.' : 'No reportable adverse events identified during screening. Routine monitoring continues.'}`,
+    'medication-access': `Completed medication access support for ${contactName} on ${drugName}. ${isConversion ? `Patient successfully enrolled in ${brand.hubName}. Benefits investigation initiated. Dedicated coordinator to contact within 48 hours.` : 'Patient expressed interest but did not complete enrollment. Follow-up recommended within 5 business days.'}`,
+    'safety-reporting': `PHARMACOVIGILANCE ALERT -- AE screening for ${contactName} on ${drugName}. ${aeDetected ? 'Adverse event captured and documented. Case submitted to pharmacovigilance team for 24-hour review. Follow-up with prescribing physician required.' : 'No reportable adverse events identified during screening. Routine monitoring continues.'}`,
+    'clinical-education': `Clinical education inquiry from ${contactName} regarding ${drugName}. ${isConversion ? 'Clinical data package sent. Peer-to-peer discussion arranged.' : 'Inquiry documented. Medical affairs team to provide detailed response within 48 hours.'} ${signals.some(s => s.category === 'COMPETITIVE_INTEL') ? 'COMPETITIVE INTELLIGENCE: Prescriber evaluating alternatives -- priority follow-up recommended.' : ''}`,
+    'patient-education': `Patient education interaction for ${contactName}. ${isConversion ? `Copay card activated -- patient eligible for reduced out-of-pocket costs on ${drugName}. Specialty pharmacy notified.` : 'Educational materials provided. Patient needs follow-up on treatment questions.'}`,
     'adherence-support': `Adherence support call for ${contactName} on ${drugName}. ${signals.some(s => s.category === 'ADHERENCE_SIGNAL') ? 'Adherence gap confirmed. Refill coordination initiated and reminder system established.' : 'Patient reports adequate adherence. Next scheduled check-in logged.'}`,
-    'sample-request': `Sample request processed for ${contactName}. ${isConversion ? `${drugName} sample shipment initiated -- delivery in 3-5 business days. Clinical materials included in package.` : 'Sample request noted. Awaiting DEA/state license verification.'}`,
-    'medical-inquiry': `Medical inquiry from ${contactName} regarding ${drugName}. ${isConversion ? 'Clinical data package sent. Peer-to-peer discussion arranged.' : 'Inquiry documented. Medical affairs team to provide detailed response within 48 hours.'} ${signals.some(s => s.category === 'COMPETITIVE_INTEL') ? 'COMPETITIVE INTELLIGENCE: Prescriber evaluating alternatives -- priority follow-up recommended.' : ''}`,
+    'crisis-support': `CRISIS SUPPORT -- ${contactName} on ${drugName}. ${aeDetected ? 'Acute distress identified. Immediate escalation to crisis resources and prescribing physician notification completed.' : 'Caller assessed for crisis indicators. No immediate escalation required. Monitoring continues.'}`,
   };
 
   // Block 1: Context summary
@@ -655,12 +652,12 @@ function generateLiaisonSummary(
 
   // Block 2: What happened
   const whatHappenedMap: Record<SupportPathwayId, string> = {
-    'hub-enrollment': `${isConversion ? 'Successful hub enrollment completed' : 'Hub enrollment discussed but not completed'}. ${aeDetected ? 'AE identified during interaction.' : 'No safety signals.'} ${contactType === 'hcp' ? 'HCP engaged with clinical questions.' : 'Patient receptive to support services.'}`,
-    'copay-assistance': `${isConversion ? 'Copay card activated successfully' : 'Copay assistance discussed'}. Patient expressed ${isConversion ? 'relief about cost reduction' : 'concern about medication costs'}.`,
-    'ae-reporting': `AE screening call completed. ${aeDetected ? 'Adverse event captured and documented -- routed to pharmacovigilance.' : 'No reportable AEs identified.'} Patient was ${isConversion ? 'cooperative and thorough' : 'briefly engaged'}.`,
+    'medication-access': `${isConversion ? 'Successful medication access support completed' : 'Medication access discussed but not completed'}. ${aeDetected ? 'AE identified during interaction.' : 'No safety signals.'} ${contactType === 'hcp' ? 'HCP engaged with clinical questions.' : 'Patient receptive to support services.'}`,
+    'safety-reporting': `AE screening call completed. ${aeDetected ? 'Adverse event captured and documented -- routed to pharmacovigilance.' : 'No reportable AEs identified.'} Patient was ${isConversion ? 'cooperative and thorough' : 'briefly engaged'}.`,
+    'clinical-education': `${isConversion ? 'Clinical data package sent and peer-to-peer arranged' : 'Medical inquiry documented for follow-up'}. ${contactType === 'hcp' ? 'HCP asked substantive clinical questions.' : 'Patient/caregiver seeking detailed information.'}`,
+    'patient-education': `${isConversion ? 'Patient education completed successfully' : 'Patient education discussed'}. Patient expressed ${isConversion ? 'understanding of treatment plan' : 'questions about treatment expectations'}.`,
     'adherence-support': `Adherence check-in completed. ${signals.some(s => s.category === 'ADHERENCE_SIGNAL') ? 'Confirmed adherence gap -- refill coordination initiated.' : 'Adherence appears adequate.'} ${isConversion ? 'Intervention plan established.' : 'Monitoring continues.'}`,
-    'sample-request': `${isConversion ? 'Sample shipment initiated' : 'Sample request discussed'}. ${contactType === 'hcp' ? 'HCP plans to trial with appropriate patients.' : 'Sample logistics coordinated.'} Clinical materials included.`,
-    'medical-inquiry': `${isConversion ? 'Clinical data package sent and peer-to-peer arranged' : 'Medical inquiry documented for follow-up'}. ${contactType === 'hcp' ? 'HCP asked substantive clinical questions.' : 'Patient/caregiver seeking detailed information.'}`,
+    'crisis-support': `Crisis support call completed. ${aeDetected ? 'Acute distress identified and escalated to crisis resources.' : 'Caller assessed -- no immediate crisis.'} ${isConversion ? 'Escalation protocol completed.' : 'Monitoring continues.'}`,
   };
 
   // Block 3: What changed since last touch
@@ -673,35 +670,35 @@ function generateLiaisonSummary(
 
   // Block 4: Clinical questions raised
   const clinicalQuestionsPool: Record<SupportPathwayId, string[][]> = {
-    'hub-enrollment': [
+    'medication-access': [
       ['What is the expected titration timeline for new patients?'],
       ['Are there dietary restrictions while on therapy?'],
       [],
     ],
-    'copay-assistance': [
-      ['Will the copay card work with Medicare Part D?'],
-      [],
-      [],
-    ],
-    'ae-reporting': [
+    'safety-reporting': [
       ['Is dizziness dose-related and will it resolve with continued use?', 'Should the dose be reduced or held?'],
       ['What is the expected timeline for side effect resolution?'],
       ['Are there drug interactions with current concomitant medications?'],
+    ],
+    'clinical-education': [
+      [`What are the Phase 3 primary endpoint results for ${drugName}?`, 'Is there real-world evidence data available?'],
+      [`How does the safety profile compare to ${drug === d0.id ? 'propranolol and primidone' : 'fenfluramine and cannabidiol'}?`],
+      ['Are there ongoing trials for additional indications?', 'What is the mechanism of action differentiation?'],
+    ],
+    'patient-education': [
+      ['Will the copay card work with Medicare Part D?'],
+      ['What should I expect during the first weeks of treatment?'],
+      [],
     ],
     'adherence-support': [
       ['Can the dosing schedule be simplified to once daily?'],
       ['What happens if doses are missed -- is re-titration needed?'],
       [],
     ],
-    'sample-request': [
-      [`What is the head-to-head efficacy vs ${drug === d0.id ? 'propranolol' : 'fenfluramine'}?`],
-      ['What is the recommended titration for treatment-naive patients?'],
-      [`Are there subgroup analyses for ${drug === d0.id ? 'elderly patients with comorbidities' : 'pediatric patients under age 6'}?`],
-    ],
-    'medical-inquiry': [
-      [`What are the Phase 3 primary endpoint results for ${drugName}?`, 'Is there real-world evidence data available?'],
-      [`How does the safety profile compare to ${drug === d0.id ? 'propranolol and primidone' : 'fenfluramine and cannabidiol'}?`],
-      ['Are there ongoing trials for additional indications?', 'What is the mechanism of action differentiation?'],
+    'crisis-support': [
+      ['What crisis resources are available 24/7?'],
+      ['Should the prescribing physician be notified immediately?'],
+      [],
     ],
   };
   const clinicalQuestionsRaised = pick(clinicalQuestionsPool[pathway]);
@@ -819,7 +816,7 @@ function generateClassification(
   const isConversion = CONVERSION_OUTCOMES.includes(outcome);
   const isNoConnect = NON_CONNECT_OUTCOMES.includes(outcome);
 
-  const urgency: UrgencyLevel = pathway === 'ae-reporting' ? 'urgent'
+  const urgency: UrgencyLevel = pathway === 'safety-reporting' ? 'urgent'
     : liaisonSummary.aeDetected ? 'urgent'
     : signals.some(s => s.severity === 'high') ? 'soon'
     : 'routine';
@@ -865,7 +862,7 @@ function generateClassification(
 
   // MSL follow-up detection -- HCP calls with medical inquiry or sample request
   const mslFollowupRequested = contactType === 'hcp' && !isNoConnect
-    && (pathway === 'medical-inquiry' || pathway === 'sample-request')
+    && (pathway === 'clinical-education' || pathway === 'patient-education')
     && rng() < 0.5;
   const mslFollowupTopic = mslFollowupRequested
     ? pick([
@@ -917,14 +914,14 @@ function generateScreeningResults(
   callTimestamp: string,
 ): ScreeningResult[] | null {
   if (!isConnected) return null;
-  if (pathway !== 'ae-reporting' && pathway !== 'adherence-support') {
+  if (pathway !== 'safety-reporting' && pathway !== 'adherence-support') {
     if (rng() > 0.3) return null;
   }
 
   const results: ScreeningResult[] = [];
   const baseTime = new Date(callTimestamp).getTime() / 1000 + 60;
 
-  if (pathway === 'ae-reporting' || rng() < 0.5) {
+  if (pathway === 'safety-reporting' || rng() < 0.5) {
     const declined = rng() < 0.1;
     const isPositive = rng() < 0.4;
     results.push({
@@ -1022,7 +1019,7 @@ function makeTetrasScreening(score: number, callTimestamp: string): ScreeningRes
 // ---------------------------------------------------------------------------
 function assignPriorityTier(pathway: SupportPathwayId, signals: BehavioralSignal[]): PriorityTier {
   const highCount = signals.filter(s => s.severity === 'high').length;
-  if (pathway === 'ae-reporting') return 'HIGH';
+  if (pathway === 'safety-reporting') return 'HIGH';
   if (highCount >= 2) return 'HIGH';
   if (highCount === 1 || pathway === 'adherence-support') return 'MEDIUM';
   return pick(['MEDIUM', 'LOW', 'LOW'] as const);
@@ -1054,9 +1051,9 @@ function buildAllCalls(brand: BrandPack, contacts: ContactRecord[]): CallRecord[
     const duration = outcome === 'no-answer' ? randInt(15, 40)
       : outcome === 'voicemail' ? randInt(30, 60)
       : outcome === 'declined' ? randInt(60, 150)
-      : outcome === 'ae-report-filed' ? randInt(300, 480)
-      : outcome === 'hub-enrolled' ? randInt(240, 420)
-      : outcome === 'hcp-detail-completed' ? randInt(300, 540)
+      : outcome === 'ae-reported' ? randInt(300, 480)
+      : outcome === 'hub-enrollment' ? randInt(240, 420)
+      : outcome === 'information-provided' ? randInt(300, 540)
       : outcome === 'medical-info-provided' ? randInt(240, 480)
       : randInt(150, 360);
 
@@ -1082,9 +1079,9 @@ function buildAllCalls(brand: BrandPack, contacts: ContactRecord[]): CallRecord[
 
     if (isPatient && !isNoConnect) {
       // Assign prior auth status based on pathway and randomness
-      if (pathway === 'adherence-support' || pathway === 'hub-enrollment') {
+      if (pathway === 'adherence-support' || pathway === 'medication-access') {
         priorAuthStatus = pick(['approved', 'approved', 'not-needed', 'pending'] as const);
-      } else if (outcome === 'prior-auth-initiated' || signals.some(s => s.detail.toLowerCase().includes('prior auth'))) {
+      } else if (outcome === 'prior-auth-assist' || signals.some(s => s.detail.toLowerCase().includes('prior auth'))) {
         priorAuthStatus = pick(['pending', 'pending', 'denied', 'appealing'] as const);
       } else if (rng() < 0.3) {
         priorAuthStatus = pick(['approved', 'not-needed'] as const);
@@ -1268,10 +1265,10 @@ export function getAnalytics(period: 'today' | 'week' | 'all' = 'all', brand: Br
   const connected = periodCalls.filter((c) => !NON_CONNECT_OUTCOMES.includes(c.outcome));
   const engaged = connected.filter((c) => c.outcome !== 'declined' && c.outcome !== 'callback-requested');
   const aeReports = periodCalls.filter((c) => c.aeDetected);
-  const hubEnrolled = periodCalls.filter((c) => c.outcome === 'hub-enrolled');
+  const hubEnrolled = periodCalls.filter((c) => c.outcome === 'hub-enrollment');
   const copayCards = periodCalls.filter((c) => c.outcome === 'copay-card-issued');
   const hcpEngagements = periodCalls.filter((c) => c.contactType === 'hcp' && CONVERSION_OUTCOMES.includes(c.outcome));
-  const samples = periodCalls.filter((c) => c.outcome === 'sample-shipped');
+  const samples = periodCalls.filter((c) => c.outcome === 'sample-request');
   const medInquiries = periodCalls.filter((c) => c.outcome === 'medical-info-provided');
 
   const avgDuration = total > 0

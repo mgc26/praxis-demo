@@ -59,33 +59,36 @@ describe('types.ts -- type exports compile correctly', () => {
 
   it('should allow constructing all SupportPathwayId values', () => {
     const ids: SupportPathwayId[] = [
-      'hub-enrollment',
-      'copay-assistance',
-      'ae-reporting',
+      'medication-access',
+      'safety-reporting',
+      'clinical-education',
+      'patient-education',
       'adherence-support',
-      'sample-request',
-      'medical-inquiry',
+      'crisis-support',
     ];
     expect(ids).toHaveLength(6);
   });
 
   it('should allow constructing all InteractionOutcome values', () => {
     const outcomes: InteractionOutcome[] = [
-      'hub-enrolled',
-      'copay-card-issued',
-      'ae-report-filed',
-      'adherence-counseling',
-      'sample-shipped',
+      'ae-reported',
+      'ae-escalated',
       'medical-info-provided',
-      'hcp-detail-completed',
-      'prior-auth-initiated',
+      'sample-request',
+      'copay-card-issued',
+      'hub-enrollment',
+      'prior-auth-assist',
+      'nurse-educator-referral',
+      'speaker-program-interest',
+      'appointment-scheduled',
+      'information-provided',
       'callback-requested',
-      'follow-up-scheduled',
       'declined',
       'no-answer',
       'voicemail',
+      'crisis-escalation',
     ];
-    expect(outcomes).toHaveLength(13);
+    expect(outcomes).toHaveLength(16);
   });
 
   it('should allow constructing a minimal BehavioralSignal object', () => {
@@ -119,7 +122,7 @@ describe('types.ts -- type exports compile correctly', () => {
   it('should allow constructing a CallFilters object', () => {
     const filters: CallFilters = {
       agentType: 'hcp-support',
-      therapeuticArea: 'dee',
+      therapeuticArea: 'dee-dravet',
       page: 1,
       limit: 10,
     };
@@ -150,9 +153,9 @@ describe('Classification interface -- competitive intel and FRM fields', () => {
   // We construct it inline to verify the interface shape at compile time.
   function buildClassification(overrides: Partial<Classification> = {}): Classification {
     return {
-      outcome: 'hcp-detail-completed',
+      outcome: 'information-provided',
       confidence: 0.91,
-      support_pathway: 'medical-inquiry',
+      support_pathway: 'clinical-education',
       urgency: 'routine',
       sentiment: 'positive',
       key_moments: [],
@@ -310,14 +313,14 @@ describe('CallRecord -- FRM access/reimbursement fields', () => {
       supportPathway: 'adherence-support',
       behavioralSignals: [],
       priorityTier: 'HIGH',
-      outcome: 'adherence-counseling',
+      outcome: 'nurse-educator-referral',
       urgency: 'soon',
       sentiment: 'positive',
       duration: 240,
       timestamp: '2026-03-17T10:30:00Z',
       transcript: [{ speaker: 'agent', text: 'Hello', timestamp: 0 }],
       classification: {
-        outcome: 'adherence-counseling',
+        outcome: 'nurse-educator-referral',
         confidence: 0.92,
         support_pathway: 'adherence-support',
         urgency: 'soon',

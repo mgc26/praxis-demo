@@ -50,7 +50,8 @@ export const OUTCOMES: OutcomeDefinition[] = [
   {
     id: 'copay-card-issued',
     label: 'Copay Card Issued',
-    description: 'Patient was enrolled in the Praxis copay assistance program and issued a copay card.',
+    // TODO: parameterize brand name -- currently hardcoded to Praxis
+    description: 'Patient was enrolled in the copay assistance program and issued a copay card.',
     smsTemplate: 'copay_card_details',
     isConversion: true,
     color: '#16a34a', // green-600
@@ -58,7 +59,8 @@ export const OUTCOMES: OutcomeDefinition[] = [
   {
     id: 'hub-enrollment',
     label: 'Hub Enrollment',
-    description: 'Patient or HCP completed enrollment in PraxisConnect hub services for ongoing access and adherence support.',
+    // TODO: parameterize hub name -- currently hardcoded to PraxisConnect
+    description: 'Patient or HCP completed enrollment in hub services for ongoing access and adherence support.',
     smsTemplate: 'hub_welcome',
     isConversion: true,
     color: '#059669', // emerald-600
@@ -74,7 +76,8 @@ export const OUTCOMES: OutcomeDefinition[] = [
   {
     id: 'nurse-educator-referral',
     label: 'Nurse Educator Referral',
-    description: 'Patient or caregiver was referred to a Praxis nurse educator for clinical education and support.',
+    // TODO: parameterize brand name -- currently hardcoded to Praxis
+    description: 'Patient or caregiver was referred to a nurse educator for clinical education and support.',
     smsTemplate: 'nurse_educator_intro',
     isConversion: true,
     color: '#6366f1', // indigo-600
@@ -82,7 +85,8 @@ export const OUTCOMES: OutcomeDefinition[] = [
   {
     id: 'speaker-program-interest',
     label: 'Speaker Program Interest',
-    description: 'HCP expressed interest in attending or participating in a Praxis speaker program or educational event.',
+    // TODO: parameterize brand name -- currently hardcoded to Praxis
+    description: 'HCP expressed interest in attending or participating in a speaker program or educational event.',
     smsTemplate: 'speaker_program_info',
     isConversion: false, // Not a conversion — tracking speaker interest as conversion documents a commercial incentive that OIG flags
     color: '#8b5cf6', // violet-500
