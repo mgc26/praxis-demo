@@ -46,12 +46,21 @@ function makeRequest(body: unknown): NextRequest {
 describe('POST /api/auth/login', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset env var so default password applies
-    delete process.env.DASHBOARD_PASSWORD;
+    // Set a known password for all tests
+    process.env.DASHBOARD_PASSWORD = 'test-password';
   });
 
-  it('returns 200 with correct default password', async () => {
-    const req = makeRequest({ password: 'praxis2026' });
+  it('returns 500 when DASHBOARD_PASSWORD is not configured', async () => {
+    delete process.env.DASHBOARD_PASSWORD;
+    const req = makeRequest({ password: 'anything' });
+    const res = await POST(req);
+    expect(res.status).toBe(500);
+    const data = await res.json();
+    expect(data).toEqual({ error: 'DASHBOARD_PASSWORD not configured' });
+  });
+
+  it('returns 200 with correct password', async () => {
+    const req = makeRequest({ password: 'test-password' });
     const res = await POST(req);
     expect(res.status).toBe(200);
     const data = await res.json();
@@ -59,10 +68,11 @@ describe('POST /api/auth/login', () => {
   });
 
   it('sets a session cookie on success', async () => {
-    const req = makeRequest({ password: 'praxis2026' });
+    const req = makeRequest({ password: 'test-password' });
     await POST(req);
     expect(mockCookieSet).toHaveBeenCalledWith('praxis_session', 'test-session-uuid', {
       httpOnly: true,
+      secure: false,
       sameSite: 'lax',
       path: '/',
     });
@@ -86,19 +96,5 @@ describe('POST /api/auth/login', () => {
     const req = makeRequest({ password: 12345 });
     const res = await POST(req);
     expect(res.status).toBe(401);
-  });
-
-  it('respects DASHBOARD_PASSWORD env var', async () => {
-    process.env.DASHBOARD_PASSWORD = 'custom-secret';
-
-    const reqBad = makeRequest({ password: 'praxis2026' });
-    const resBad = await POST(reqBad);
-    expect(resBad.status).toBe(401);
-
-    const reqGood = makeRequest({ password: 'custom-secret' });
-    const resGood = await POST(reqGood);
-    expect(resGood.status).toBe(200);
-    const data = await resGood.json();
-    expect(data).toEqual({ ok: true });
   });
 });
