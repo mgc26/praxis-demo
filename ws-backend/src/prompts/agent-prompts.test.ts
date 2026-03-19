@@ -6,6 +6,8 @@ import {
   buildAgentVoicemailMessage,
 } from './agent-prompts.js';
 import type { ContactRecord, RecommendedScreening, BehavioralSignal } from '../types/index.js';
+import type { BrandBackendConfig } from '../brands/index.js';
+import { getBrandConfig } from '../brands/index.js';
 
 // ---------------------------------------------------------------------------
 // Helpers — realistic pharma/clinical data for each agent scenario
@@ -998,5 +1000,135 @@ describe('buildAgentVoicemailMessage', () => {
     const contact = makeHcpContact({ agentType: 'hcp-support' });
     const msg = buildAgentVoicemailMessage(contact);
     expect(msg).toContain('1-800-PRAXIS-MI');
+  });
+});
+
+// ===========================================================================
+// Brand-Parameterization — verifies prompts adapt to non-default brands
+// ===========================================================================
+
+describe('Brand-Parameterization', () => {
+  /** Minimal mock brand config that differs from Praxis in every key field. */
+  const mockBrand: BrandBackendConfig = {
+    ...getBrandConfig(),
+    id: 'acme',
+    companyName: 'Acme Therapeutics',
+    shortName: 'Acme',
+    hubName: 'AcmeConnect',
+    agentPersonas: {
+      'patient-support': { name: 'Sophia', greeting: 'Hi, this is Sophia from Acme Patient Support.' },
+      'hcp-support': { name: 'Aria', greeting: 'Hello, Acme Medical Information.' },
+      'hcp-outbound': { name: 'Leo', greeting: 'Hello, this is Leo from Acme Therapeutics.' },
+      'medcomms-qa': { name: 'Dana', greeting: 'Acme Medical Information.' },
+    },
+    phoneNumbers: {
+      patientSupport: '1-888-ACME-PS',
+      medicalInfo: '1-888-ACME-MI',
+      safety: '1-888-ACME-AE',
+    },
+    urls: {
+      patientPortal: 'AcmePatient.com',
+      hcpPortal: 'AcmeHCP.com',
+    },
+    drugProfiles: [
+      {
+        id: 'euloxacaltenamide',
+        brandName: 'AcmePill',
+        genericName: 'Euloxacaltenamide',
+        therapeuticArea: 'essential-tremor',
+        indication: 'Treatment of essential tremor in adults',
+        moa: 'Mock MOA',
+        dosing: '10 mg once daily',
+        commonAEs: ['Headache (10%)'],
+        seriousAEs: [],
+        trialData: 'ACME-TRIAL (Phase 3): mock data',
+      },
+    ],
+  };
+
+  it('should use custom company name in patient-support prompt', () => {
+    const contact = makeContact({ agentType: 'patient-support' });
+    const prompt = buildAgentPrompt({ contact }, mockBrand);
+    expect(prompt).toContain('Acme Therapeutics');
+    expect(prompt).toContain('Sophia');
+    expect(prompt).not.toContain('Praxis BioSciences');
+    expect(prompt).not.toContain('Emma');
+  });
+
+  it('should use custom company name in hcp-support prompt', () => {
+    const contact = makeHcpContact({ agentType: 'hcp-support' });
+    const prompt = buildAgentPrompt({ contact }, mockBrand);
+    expect(prompt).toContain('Acme Therapeutics');
+    expect(prompt).not.toContain('Praxis BioSciences');
+  });
+
+  it('should use custom agent name in hcp-outbound prompt', () => {
+    const contact = makeOutboundHcp({ agentType: 'hcp-outbound' });
+    const prompt = buildAgentPrompt({ contact }, mockBrand);
+    expect(prompt).toContain('Leo');
+    expect(prompt).toContain('Acme Therapeutics');
+    expect(prompt).not.toContain('Praxis BioSciences');
+  });
+
+  it('should use custom company name in medcomms-qa prompt', () => {
+    const contact = makeHcpContact({ agentType: 'medcomms-qa' });
+    const prompt = buildAgentPrompt({ contact }, mockBrand);
+    expect(prompt).toContain('Acme Therapeutics');
+    expect(prompt).not.toContain('Praxis BioSciences');
+  });
+
+  it('should resolve drug brand name from custom config', () => {
+    const contact = makeContact({ currentDrug: 'euloxacaltenamide' });
+    const prompt = buildAgentPrompt({ contact }, mockBrand);
+    expect(prompt).toContain('AcmePill');
+    // Should NOT contain the Praxis brand name for this drug
+    expect(prompt).not.toContain('ELEX');
+  });
+
+  it('should use custom phone numbers in voicemail messages', () => {
+    const contact = makeContact({ agentType: 'patient-support' });
+    const msg = buildAgentVoicemailMessage(contact, mockBrand);
+    expect(msg).toContain('1-888-ACME-PS');
+    expect(msg).toContain('Sophia');
+    expect(msg).not.toContain('1-800-PRAXIS');
+  });
+
+  it('should use custom agent name and company in greeting', () => {
+    const contact = makeOutboundHcp();
+    const greeting = buildAgentGreeting(contact, mockBrand);
+    expect(greeting).toContain('Leo');
+    expect(greeting).toContain('Acme Therapeutics');
+    expect(greeting).not.toContain('Emma');
+    expect(greeting).not.toContain('Praxis');
+  });
+
+  it('should use custom agent name in gatekeeper greeting', () => {
+    const contact = makeOutboundHcp();
+    const greeting = buildGatekeeperGreeting(contact, mockBrand);
+    expect(greeting).toContain('Leo');
+    expect(greeting).toContain('Acme Therapeutics');
+    expect(greeting).not.toContain('Emma');
+    expect(greeting).not.toContain('Praxis');
+  });
+
+  it('should use custom phone number in hcp-outbound voicemail', () => {
+    const contact = makeOutboundHcp({ agentType: 'hcp-outbound' });
+    const msg = buildAgentVoicemailMessage(contact, mockBrand);
+    expect(msg).toContain('1-888-ACME-MI');
+    expect(msg).toContain('Acme');
+    expect(msg).not.toContain('1-800-PRAXIS');
+  });
+
+  it('should use custom hub name in patient-support prompt', () => {
+    const contact = makeContact({ agentType: 'patient-support' });
+    const prompt = buildAgentPrompt({ contact }, mockBrand);
+    expect(prompt).toContain('AcmeConnect');
+  });
+
+  it('should default to Praxis config when no brand is passed', () => {
+    const contact = makeContact({ agentType: 'patient-support' });
+    const prompt = buildAgentPrompt({ contact });
+    expect(prompt).toContain('Praxis BioSciences');
+    expect(prompt).toContain('Emma');
   });
 });

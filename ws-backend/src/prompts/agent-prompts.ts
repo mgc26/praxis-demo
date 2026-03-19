@@ -1,9 +1,13 @@
 // ---------------------------------------------------------------------------
-// Vi Praxis BioSciences — Agent Prompt Factory
-// Dispatches to the correct agent prompt builder based on agentType
+// Vi Agent Prompt Factory
+// Dispatches to the correct agent prompt builder based on agentType.
+// All functions accept an optional BrandBackendConfig — defaults to the
+// active brand (Praxis) for backward compatibility.
 // ---------------------------------------------------------------------------
 
 import type { ContactRecord, RecommendedScreening } from '../types/index.js';
+import type { BrandBackendConfig } from '../brands/index.js';
+import { getBrandConfig } from '../brands/index.js';
 import { buildPatientSupportPrompt } from './agents/patient-support.js';
 import { buildHcpSupportPrompt } from './agents/hcp-support.js';
 import { buildHcpOutboundPrompt } from './agents/hcp-outbound.js';
@@ -19,18 +23,18 @@ export interface AgentPromptData {
 // Main prompt dispatcher — routes to the correct agent builder
 // ---------------------------------------------------------------------------
 
-export function buildAgentPrompt(data: AgentPromptData): string {
+export function buildAgentPrompt(data: AgentPromptData, config: BrandBackendConfig = getBrandConfig()): string {
   const { contact } = data;
 
   switch (contact.agentType) {
     case 'patient-support':
-      return buildPatientSupportPrompt(data);
+      return buildPatientSupportPrompt(data, config);
     case 'hcp-support':
-      return buildHcpSupportPrompt(data);
+      return buildHcpSupportPrompt(data, config);
     case 'hcp-outbound':
-      return buildHcpOutboundPrompt(data);
+      return buildHcpOutboundPrompt(data, config);
     case 'medcomms-qa':
-      return buildMedcommsQaPrompt(data);
+      return buildMedcommsQaPrompt(data, config);
     default: {
       const _exhaustive: never = contact.agentType;
       throw new Error(`Unknown agent type: ${_exhaustive}`);
@@ -39,23 +43,50 @@ export function buildAgentPrompt(data: AgentPromptData): string {
 }
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Resolve a short drug display name (brand only) from the brand config. */
+export function resolveDrugBrandName(drugId: string | undefined | null, config: BrandBackendConfig): string | null {
+  if (!drugId) return null;
+  const profile = config.drugProfiles.find((d) => d.id === drugId);
+  return profile ? profile.brandName : null;
+}
+
+/** Resolve a full drug display name ("GenericName (BrandName)") from the brand config. */
+export function resolveDrugFullName(drugId: string | undefined | null, config: BrandBackendConfig): string | null {
+  if (!drugId) return null;
+  const profile = config.drugProfiles.find((d) => d.id === drugId);
+  if (!profile) return null;
+  return profile.genericName === profile.brandName
+    ? profile.brandName
+    : `${profile.genericName} (${profile.brandName})`;
+}
+
+/** Resolve TA short display label. */
+export function resolveTaShort(ta: string): string {
+  switch (ta) {
+    case 'essential-tremor': return 'Essential Tremor';
+    case 'dee-dravet': return 'DEE / Dravet Syndrome';
+    default: return ta;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Greeting builder — adapts opening based on agent type and contact context
 // ---------------------------------------------------------------------------
 
-export function buildAgentGreeting(contact: ContactRecord): string {
+export function buildAgentGreeting(contact: ContactRecord, config: BrandBackendConfig = getBrandConfig()): string {
   const firstName = (contact.name || '').split(' ')[0] || 'there';
   const title = contact.contactType === 'hcp' ? 'Dr. ' : '';
   const lastName = (contact.name || '').split(' ').slice(-1)[0] || 'there';
 
-  const taShort = contact.therapeuticArea === 'essential-tremor'
-    ? 'Essential Tremor'
-    : 'DEE / Dravet Syndrome';
+  const taShort = resolveTaShort(contact.therapeuticArea);
 
-  const drugName = contact.currentDrug === 'euloxacaltenamide'
-    ? 'ELEX'
-    : contact.currentDrug === 'relutrigine'
-      ? 'Relutrigine'
-      : null;
+  const drugName = resolveDrugBrandName(contact.currentDrug, config);
+
+  const patientAgent = config.agentPersonas['patient-support']?.name ?? 'Support';
+  const outboundAgent = config.agentPersonas['hcp-outbound']?.name ?? 'Support';
 
   const hasCaregiverDistress = contact.behavioralSignals.some(
     (s) => s.category === 'CAREGIVER_DISTRESS',
@@ -77,45 +108,45 @@ export function buildAgentGreeting(contact: ContactRecord): string {
   switch (contact.agentType) {
     case 'patient-support': {
       if (contact.contactType === 'caregiver' && hasCaregiverDistress) {
-        return `Hi ${firstName}, this is Emma calling from Praxis Patient Support. I'm one of the patient support coordinators here, and I wanted to personally check in to see how you and your family are doing. Do you have just a couple minutes?`;
+        return `Hi ${firstName}, this is ${patientAgent} calling from ${config.shortName} Patient Support. I'm one of the patient support coordinators here, and I wanted to personally check in to see how you and your family are doing. Do you have just a couple minutes?`;
       }
 
       if (hasAdherenceGap) {
-        return `Hi ${firstName}, this is Emma calling from Praxis Patient Support. I'm reaching out because I wanted to make sure you have everything you need to stay on track with your ${drugName ?? 'treatment'}. Do you have just a couple minutes?`;
+        return `Hi ${firstName}, this is ${patientAgent} calling from ${config.shortName} Patient Support. I'm reaching out because I wanted to make sure you have everything you need to stay on track with your ${drugName ?? 'treatment'}. Do you have just a couple minutes?`;
       }
 
       if (isHighRisk) {
-        return `Hi ${firstName}, this is Emma from Praxis Patient Support. I'm a patient support coordinator, and I wanted to personally reach out to see how you're doing and make sure you're connected with all the support available to you. Is now a good time?`;
+        return `Hi ${firstName}, this is ${patientAgent} from ${config.shortName} Patient Support. I'm a patient support coordinator, and I wanted to personally reach out to see how you're doing and make sure you're connected with all the support available to you. Is now a good time?`;
       }
 
-      return `Hi ${firstName}, this is Emma calling from Praxis Patient Support. I'm one of the patient support coordinators here, and I just wanted to check in and see how things are going with your treatment. Do you have a couple minutes?`;
+      return `Hi ${firstName}, this is ${patientAgent} calling from ${config.shortName} Patient Support. I'm one of the patient support coordinators here, and I just wanted to check in and see how things are going with your treatment. Do you have a couple minutes?`;
     }
 
     case 'hcp-support': {
-      return `Hello ${title}${lastName}, this is the Praxis Medical Information line. Thank you for calling — how can I assist you today?`;
+      return `Hello ${title}${lastName}, this is the ${config.shortName} Medical Information line. Thank you for calling — how can I assist you today?`;
     }
 
     case 'hcp-outbound': {
       if (hasCompetitorResearch || hasFormularyLookup) {
-        return `Hello ${title}${lastName}, this is Emma from Praxis BioSciences. I'm reaching out because there's been an important evidence review in ${taShort} treatment, and I thought our clinical data might be relevant to your practice. Do you have a quick moment?`;
+        return `Hello ${title}${lastName}, this is ${outboundAgent} from ${config.companyName}. I'm reaching out because there's been an important evidence review in ${taShort} treatment, and I thought our clinical data might be relevant to your practice. Do you have a quick moment?`;
       }
 
       if (hasConferenceActivity) {
-        return `Hello ${title}${lastName}, this is Emma from Praxis BioSciences. I'm reaching out to follow up on some of the recent clinical evidence in ${taShort} — I have some data that may be useful for your patients. Is this a good time?`;
+        return `Hello ${title}${lastName}, this is ${outboundAgent} from ${config.companyName}. I'm reaching out to follow up on some of the recent clinical evidence in ${taShort} — I have some data that may be useful for your patients. Is this a good time?`;
       }
 
       if (isHighRisk) {
-        return `Hello ${title}${lastName}, this is Emma from Praxis BioSciences. I'm reaching out because we have clinical data on our ${taShort} treatment that may be relevant to your practice. Do you have just a couple minutes?`;
+        return `Hello ${title}${lastName}, this is ${outboundAgent} from ${config.companyName}. I'm reaching out because we have clinical data on our ${taShort} treatment that may be relevant to your practice. Do you have just a couple minutes?`;
       }
 
-      return `Hello ${title}${lastName}, this is Emma from Praxis BioSciences. I'm reaching out because we have clinical data on our ${taShort} treatment that may be relevant to your practice. Is now a good time?`;
+      return `Hello ${title}${lastName}, this is ${outboundAgent} from ${config.companyName}. I'm reaching out because we have clinical data on our ${taShort} treatment that may be relevant to your practice. Is now a good time?`;
     }
 
     case 'medcomms-qa': {
       if (contact.contactType === 'hcp') {
-        return `Thank you for contacting Praxis BioSciences Medical Information. This is the medical information line — how can I assist you today, ${title}${lastName}?`;
+        return `Thank you for contacting ${config.companyName} Medical Information. This is the medical information line — how can I assist you today, ${title}${lastName}?`;
       }
-      return `Thank you for contacting Praxis BioSciences. I'm here to help answer your questions about our products. How can I assist you today?`;
+      return `Thank you for contacting ${config.companyName}. I'm here to help answer your questions about our products. How can I assist you today?`;
     }
 
     default: {
@@ -130,15 +161,14 @@ export function buildAgentGreeting(contact: ContactRecord): string {
 // a non-physician pickup on HCP outbound calls
 // ---------------------------------------------------------------------------
 
-export function buildGatekeeperGreeting(contact: ContactRecord): string {
+export function buildGatekeeperGreeting(contact: ContactRecord, config: BrandBackendConfig = getBrandConfig()): string {
   const title = contact.contactType === 'hcp' ? 'Dr. ' : '';
   const lastName = (contact.name || '').split(' ').slice(-1)[0] || 'there';
 
-  const taShort = contact.therapeuticArea === 'essential-tremor'
-    ? 'Essential Tremor'
-    : 'DEE / Dravet Syndrome';
+  const taShort = resolveTaShort(contact.therapeuticArea);
+  const outboundAgent = config.agentPersonas['hcp-outbound']?.name ?? 'Support';
 
-  return `Hello, this is Emma from Praxis BioSciences. I'm reaching out to share some clinical information with ${title}${lastName} about treatments for ${taShort}. Is the doctor available for just a couple of minutes?`;
+  return `Hello, this is ${outboundAgent} from ${config.companyName}. I'm reaching out to share some clinical information with ${title}${lastName} about treatments for ${taShort}. Is the doctor available for just a couple of minutes?`;
 }
 
 // ---------------------------------------------------------------------------
@@ -147,27 +177,28 @@ export function buildGatekeeperGreeting(contact: ContactRecord): string {
 
 export function buildAgentVoicemailMessage(
   contact: Pick<ContactRecord, 'name' | 'therapeuticArea' | 'agentType'> & { riskTier?: string; contactType?: string },
+  config: BrandBackendConfig = getBrandConfig(),
 ): string {
   const firstName = (contact.name || '').split(' ')[0] || 'there';
   const title = contact.agentType === 'hcp-outbound' ? 'Dr. ' : '';
   const lastName = (contact.name || '').split(' ').slice(-1)[0] || 'there';
 
-  const taShort = contact.therapeuticArea === 'essential-tremor'
-    ? 'Essential Tremor'
-    : 'DEE / Dravet Syndrome';
+  const taShort = resolveTaShort(contact.therapeuticArea);
+  const patientAgent = config.agentPersonas['patient-support']?.name ?? 'Support';
+  const outboundAgent = config.agentPersonas['hcp-outbound']?.name ?? 'Support';
 
   switch (contact.agentType) {
     case 'patient-support':
-      return `Hi ${firstName}, this is Emma calling from Praxis Patient Support. I was reaching out to check in on your treatment and make sure you have everything you need. I'll also send you a text with more details. If you'd like to talk, please call us back at 1-800-PRAXIS-PS. Take care, and have a great day.`;
+      return `Hi ${firstName}, this is ${patientAgent} calling from ${config.shortName} Patient Support. I was reaching out to check in on your treatment and make sure you have everything you need. I'll also send you a text with more details. If you'd like to talk, please call us back at ${config.phoneNumbers.patientSupport}. Take care, and have a great day.`;
 
     case 'hcp-outbound':
-      return `Hello ${title}${lastName}, this is Emma from Praxis BioSciences. I was reaching out to share some clinical information about our ${taShort} treatment. I'll send you a text with details. If you'd like to connect, please call us at 1-800-PRAXIS-MI or reach out to your local Praxis representative. Thank you.`;
+      return `Hello ${title}${lastName}, this is ${outboundAgent} from ${config.companyName}. I was reaching out to share some clinical information about our ${taShort} treatment. I'll send you a text with details. If you'd like to connect, please call us at ${config.phoneNumbers.medicalInfo} or reach out to your local ${config.shortName} representative. Thank you.`;
 
     case 'hcp-support':
-      return `Hello, this is Praxis Medical Information returning your call. Please call us back at 1-800-PRAXIS-MI for assistance with your medical information request. Thank you.`;
+      return `Hello, this is ${config.shortName} Medical Information returning your call. Please call us back at ${config.phoneNumbers.medicalInfo} for assistance with your medical information request. Thank you.`;
 
     case 'medcomms-qa':
-      return `Hello, this is Praxis Medical Information. We tried to reach you regarding your inquiry. Please call us back at 1-800-PRAXIS-MI. Thank you.`;
+      return `Hello, this is ${config.shortName} Medical Information. We tried to reach you regarding your inquiry. Please call us back at ${config.phoneNumbers.medicalInfo}. Thank you.`;
 
     default: {
       const _exhaustive: never = contact.agentType;
