@@ -1481,9 +1481,12 @@ export default function DashboardPage() {
       )}
 
       {/* ========== HEADER ========== */}
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between px-6" style={{ backgroundColor: brand.id === 'ptc' ? brand.theme.colors.primaryLight : brand.theme.colors.primaryDark }}>
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between px-6" style={{
+        backgroundColor: brand.id === 'ptc' ? brand.theme.colors.primaryLight
+          : brand.theme.colors.primaryDark
+      }}>
         <div className="flex items-center gap-3">
-          <img src={brand.logoAsset} alt={brand.shortName} className="h-7" />
+          <img src={brand.id === 'amgen' ? '/brand-assets/amgen/logo-white.svg' : brand.logoAsset} alt={brand.shortName} className="h-7" />
           <span className="mx-1 text-white/30">|</span>
           <span className="text-[12px] text-white/50">{brand.tagline}</span>
         </div>
