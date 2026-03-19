@@ -1482,13 +1482,13 @@ export default function DashboardPage() {
 
       {/* ========== HEADER ========== */}
       <header className="sticky top-0 z-30 flex h-16 items-center justify-between px-6" style={{
-        backgroundColor: brand.id === 'ptc' ? brand.theme.colors.primaryLight
-          : brand.theme.colors.primaryDark
+        backgroundColor: '#FAFBFC',
+        borderBottom: `2px solid ${brand.theme.colors.primary}`,
       }}>
         <div className="flex items-center gap-3">
-          <img src={brand.id === 'amgen' ? '/brand-assets/amgen/logo-white.svg' : brand.logoAsset} alt={brand.shortName} className="h-7" />
-          <span className="mx-1 text-white/30">|</span>
-          <span className="text-[12px] text-white/50">{brand.tagline}</span>
+          <img src={brand.logoAsset} alt={brand.shortName} className="h-7" />
+          <span className="mx-1" style={{ color: PX.cardBorder }}>|</span>
+          <span className="text-[12px]" style={{ color: PX.textMuted }}>{brand.tagline}</span>
         </div>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
@@ -1496,10 +1496,10 @@ export default function DashboardPage() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ backgroundColor: PX.success }} />
               <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: PX.success }} />
             </span>
-            <span className="text-[13px] text-white/90">Vi Agents Online</span>
+            <span className="text-[13px]" style={{ color: PX.navy }}>Vi Agents Online</span>
           </div>
-          <span className="text-[13px] text-white/60">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-          <button onClick={handleLogout} className="px-3 py-1.5 text-xs font-medium text-white/60 transition-all hover:bg-white/10 hover:text-white">Log Out</button>
+          <span className="text-[13px]" style={{ color: PX.textMuted }}>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          <button onClick={handleLogout} className="px-3 py-1.5 text-xs font-medium transition-all hover:opacity-70" style={{ color: PX.textMuted }}>Log Out</button>
         </div>
       </header>
 
