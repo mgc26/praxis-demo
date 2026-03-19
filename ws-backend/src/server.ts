@@ -52,8 +52,14 @@ const server = Fastify({
 async function bootstrap() {
   // ---- Plugins ----
 
+  // CORS: fail closed — require FRONTEND_URL in production, allow localhost in dev
+  const allowedOrigin = process.env.FRONTEND_URL;
+  if (!allowedOrigin && process.env.NODE_ENV === 'production') {
+    throw new Error('FRONTEND_URL must be set in production');
+  }
+
   await server.register(cors, {
-    origin: process.env.FRONTEND_URL || '*',
+    origin: allowedOrigin || 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
   });
@@ -88,10 +94,24 @@ async function bootstrap() {
 
   // ---- Legacy single-endpoint outreach trigger (mirrors /api/contacts/outreach) ----
 
+  const PHONE_REGEX = /^\+1[2-9]\d{9}$/;
+  function isValidPhone(phone: string): boolean {
+    if (!PHONE_REGEX.test(phone)) return false;
+    if (phone.startsWith('+1900') || phone.startsWith('+1976')) return false;
+    return true;
+  }
+
   server.post<{
     Body: ContactSubmission & { contactId?: string; agentType?: string };
   }>('/api/outreach/trigger', async (request, reply) => {
     const body = request.body;
+
+    // Validate phone number before processing
+    if (!body.phone || !isValidPhone(body.phone)) {
+      return reply.status(400).send({
+        error: 'Invalid phone number. Must be a US number in E.164 format (+1XXXXXXXXXX) and not a premium-rate number.',
+      });
+    }
 
     const contactId = body.contactId || uuidv4();
 

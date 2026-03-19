@@ -10,6 +10,8 @@ out/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
 
 # IDE
 .vscode/
@@ -32,6 +34,9 @@ yarn-error.log*
 
 # Coverage
 coverage/
+
+# Research (may contain service-account identities and API doc examples)
+research/
 
 # Misc
 *.log

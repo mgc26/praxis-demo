@@ -5,6 +5,7 @@
 // ---------------------------------------------------------------------------
 
 import { FastifyInstance } from 'fastify';
+import twilio from 'twilio';
 import { contacts } from '../server.js';
 import { buildAgentVoicemailMessage } from '../prompts/agent-prompts.js';
 import { isMachineAnsweredBy } from '../utils/answered-by.js';
@@ -24,6 +25,24 @@ export async function twilioVoiceRoutes(fastify: FastifyInstance) {
   });
 
   fastify.post('/twilio/voice', async (request, reply) => {
+    // Twilio webhook signature validation — enforced when TWILIO_AUTH_TOKEN is set (production).
+    // Skipped in dev when auth token is absent, to allow local testing without Twilio signatures.
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    if (authToken) {
+      const signature = request.headers['x-twilio-signature'] as string;
+      const webhookUrl = process.env.TWILIO_WEBHOOK_URL;
+      if (!webhookUrl) {
+        fastify.log.error('TWILIO_WEBHOOK_URL not set — cannot validate Twilio signature');
+        return reply.status(500).send('Server misconfiguration: TWILIO_WEBHOOK_URL required');
+      }
+      const fullUrl = webhookUrl + request.url;
+      const params = (request.body as Record<string, string>) || {};
+
+      if (!signature || !twilio.validateRequest(authToken, signature, fullUrl, params)) {
+        fastify.log.warn({ url: fullUrl }, 'Invalid Twilio webhook signature — rejecting request');
+        return reply.status(403).send('Invalid Twilio signature');
+      }
+    }
     const body = request.body as Record<string, string>;
     const query = request.query as Record<string, string>;
 

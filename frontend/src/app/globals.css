@@ -78,6 +78,21 @@
   --brand-heading-font: 'Roboto', 'Segoe UI', system-ui, sans-serif;
   --brand-body-font: 'Roboto', 'Segoe UI', system-ui, sans-serif;
   --brand-radius: 0px;
+  --brand-button-style: solid;
+  --brand-button-gradient: none;
+  --brand-shadow: 0 1px 3px rgba(0,0,0,0.06);
+
+  /* Generated palette (Praxis #00B9CE defaults for SSR) */
+  --brand-50: 240 251 252;
+  --brand-100: 222 246 249;
+  --brand-200: 191 238 243;
+  --brand-300: 140 224 233;
+  --brand-400: 64 203 218;
+  --brand-500: 0 185 206;
+  --brand-600: 0 163 181;
+  --brand-700: 0 139 155;
+  --brand-800: 0 111 124;
+  --brand-900: 0 83 93;
 }
 
 /* -- Smooth font rendering ----------------------------------------------- */

@@ -13,7 +13,7 @@ export default function ThemeInjector() {
 
   useEffect(() => {
     const root = document.documentElement;
-    const { colors, fonts, radius, buttonStyle, buttonGradient } = brand.theme;
+    const { colors, fonts, radius, buttonStyle, buttonGradient, shadow } = brand.theme;
 
     // Helper: set both RGB-triplet and raw-hex variants
     const setColor = (token: string, hex: string) => {
@@ -50,6 +50,7 @@ export default function ThemeInjector() {
 
     // Shape & button style
     root.style.setProperty('--brand-radius', radius);
+    root.style.setProperty('--brand-shadow', shadow);
     root.style.setProperty('--brand-button-style', buttonStyle);
     if (buttonStyle === 'gradient' && buttonGradient) {
       root.style.setProperty('--brand-button-gradient', buttonGradient);

@@ -31,6 +31,12 @@ import type {
 
 export async function twilioMediaRoutes(fastify: FastifyInstance) {
   fastify.register(async function (fastify) {
+    // NOTE: Twilio does not send X-Twilio-Signature headers on WebSocket upgrade
+    // requests. The initial voice webhook (/twilio/voice) validates the Twilio
+    // signature before returning TwiML that connects to this media stream. The
+    // stream URL (wss://…/twilio/media-stream) is embedded in the signed TwiML
+    // response, so only requests originating from a validated voice webhook will
+    // reach this endpoint. No additional signature check is possible here.
     fastify.get('/twilio/media-stream', { websocket: true }, (socket, _request) => {
       fastify.log.info('Twilio Media Stream WebSocket connected');
 
