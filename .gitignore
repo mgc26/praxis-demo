@@ -40,3 +40,4 @@ research/
 
 # Misc
 *.log
+.vercel
