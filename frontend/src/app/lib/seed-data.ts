@@ -449,6 +449,7 @@ function generateTranscript(
   const drugName = drug === d0.id ? d0.brandName : d1.brandName;
   const taLabel = drug === d0.id ? brandTA0Label(brand) : brandTA1Label(brand);
 
+  // No-answer and voicemail only apply to outbound calls
   if (outcome === 'no-answer') {
     add('agent', `Outbound call attempt to ${contactName}...`);
     ts += 25;
@@ -478,14 +479,29 @@ function generateTranscript(
       "Fine, thanks. What's this about?",
       "Pretty good. I've been meaning to call you all.",
     ] as const));
+  } else if (agentType === 'hcp-support') {
+    // Inbound: HCP is calling the medical information line
+    add('agent', `Thank you for calling the ${brand.companyName} medical information line. My name is ${brand.agentPersonas.find(a => a.agentType === 'hcp-support')?.name ?? 'Aria'}. How can I help you today?`);
+    add('contact', pick([
+      `This is Dr. ${lastName}. I have a question about ${drugName} for one of my patients.`,
+      `Dr. ${lastName} here. I need some clinical information on ${drugName}.`,
+      `Hi, this is Dr. ${lastName}. I'm calling about a prescribing question for ${drugName}.`,
+    ] as const));
+    add('agent', `Of course, Dr. ${lastName}. I'm happy to help with your ${drugName} inquiry. What can I look into for you?`);
+    add('contact', pick([
+      `I have a few patients I'm considering for ${drugName}. Walk me through the key data.`,
+      `I need the latest efficacy and safety data. Can you pull that up?`,
+      `One of my patients is asking about switching to ${drugName}. What should I know?`,
+    ] as const));
   } else {
+    // Outbound: agent is calling the HCP
     add('agent', `Good day, may I speak with Dr. ${lastName}?`);
     add('contact', pick(['Speaking.', 'Yes, go ahead.', `This is Dr. ${lastName}.`] as const));
-    add('agent', `Dr. ${lastName}, this is a call from ${brand.companyName}. ${agentType === 'hcp-outbound' ? `I'm reaching out to share some updates on ${drugName}.` : `How can I assist you today regarding ${drugName}?`}`);
+    add('agent', `Dr. ${lastName}, this is a call from ${brand.companyName}. I'm reaching out to share some updates on ${drugName}. Do you have a moment?`);
     add('contact', pick([
       `I have a few patients I'm considering for ${drugName}. Go ahead.`,
       "You have two minutes. What do you have?",
-      `I need the latest efficacy data. Be brief.`,
+      `Make it quick. What's new?`,
     ] as const));
   }
 
@@ -501,15 +517,26 @@ function generateTranscript(
     add('agent', `I can walk you through what to expect with ${drugName} and answer any questions you have. We also have patient education materials I can send to you.`);
     add('contact', "Yes, please. That would be really helpful.");
   } else if (pathway === 'safety-reporting') {
-    add('agent', `I'm following up on your ${drugName} therapy. Part of my call today is to check in on how you're tolerating the medication. Have you experienced any new or unusual symptoms since starting ${drugName}?`);
-    add('contact', pick([
-      `Actually yes, I've been having some dizziness and nausea for the past week.`,
-      `I've noticed some headaches that seem to have started since I began the medication.`,
-      `My ${drug === d1.id ? 'child has been more drowsy than usual' : 'hands have been tingling more'}.`,
-    ] as const));
-    add('agent', `Thank you for sharing that with me -- this is exactly the kind of information we need to capture. I'm going to document this as an adverse event report so our medical team can review it. Can you tell me when these symptoms first started and how severe they've been?`);
-    add('contact', "It started about a week ago. It's been moderate -- not severe but definitely noticeable.");
-    add('agent', `I've documented everything. Our pharmacovigilance team will review this within 24 hours. In the meantime, please contact your prescribing physician if symptoms worsen. I'll also send you our 24/7 medical support line number.`);
+    if (contactType === 'hcp') {
+      add('agent', `Absolutely, Dr. ${lastName}. I can help you document that. Can you describe the adverse event and when it was first observed?`);
+      add('contact', pick([
+        `Patient started experiencing dizziness and nausea about a week into ${drugName}. Moderate severity.`,
+        `I'm seeing elevated liver enzymes in a patient on ${drugName}. Want to file a report.`,
+        `One of my ${drug === d1.id ? 'pediatric patients developed a rash after dose escalation' : 'patients is reporting persistent fatigue since starting therapy'}.`,
+      ] as const));
+      add('agent', `Thank you, Doctor. I've captured the details. I'll generate the adverse event report and route it to our pharmacovigilance team for review within 24 hours. We'll send the case documentation to your office as well.`);
+      add('contact', "Good. Make sure I get the case number for my records.");
+    } else {
+      add('agent', `I'm following up on your ${drugName} therapy. Part of my call today is to check in on how you're tolerating the medication. Have you experienced any new or unusual symptoms since starting ${drugName}?`);
+      add('contact', pick([
+        `Actually yes, I've been having some dizziness and nausea for the past week.`,
+        `I've noticed some headaches that seem to have started since I began the medication.`,
+        `My ${drug === d1.id ? 'child has been more drowsy than usual' : 'hands have been tingling more'}.`,
+      ] as const));
+      add('agent', `Thank you for sharing that with me -- this is exactly the kind of information we need to capture. I'm going to document this as an adverse event report so our medical team can review it. Can you tell me when these symptoms first started and how severe they've been?`);
+      add('contact', "It started about a week ago. It's been moderate -- not severe but definitely noticeable.");
+      add('agent', `I've documented everything. Our pharmacovigilance team will review this within 24 hours. In the meantime, please contact your prescribing physician if symptoms worsen. I'll also send you our 24/7 medical support line number.`);
+    }
   } else if (pathway === 'adherence-support') {
     add('agent', `I'm calling for your scheduled ${drugName} adherence check-in. We want to make sure everything is going well with your therapy. Have you been able to take your medication consistently?`);
     add('contact', pick([
@@ -647,7 +674,7 @@ function generateLiaisonSummary(
 
   const narrativeMap: Record<SupportPathwayId, string> = {
     'medication-access': `Completed medication access support for ${contactName} on ${drugName}. ${isConversion ? `Patient successfully enrolled in ${brand.hubName}. Benefits investigation initiated. Dedicated coordinator to contact within 48 hours.` : 'Patient expressed interest but did not complete enrollment. Follow-up recommended within 5 business days.'}`,
-    'safety-reporting': `PHARMACOVIGILANCE ALERT -- AE screening for ${contactName} on ${drugName}. ${aeDetected ? 'Adverse event captured and documented. Case submitted to pharmacovigilance team for 24-hour review. Follow-up with prescribing physician required.' : 'No reportable adverse events identified during screening. Routine monitoring continues.'}`,
+    'safety-reporting': `PHARMACOVIGILANCE ALERT -- ${contactType === 'hcp' ? `AE report received from ${contactName}` : `AE screening for ${contactName}`} on ${drugName}. ${aeDetected ? 'Adverse event captured and documented. Case submitted to pharmacovigilance team for 24-hour review. Follow-up with prescribing physician required.' : 'No reportable adverse events identified during screening. Routine monitoring continues.'}`,
     'clinical-education': `Clinical education inquiry from ${contactName} regarding ${drugName}. ${isConversion ? 'Clinical data package sent. Peer-to-peer discussion arranged.' : 'Inquiry documented. Medical affairs team to provide detailed response within 48 hours.'} ${signals.some(s => s.category === 'COMPETITIVE_INTEL') ? 'COMPETITIVE INTELLIGENCE: Prescriber evaluating alternatives -- priority follow-up recommended.' : ''}`,
     'patient-education': `Patient education interaction for ${contactName}. ${isConversion ? `Copay card activated -- patient eligible for reduced out-of-pocket costs on ${drugName}. Specialty pharmacy notified.` : 'Educational materials provided. Patient needs follow-up on treatment questions.'}`,
     'adherence-support': `Adherence support call for ${contactName} on ${drugName}. ${signals.some(s => s.category === 'ADHERENCE_SIGNAL') ? 'Adherence gap confirmed. Refill coordination initiated and reminder system established.' : 'Patient reports adequate adherence. Next scheduled check-in logged.'}`,
@@ -662,8 +689,8 @@ function generateLiaisonSummary(
   // Block 2: What happened
   const whatHappenedMap: Record<SupportPathwayId, string> = {
     'medication-access': `${isConversion ? 'Successful medication access support completed' : 'Medication access discussed but not completed'}. ${aeDetected ? 'AE identified during interaction.' : 'No safety signals.'} ${contactType === 'hcp' ? 'HCP engaged with clinical questions.' : 'Patient receptive to support services.'}`,
-    'safety-reporting': `AE screening call completed. ${aeDetected ? 'Adverse event captured and documented -- routed to pharmacovigilance.' : 'No reportable AEs identified.'} Patient was ${isConversion ? 'cooperative and thorough' : 'briefly engaged'}.`,
-    'clinical-education': `${isConversion ? 'Clinical data package sent and peer-to-peer arranged' : 'Medical inquiry documented for follow-up'}. ${contactType === 'hcp' ? 'HCP asked substantive clinical questions.' : 'Patient/caregiver seeking detailed information.'}`,
+    'safety-reporting': `AE ${contactType === 'hcp' ? 'report received via inbound HCP call' : 'screening call completed'}. ${aeDetected ? 'Adverse event captured and documented -- routed to pharmacovigilance.' : 'No reportable AEs identified.'} ${contactType === 'hcp' ? 'HCP provided detailed clinical context.' : `Patient was ${isConversion ? 'cooperative and thorough' : 'briefly engaged'}.`}`,
+    'clinical-education': `${contactType === 'hcp' ? 'Inbound medical information inquiry' : 'Clinical education interaction'} from ${contactName}. ${isConversion ? 'Clinical data package sent. Peer-to-peer discussion arranged.' : 'Inquiry documented. Medical affairs team to provide detailed response within 48 hours.'} ${signals.some(s => s.category === 'COMPETITIVE_INTEL') && contactType === 'hcp' ? 'COMPETITIVE INTELLIGENCE: Prescriber evaluating alternatives -- priority follow-up recommended.' : ''}`,
     'patient-education': `${isConversion ? 'Patient education completed successfully' : 'Patient education discussed'}. Patient expressed ${isConversion ? 'understanding of treatment plan' : 'questions about treatment expectations'}.`,
     'adherence-support': `Adherence check-in completed. ${signals.some(s => s.category === 'ADHERENCE_SIGNAL') ? 'Confirmed adherence gap -- refill coordination initiated.' : 'Adherence appears adequate.'} ${isConversion ? 'Intervention plan established.' : 'Monitoring continues.'}`,
     'nurse-educator': `Nurse educator coordination call completed. ${aeDetected ? 'AE identified during outreach and documented for pharmacovigilance review.' : 'Patient/caregiver engaged and receptive to education.'} ${isConversion ? 'Nurse educator session scheduled.' : 'Follow-up recommended to confirm scheduling.'}`,
@@ -1042,10 +1069,15 @@ function buildAllCalls(brand: BrandPack, contacts: ContactRecord[]): CallRecord[
   const calls: CallRecord[] = [];
 
   for (let i = 0; i < 20; i++) {
-    const outcome = OUTCOMES_LIST[i];
+    let outcome = OUTCOMES_LIST[i];
     const pathway = PATHWAYS_LIST[i];
     const contact = contacts[i % contacts.length];
     const agentType = assignAgentType(contact.contactType, pathway);
+
+    // Inbound agents (hcp-support) can't have outbound-only outcomes
+    if (agentType === 'hcp-support' && NON_CONNECT_OUTCOMES.includes(outcome)) {
+      outcome = 'medical-info-provided';
+    }
 
     // Pick signals from the contact's signals
     const signals: BehavioralSignal[] = contact.behavioralSignals.map(s => ({
