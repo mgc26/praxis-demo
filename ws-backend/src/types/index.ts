@@ -1,34 +1,27 @@
 // Vi Praxis BioSciences — Type Definitions
+//
+// Brand-driven string types: these were previously narrow union literals
+// scoped to Praxis products. They are now open strings so that each brand
+// pack can supply its own values at runtime.
 
 export type AgentType = 'patient-support' | 'hcp-support' | 'hcp-outbound' | 'medcomms-qa';
-export type TherapeuticArea = 'essential-tremor' | 'dee-dravet';
-export type DrugProduct = 'euloxacaltenamide' | 'relutrigine';
 
-export type OutcomeType =
-  | 'ae-reported'
-  | 'ae-escalated'
-  | 'medical-info-provided'
-  | 'sample-request'
-  | 'copay-card-issued'
-  | 'hub-enrollment'
-  | 'prior-auth-assist'
-  | 'nurse-educator-referral'
-  | 'speaker-program-interest'
-  | 'appointment-scheduled'
-  | 'information-provided'
-  | 'callback-requested'
-  | 'declined'
-  | 'no-answer'
-  | 'voicemail'
-  | 'crisis-escalation';
+/** Therapeutic area identifier — brand-driven, e.g. 'essential-tremor' */
+export type TherapeuticAreaId = string;
+/** Drug product identifier — brand-driven, e.g. 'euloxacaltenamide' */
+export type DrugProductId = string;
+/** Call/interaction outcome — brand-driven, e.g. 'ae-reported' */
+export type OutcomeId = string;
+/** Support pathway — brand-driven, e.g. 'medication-access' */
+export type SupportPathwayId = string;
+/** Screening instrument identifier — brand-driven, e.g. 'AE-TRIAGE' */
+export type ScreeningInstrumentId = string;
 
-export type SupportPathway =
-  | 'medication-access'
-  | 'safety-reporting'
-  | 'clinical-education'
-  | 'patient-education'
-  | 'adherence-support'
-  | 'crisis-support';
+// Legacy aliases — keep downstream imports working during migration
+export type TherapeuticArea = TherapeuticAreaId;
+export type DrugProduct = DrugProductId;
+export type OutcomeType = OutcomeId;
+export type SupportPathway = SupportPathwayId;
 
 export type RiskTier = 'HIGH' | 'MEDIUM' | 'LOW';
 export type Urgency = 'routine' | 'soon' | 'urgent';
@@ -144,7 +137,7 @@ export interface AppointmentDetails {
 }
 
 // Clinical Screening Types (pharma-adapted)
-export type ScreeningInstrumentId = 'AE-TRIAGE' | 'C-SSRS-LITE' | 'TETRAS-LITE' | 'MMAS-4';
+// ScreeningInstrumentId is now declared above as a brand-driven string
 export type ScreeningStatus = 'pending' | 'in-progress' | 'completed' | 'declined';
 
 export interface ScreeningQuestionResponse {
