@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { phoneNumber, scenarioId, persona, agentType } = body;
+  const { phoneNumber, scenarioId, persona, agentType, brandId } = body;
 
   if (!phoneNumber || !scenarioId) {
     return NextResponse.json({ error: 'Missing phoneNumber or scenarioId' }, { status: 400 });
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const res = await fetch(`${backendUrl}/api/demo-call`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phoneNumber, scenarioId, persona, agentType }),
+      body: JSON.stringify({ phoneNumber, scenarioId, persona, agentType, brandId }),
       signal: AbortSignal.timeout(5000),
     });
 

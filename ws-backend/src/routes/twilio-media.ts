@@ -13,6 +13,7 @@ import { createDeepgramAgent } from '../services/deepgram-agent.js';
 import { classifyCall } from '../services/groq-classifier.js';
 import { sendPostCallSMS } from '../services/sms-service.js';
 import { twilioService } from '../services/twilio-service.js';
+import { getBrandConfig } from '../brands/index.js';
 import type {
   ContactRecord,
   TranscriptEntry,
@@ -171,6 +172,9 @@ export async function twilioMediaRoutes(fastify: FastifyInstance) {
         const params = message.start.customParameters || {};
         answeredBy = params.answeredBy || null;
 
+        const brandId = params.brandId || 'praxis';
+        const brandConfig = getBrandConfig(brandId);
+
         fastify.log.info(
           {
             streamSid,
@@ -178,6 +182,7 @@ export async function twilioMediaRoutes(fastify: FastifyInstance) {
             contactId: params.contactId,
             agentType: params.agentType,
             answeredBy,
+            brandId,
           },
           'Twilio Media Stream: start event',
         );
@@ -273,7 +278,7 @@ export async function twilioMediaRoutes(fastify: FastifyInstance) {
                   deepgramReady = false;
                 },
               },
-              { answeredBy, recommendedScreenings },
+              { answeredBy, recommendedScreenings, brandConfig },
             ) as unknown as WebSocket;
 
             const dgWs = deepgramWs as unknown as {

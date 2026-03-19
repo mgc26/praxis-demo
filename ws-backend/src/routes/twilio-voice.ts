@@ -27,8 +27,9 @@ export async function twilioVoiceRoutes(fastify: FastifyInstance) {
     const body = request.body as Record<string, string>;
     const query = request.query as Record<string, string>;
 
-    // contactId can be passed as a query param from the outbound call URL
+    // contactId and brandId can be passed as query params from the outbound call URL
     const contactId = query.contactId || body.contactId || '';
+    const brandId = query.brandId || body.brandId || 'praxis';
     const contact = contacts.get(contactId);
 
     // Resolve contact fields — fall back to body params or defaults
@@ -98,6 +99,7 @@ export async function twilioVoiceRoutes(fastify: FastifyInstance) {
       <Parameter name="behavioralSignals" value="${escapeXml(behavioralSignalsJson)}" />
       <Parameter name="engagementLabels" value="${escapeXml(engagementLabelsJson)}" />
       <Parameter name="answeredBy" value="${escapeXml(answeredBy)}" />
+      <Parameter name="brandId" value="${escapeXml(brandId)}" />
     </Stream>
   </Connect>
 </Response>`;

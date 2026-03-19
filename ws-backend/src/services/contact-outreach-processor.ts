@@ -17,6 +17,7 @@ interface OutreachProcessorStore {
 export async function processContactOutreach(
   contact: ContactRecord,
   store: OutreachProcessorStore,
+  options?: { brandId?: string },
 ): Promise<{ callSid: string }> {
   // Validate required fields
   if (!contact.phone) {
@@ -36,7 +37,7 @@ export async function processContactOutreach(
   store.contacts.set(contact.contactId, contact);
 
   try {
-    const callSid = await twilioService.initiateCall(contact);
+    const callSid = await twilioService.initiateCall(contact, { brandId: options?.brandId });
 
     // Create the call record
     const callRecord: CallRecord = {

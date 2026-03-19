@@ -6,6 +6,7 @@
 
 import WebSocket from 'ws';
 import type { ContactRecord, TranscriptEntry, RecommendedScreening } from '../types/index.js';
+import type { BrandBackendConfig } from '../brands/index.js';
 import {
   buildAgentPrompt,
   buildAgentVoicemailMessage,
@@ -29,6 +30,7 @@ export function createDeepgramAgent(
   options?: {
     answeredBy?: string | null;
     recommendedScreenings?: RecommendedScreening[];
+    brandConfig?: BrandBackendConfig;
   },
 ): WebSocket {
   const apiKey = process.env.DEEPGRAM_API_KEY;

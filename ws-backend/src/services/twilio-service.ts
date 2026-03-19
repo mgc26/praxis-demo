@@ -24,7 +24,7 @@ class TwilioService {
     return this.client;
   }
 
-  async initiateCall(contact: ContactRecord): Promise<string> {
+  async initiateCall(contact: ContactRecord, options?: { brandId?: string }): Promise<string> {
     const client = this.ensureClient();
 
     if (!contact.phone || !/^\+?[1-9]\d{1,14}$/.test(contact.phone)) {
@@ -50,7 +50,7 @@ class TwilioService {
     const createParams = {
       to: contact.phone,
       from: this.phoneNumber,
-      url: `${webhookUrl}?contactId=${encodeURIComponent(contact.contactId)}`,
+      url: `${webhookUrl}?contactId=${encodeURIComponent(contact.contactId)}&brandId=${encodeURIComponent(options?.brandId || 'praxis')}`,
       statusCallback: statusCallbackUrl,
       statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'] as string[],
       fallbackUrl,

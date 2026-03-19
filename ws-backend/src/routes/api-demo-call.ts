@@ -475,6 +475,7 @@ interface DemoCallBody {
   contactName?: string;
   therapeuticArea?: TherapeuticArea;
   persona?: Record<string, unknown>;
+  brandId?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -483,7 +484,7 @@ interface DemoCallBody {
 
 export async function apiDemoCallRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: DemoCallBody }>('/api/demo-call', async (request, reply) => {
-    const { phoneNumber, scenarioId, contactName, therapeuticArea } = request.body;
+    const { phoneNumber, scenarioId, contactName, therapeuticArea, brandId } = request.body;
 
     if (!phoneNumber || !scenarioId) {
       return reply.status(400).send({ error: 'Missing phoneNumber or scenarioId' });
@@ -548,7 +549,7 @@ export async function apiDemoCallRoutes(fastify: FastifyInstance) {
     fastify.log.info({ contactId, phone: phoneNumber, scenarioId, agentType: contact.agentType }, 'Demo call requested');
 
     try {
-      const { callSid } = await processContactOutreach(contact, { contacts, calls, callIdBySid });
+      const { callSid } = await processContactOutreach(contact, { contacts, calls, callIdBySid }, { brandId });
 
       return reply.status(200).send({
         status: 'initiating',
