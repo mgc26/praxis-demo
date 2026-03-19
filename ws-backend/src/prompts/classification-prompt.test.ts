@@ -204,7 +204,7 @@ describe('classification-prompt', () => {
         'clinical-education',
         'patient-education',
         'adherence-support',
-        'crisis-support',
+        'nurse-educator',
       ];
 
       it('lists all 6 pathways in the prompt', () => {

@@ -208,13 +208,13 @@ export const SUPPORT_PATHWAYS: SupportPathway[] = [
     regulatoryRelevant: false,
   },
   {
-    id: 'crisis-support',
-    label: 'Crisis Intervention & Escalation',
-    description: 'Immediate support for callers in acute distress, including suicidal ideation, severe adverse events, caregiver burnout crisis, or medical emergencies.',
+    id: 'nurse-educator',
+    label: 'Nurse Educator Coordination',
+    description: 'Scheduling and coordination of nurse educator sessions for treatment onboarding, titration guidance, caregiver support, and ongoing disease management education.',
     icon: 'phone-call',
     color: COLORS.medicalInquiry,
-    urgencyDefault: 'urgent',
-    regulatoryRelevant: true,
+    urgencyDefault: 'routine',
+    regulatoryRelevant: false,
   },
 ];
 

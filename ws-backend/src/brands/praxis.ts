@@ -144,10 +144,10 @@ const praxis: BrandBackendConfig = {
         'Proactive support to help patients stay on therapy, manage side effects, and maintain their treatment schedule.',
     },
     {
-      id: 'crisis-support',
-      label: 'Crisis Intervention & Escalation',
+      id: 'nurse-educator',
+      label: 'Nurse Educator Coordination',
       description:
-        'Immediate support for callers in acute distress, including suicidal ideation, severe adverse events, caregiver burnout crisis, or medical emergencies.',
+        'Scheduling and coordination of nurse educator sessions for treatment onboarding, titration guidance, caregiver support, and ongoing disease management education.',
     },
   ],
 

@@ -144,7 +144,7 @@ describe('SUPPORT_PATHWAYS', () => {
     'clinical-education',
     'patient-education',
     'adherence-support',
-    'crisis-support',
+    'nurse-educator',
   ];
 
   it('has 6 pathways', () => {

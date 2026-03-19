@@ -68,8 +68,8 @@ describe('behavioral-signals', () => {
       expect(SIGNAL_MAPPINGS.ADHERENCE_GAP.urgencyLevel).toBe('urgent');
     });
 
-    it('CAREGIVER_DISTRESS maps to crisis-support pathway with urgent urgency', () => {
-      expect(SIGNAL_MAPPINGS.CAREGIVER_DISTRESS.recommendedPathway).toBe('crisis-support');
+    it('CAREGIVER_DISTRESS maps to nurse-educator pathway with urgent urgency', () => {
+      expect(SIGNAL_MAPPINGS.CAREGIVER_DISTRESS.recommendedPathway).toBe('nurse-educator');
       expect(SIGNAL_MAPPINGS.CAREGIVER_DISTRESS.urgencyLevel).toBe('urgent');
     });
 
@@ -87,8 +87,8 @@ describe('behavioral-signals', () => {
       expect(SIGNAL_MAPPINGS.SYMPTOM_SEARCH.recommendedScreenings).toContain('AE-TRIAGE');
     });
 
-    it('CAREGIVER_DISTRESS recommends C-SSRS-LITE screening', () => {
-      expect(SIGNAL_MAPPINGS.CAREGIVER_DISTRESS.recommendedScreenings).toContain('C-SSRS-LITE');
+    it('CAREGIVER_DISTRESS has no recommended screenings', () => {
+      expect(SIGNAL_MAPPINGS.CAREGIVER_DISTRESS.recommendedScreenings).toHaveLength(0);
     });
 
     it('COMPETITOR_RESEARCH has no recommended screenings', () => {
@@ -159,10 +159,10 @@ describe('behavioral-signals', () => {
       ).toBe('clinical-education');
     });
 
-    it('returns crisis-support for CAREGIVER_DISTRESS with high severity', () => {
+    it('returns nurse-educator for CAREGIVER_DISTRESS with high severity', () => {
       expect(
         getPrimaryPathway([{ category: 'CAREGIVER_DISTRESS', severity: 'high' }]),
-      ).toBe('crisis-support');
+      ).toBe('nurse-educator');
     });
   });
 
@@ -315,7 +315,7 @@ describe('behavioral-signals', () => {
       expect(cssrsCount).toBe(1);
     });
 
-    it('returns C-SSRS-LITE for CAREGIVER_DISTRESS signal even without dee-dravet', () => {
+    it('does not return C-SSRS-LITE for CAREGIVER_DISTRESS signal', () => {
       const result = getRecommendedScreenings({
         behavioralSignals: [{ category: 'CAREGIVER_DISTRESS', severity: 'high' }],
         age: 40,
@@ -323,7 +323,7 @@ describe('behavioral-signals', () => {
         currentDrug: 'euloxacaltenamide',
       });
       const ids = result.map((r) => r.instrumentId);
-      expect(ids).toContain('C-SSRS-LITE');
+      expect(ids).not.toContain('C-SSRS-LITE');
     });
   });
 

@@ -146,7 +146,7 @@ export const SIGNAL_MAPPINGS: Record<SignalCategory, SignalMapping> = {
     category: 'CAREGIVER_DISTRESS',
     label: 'Caregiver Distress Signal',
     description: 'Caregiver has shown signs of burden, emotional distress, or need for support resources.',
-    recommendedPathway: 'crisis-support',
+    recommendedPathway: 'nurse-educator',
     urgencyLevel: 'urgent',
     suggestedResource: 'Nurse Educator / Patient Advocacy',
     clinicalImplication:
@@ -159,7 +159,7 @@ export const SIGNAL_MAPPINGS: Record<SignalCategory, SignalMapping> = {
     ],
     agentOpeningHint:
       'I wanted to check in with you to see how you\'re doing. We know that caring for someone with this condition can be really challenging, and we\'re here to support you too.',
-    recommendedScreenings: ['C-SSRS-LITE'],
+    recommendedScreenings: [],
     // Patient/caregiver signal — should NOT trigger HCP outbound commercial calls
     contextRestriction: 'patient-facing-only',
   },

@@ -83,7 +83,7 @@ function makeDravetCaregiver(overrides: Partial<ContactRecord> = {}): ContactRec
     diagnosis: 'Dravet Syndrome',
     riskTier: 'HIGH',
     riskScore: 88,
-    recommendedPathway: 'crisis-support',
+    recommendedPathway: 'nurse-educator',
     behavioralSignals: [
       {
         category: 'CAREGIVER_DISTRESS',

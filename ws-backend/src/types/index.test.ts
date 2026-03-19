@@ -85,7 +85,7 @@ describe('types/index', () => {
         'clinical-education',
         'patient-education',
         'adherence-support',
-        'crisis-support',
+        'nurse-educator',
       ];
       expect(values).toHaveLength(6);
     });

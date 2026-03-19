@@ -64,7 +64,7 @@ describe('types.ts -- type exports compile correctly', () => {
       'clinical-education',
       'patient-education',
       'adherence-support',
-      'crisis-support',
+      'nurse-educator',
     ];
     expect(ids).toHaveLength(6);
   });

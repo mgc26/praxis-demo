@@ -397,7 +397,7 @@ const PATHWAY_DISTRIBUTION: { pathway: SupportPathwayId; count: number }[] = [
   { pathway: 'clinical-education', count: 3 },
   { pathway: 'patient-education', count: 4 },
   { pathway: 'adherence-support', count: 3 },
-  { pathway: 'crisis-support', count: 3 },
+  { pathway: 'nurse-educator', count: 3 },
 ];
 
 // ---------------------------------------------------------------------------
@@ -539,15 +539,15 @@ function generateTranscript(
       add('agent', `I can provide the full clinical data package for ${drugName}. I'll email the complete publication and prescribing information to your office.`);
       add('contact', "Fine. Arrange a peer-to-peer with one of your KOLs as well.");
     }
-  } else if (pathway === 'crisis-support') {
-    add('agent', `I want to check in with you about how you're doing overall, ${firstName}. Sometimes managing a condition and its treatment can feel overwhelming. How are you feeling?`);
+  } else if (pathway === 'nurse-educator') {
+    add('agent', `Hi ${firstName}, I'm calling to let you know that one of our nurse educators is available to walk you through your ${drugName} treatment plan. They can answer questions about titration, what to expect, and day-to-day management. Would you like me to schedule a session?`);
     add('contact', pick([
-      "Honestly, it's been really tough. I feel overwhelmed.",
-      "I've been struggling a bit. It's a lot to manage.",
-      "I'm okay, but some days are harder than others.",
+      "Yes, that would be really helpful. I have a lot of questions about getting started.",
+      "I'd appreciate that. My doctor explained some things but I'd like to go over it again.",
+      "Sure, I've been meaning to ask about managing side effects and my daily routine.",
     ] as const));
-    add('agent', `I hear you, and I want you to know that support is available. If you ever feel in crisis or have thoughts of harming yourself, please call 988 -- that's the Suicide & Crisis Lifeline, available 24/7. I can also connect you with our dedicated support resources right now.`);
-    add('contact', "Thank you. I appreciate you asking.");
+    add('agent', `Great. Our nurse educators specialize in ${taLabel} and can provide one-on-one guidance tailored to your treatment. I can schedule a call for later this week -- would morning or afternoon work better for you?`);
+    add('contact', "Afternoon would be perfect. Thank you for setting this up.");
   }
 
   // Outcome-specific closing
@@ -651,7 +651,7 @@ function generateLiaisonSummary(
     'clinical-education': `Clinical education inquiry from ${contactName} regarding ${drugName}. ${isConversion ? 'Clinical data package sent. Peer-to-peer discussion arranged.' : 'Inquiry documented. Medical affairs team to provide detailed response within 48 hours.'} ${signals.some(s => s.category === 'COMPETITIVE_INTEL') ? 'COMPETITIVE INTELLIGENCE: Prescriber evaluating alternatives -- priority follow-up recommended.' : ''}`,
     'patient-education': `Patient education interaction for ${contactName}. ${isConversion ? `Copay card activated -- patient eligible for reduced out-of-pocket costs on ${drugName}. Specialty pharmacy notified.` : 'Educational materials provided. Patient needs follow-up on treatment questions.'}`,
     'adherence-support': `Adherence support call for ${contactName} on ${drugName}. ${signals.some(s => s.category === 'ADHERENCE_SIGNAL') ? 'Adherence gap confirmed. Refill coordination initiated and reminder system established.' : 'Patient reports adequate adherence. Next scheduled check-in logged.'}`,
-    'crisis-support': `CRISIS SUPPORT -- ${contactName} on ${drugName}. ${aeDetected ? 'Acute distress identified. Immediate escalation to crisis resources and prescribing physician notification completed.' : 'Caller assessed for crisis indicators. No immediate escalation required. Monitoring continues.'}`,
+    'nurse-educator': `NURSE EDUCATOR COORDINATION -- ${contactName} on ${drugName}. ${aeDetected ? 'Adverse event identified during outreach. AE documented and pharmacovigilance review initiated alongside nurse educator referral.' : 'Nurse educator session scheduled. Patient/caregiver to receive one-on-one treatment guidance and titration support.'}`,
   };
 
   // Block 1: Context summary
@@ -666,7 +666,7 @@ function generateLiaisonSummary(
     'clinical-education': `${isConversion ? 'Clinical data package sent and peer-to-peer arranged' : 'Medical inquiry documented for follow-up'}. ${contactType === 'hcp' ? 'HCP asked substantive clinical questions.' : 'Patient/caregiver seeking detailed information.'}`,
     'patient-education': `${isConversion ? 'Patient education completed successfully' : 'Patient education discussed'}. Patient expressed ${isConversion ? 'understanding of treatment plan' : 'questions about treatment expectations'}.`,
     'adherence-support': `Adherence check-in completed. ${signals.some(s => s.category === 'ADHERENCE_SIGNAL') ? 'Confirmed adherence gap -- refill coordination initiated.' : 'Adherence appears adequate.'} ${isConversion ? 'Intervention plan established.' : 'Monitoring continues.'}`,
-    'crisis-support': `Crisis support call completed. ${aeDetected ? 'Acute distress identified and escalated to crisis resources.' : 'Caller assessed -- no immediate crisis.'} ${isConversion ? 'Escalation protocol completed.' : 'Monitoring continues.'}`,
+    'nurse-educator': `Nurse educator coordination call completed. ${aeDetected ? 'AE identified during outreach and documented for pharmacovigilance review.' : 'Patient/caregiver engaged and receptive to education.'} ${isConversion ? 'Nurse educator session scheduled.' : 'Follow-up recommended to confirm scheduling.'}`,
   };
 
   // Block 3: What changed since last touch
@@ -704,9 +704,9 @@ function generateLiaisonSummary(
       ['What happens if doses are missed -- is re-titration needed?'],
       [],
     ],
-    'crisis-support': [
-      ['What crisis resources are available 24/7?'],
-      ['Should the prescribing physician be notified immediately?'],
+    'nurse-educator': [
+      ['What topics will the nurse educator cover in the first session?'],
+      ['Can the nurse educator coordinate directly with the prescribing physician?'],
       [],
     ],
   };

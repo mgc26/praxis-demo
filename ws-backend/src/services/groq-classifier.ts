@@ -50,7 +50,7 @@ const VALID_PATHWAYS: SupportPathway[] = [
   'clinical-education',
   'patient-education',
   'adherence-support',
-  'crisis-support',
+  'nurse-educator',
 ];
 
 const VALID_URGENCIES: Urgency[] = ['routine', 'soon', 'urgent'];
@@ -125,7 +125,7 @@ const CLASSIFICATION_JSON_SCHEMA = {
               'clinical-education',
               'patient-education',
               'adherence-support',
-              'crisis-support',
+              'nurse-educator',
             ],
           },
           { type: 'null' as const },

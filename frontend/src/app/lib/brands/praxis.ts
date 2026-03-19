@@ -61,7 +61,7 @@ export const praxisBrand: BrandPack = {
     { id: 'clinical-education', label: 'Clinical Education & Medical Information', color: '#2C59AB' },
     { id: 'patient-education', label: 'Patient & Caregiver Education', color: '#EFBC66' },
     { id: 'adherence-support', label: 'Adherence & Persistence Support', color: '#DE7D00' },
-    { id: 'crisis-support', label: 'Crisis Intervention & Escalation', color: '#485D61' },
+    { id: 'nurse-educator', label: 'Nurse Educator Coordination', color: '#485D61' },
   ],
 
   hubName: 'PraxisConnect',

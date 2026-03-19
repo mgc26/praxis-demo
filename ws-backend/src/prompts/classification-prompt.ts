@@ -166,10 +166,10 @@ SUPPORT PATHWAYS (choose one, or null if not discussed):
 3. clinical-education — Dosing, drug interactions, clinical data, MSL requests
 4. patient-education — Titration guidance, nurse educator, disease education
 5. adherence-support — Refill reminders, adherence barriers, pharmacy coordination
-6. crisis-support — Suicidal ideation, acute psychiatric crisis, immediate safety concerns
+6. nurse-educator — Nurse educator scheduling, treatment onboarding, titration guidance, caregiver education
 
 URGENCY GUIDANCE:
-- urgent: AE reported, crisis detected, serious safety concern, C-SSRS positive, pregnancy exposure
+- urgent: AE reported, serious safety concern, pregnancy exposure
 - soon: Adherence gap, formulary access issue, moderate safety concern, AE-TRIAGE positive
 - routine: General information, sample request, speaker program inquiry, standard follow-up
 

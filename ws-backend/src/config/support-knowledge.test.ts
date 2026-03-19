@@ -249,7 +249,7 @@ const ALL_PATHWAY_IDS: SupportPathway[] = [
   'clinical-education',
   'patient-education',
   'adherence-support',
-  'crisis-support',
+  'nurse-educator',
 ];
 
 describe('SUPPORT_PATHWAYS', () => {
@@ -300,11 +300,9 @@ describe('SUPPORT_PATHWAYS', () => {
     expect(SUPPORT_PATHWAYS['safety-reporting'].urgencyLevel).toBe('urgent');
   });
 
-  it('should reference the 988 Lifeline in the crisis-support pathway', () => {
-    // The 988 Suicide and Crisis Lifeline is the standard US resource for
-    // suicidal ideation and must appear in crisis-support talking points.
-    const combined = SUPPORT_PATHWAYS['crisis-support'].keyTalkingPoints.join(' ');
-    expect(combined).toMatch(/988/);
+  it('should reference nurse educator scheduling in the nurse-educator pathway', () => {
+    const combined = SUPPORT_PATHWAYS['nurse-educator'].keyTalkingPoints.join(' ');
+    expect(combined).toMatch(/nurse educator/i);
   });
 
   it('should mention abrupt discontinuation risk for anti-epileptic drugs in the adherence-support pathway', () => {
@@ -420,7 +418,7 @@ describe('getSupportPathways (brand-aware)', () => {
     const pathways = getSupportPathways(praxisConfig);
     expect(pathways).toHaveProperty('medication-access');
     expect(pathways).toHaveProperty('safety-reporting');
-    expect(pathways).toHaveProperty('crisis-support');
+    expect(pathways).toHaveProperty('nurse-educator');
   });
 
   it('should return the same pathways as SUPPORT_PATHWAYS when called with default config', () => {
