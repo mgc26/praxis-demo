@@ -24,7 +24,7 @@ export function buildClassificationPrompt(
   const title = isHcp ? 'Dr. ' : '';
   const lastName = (contact.name || '').split(' ').slice(-1)[0] || '';
 
-  const taShort = resolveTaShort(contact.therapeuticArea);
+  const taShort = resolveTaShort(contact.therapeuticArea, config);
 
   const drugName = resolveDrugFullName(contact.currentDrug, config) ?? contact.currentDrug ?? 'Not specified';
 

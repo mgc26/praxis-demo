@@ -274,7 +274,7 @@ export async function classifyCall(
   const classificationPrompt = buildClassificationPrompt(transcriptText, {
     contact,
     screeningResults: screeningResults ?? [],
-  });
+  }, _brandConfig);
 
   try {
     // Model: gpt-4.1-nano — purpose-built for high-volume structured tasks.

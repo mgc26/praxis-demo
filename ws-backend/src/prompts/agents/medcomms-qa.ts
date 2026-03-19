@@ -26,7 +26,7 @@ export function buildMedcommsQaPrompt(data: AgentPromptData, config: BrandBacken
 
   const drugName = resolveDrugFullName(contact.currentDrug, config);
 
-  const taShort = resolveTaShort(contact.therapeuticArea);
+  const taShort = resolveTaShort(contact.therapeuticArea, config);
 
   const signalSummary = contact.behavioralSignals.length > 0
     ? contact.behavioralSignals

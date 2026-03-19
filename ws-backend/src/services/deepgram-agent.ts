@@ -52,7 +52,7 @@ export function createDeepgramAgent(
     contact,
     answeredBy: options?.answeredBy,
     recommendedScreenings: options?.recommendedScreenings,
-  });
+  }, brandCfg);
 
   const initialGreeting = isMachineAnsweredBy(options?.answeredBy)
     ? buildAgentVoicemailMessage({
@@ -60,8 +60,8 @@ export function createDeepgramAgent(
         contactType: contact.contactType,
         agentType: contact.agentType,
         therapeuticArea: contact.therapeuticArea,
-      })
-    : buildAgentGreeting(contact);
+      }, brandCfg)
+    : buildAgentGreeting(contact, brandCfg);
 
   // Build drug name list from brand config for function descriptions
   const drugNames = brandCfg.drugProfiles

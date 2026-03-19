@@ -21,7 +21,7 @@ export function buildPatientSupportPrompt(data: AgentPromptData, config: BrandBa
 
   const drugName = resolveDrugFullName(contact.currentDrug, config) ?? contact.currentDrug ?? 'their medication';
 
-  const taShort = resolveTaShort(contact.therapeuticArea);
+  const taShort = resolveTaShort(contact.therapeuticArea, config);
 
   const isDravet = contact.therapeuticArea === 'dee-dravet';
 

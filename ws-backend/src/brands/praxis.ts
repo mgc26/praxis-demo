@@ -27,7 +27,7 @@ const praxis: BrandBackendConfig = {
     },
     'hcp-outbound': {
       name: 'Marcus',
-      greeting: 'Hello, this is Emma from Praxis BioSciences.',
+      greeting: 'Hello, this is Marcus from Praxis BioSciences.',
     },
     'medcomms-qa': {
       name: 'Rachel',

@@ -23,7 +23,7 @@ export function buildHcpOutboundPrompt(data: AgentPromptData, config: BrandBacke
 
   const drugName = resolveDrugFullName(contact.currentDrug, config);
 
-  const taShort = resolveTaShort(contact.therapeuticArea);
+  const taShort = resolveTaShort(contact.therapeuticArea, config);
 
   const isET = contact.therapeuticArea === 'essential-tremor';
 

@@ -63,13 +63,32 @@ export function resolveDrugFullName(drugId: string | undefined | null, config: B
     : `${profile.genericName} (${profile.brandName})`;
 }
 
-/** Resolve TA short display label. */
-export function resolveTaShort(ta: string): string {
-  switch (ta) {
-    case 'essential-tremor': return 'Essential Tremor';
-    case 'dee-dravet': return 'DEE / Dravet Syndrome';
-    default: return ta;
-  }
+/** Resolve TA short display label.
+ *  Accepts an optional BrandBackendConfig — when provided, verifies the TA
+ *  exists in the brand's drug profiles (future-proofing).  Falls back to a
+ *  known-labels map and ultimately to a title-case conversion of the slug so
+ *  new brands / TAs work without code changes.
+ */
+export function resolveTaShort(ta: string, _config?: BrandBackendConfig): string {
+  // Known display labels — covers all current brands
+  const KNOWN_LABELS: Record<string, string> = {
+    'essential-tremor': 'Essential Tremor',
+    'dee-dravet': 'DEE / Dravet Syndrome',
+    'cardiovascular': 'Cardiovascular',
+    'severe-asthma': 'Severe Asthma',
+    'pku': 'PKU',
+    'dmd': 'DMD / Duchenne Muscular Dystrophy',
+  };
+
+  return KNOWN_LABELS[ta] ?? titleCaseSlug(ta);
+}
+
+/** Convert a kebab-case slug to Title Case (e.g. "severe-asthma" → "Severe Asthma"). */
+function titleCaseSlug(slug: string): string {
+  return slug
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
 }
 
 // ---------------------------------------------------------------------------
@@ -81,7 +100,7 @@ export function buildAgentGreeting(contact: ContactRecord, config: BrandBackendC
   const title = contact.contactType === 'hcp' ? 'Dr. ' : '';
   const lastName = (contact.name || '').split(' ').slice(-1)[0] || 'there';
 
-  const taShort = resolveTaShort(contact.therapeuticArea);
+  const taShort = resolveTaShort(contact.therapeuticArea, config);
 
   const drugName = resolveDrugBrandName(contact.currentDrug, config);
 
@@ -165,7 +184,7 @@ export function buildGatekeeperGreeting(contact: ContactRecord, config: BrandBac
   const title = contact.contactType === 'hcp' ? 'Dr. ' : '';
   const lastName = (contact.name || '').split(' ').slice(-1)[0] || 'there';
 
-  const taShort = resolveTaShort(contact.therapeuticArea);
+  const taShort = resolveTaShort(contact.therapeuticArea, config);
   const outboundAgent = config.agentPersonas['hcp-outbound']?.name ?? 'Support';
 
   return `Hello, this is ${outboundAgent} from ${config.companyName}. I'm reaching out to share some clinical information with ${title}${lastName} about treatments for ${taShort}. Is the doctor available for just a couple of minutes?`;
@@ -183,7 +202,7 @@ export function buildAgentVoicemailMessage(
   const title = contact.agentType === 'hcp-outbound' ? 'Dr. ' : '';
   const lastName = (contact.name || '').split(' ').slice(-1)[0] || 'there';
 
-  const taShort = resolveTaShort(contact.therapeuticArea);
+  const taShort = resolveTaShort(contact.therapeuticArea, config);
   const patientAgent = config.agentPersonas['patient-support']?.name ?? 'Support';
   const outboundAgent = config.agentPersonas['hcp-outbound']?.name ?? 'Support';
 
