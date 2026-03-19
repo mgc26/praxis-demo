@@ -348,7 +348,7 @@ export interface CohortTimepointStats {
 export interface CohortOutcomeData {
   therapeuticArea: TherapeuticArea;
   drugProduct: DrugProduct;
-  instrumentId: 'TETRAS-LITE' | 'MMAS-4';
+  instrumentId: string;
   instrumentLabel: string;
   totalEnrolled: number;
   trajectory: CohortTimepointStats[];

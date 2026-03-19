@@ -1034,7 +1034,7 @@ export default function DashboardPage() {
   const [contractRebate, setContractRebate] = useState(50);
 
   const contractResults = useMemo(() => {
-    const patients = getPatientOutcomes();
+    const patients = getPatientOutcomes(brand);
     const eligible = patients.filter(p =>
       p.tetrasScores.baseline !== undefined && p.tetrasScores['90d'] !== undefined
     );
@@ -1055,7 +1055,7 @@ export default function DashboardPage() {
       confidence,
       dropped: patients.length - eligible.length,
     };
-  }, [contractThreshold, contractRebate]);
+  }, [contractThreshold, contractRebate, brand]);
 
   // -- Auth check --
   useEffect(() => {
@@ -1336,6 +1336,8 @@ export default function DashboardPage() {
       setTimeout(() => setEvidencePhase(2), 800),
       setTimeout(() => setEvidencePhase(3), 1500),
       setTimeout(() => { setEvidencePhase(4); setEvidenceCounter(437); }, 2000),
+      setTimeout(() => setEvidencePhase(5), 2600),
+      setTimeout(() => setEvidencePhase(6), 3200),
     ];
     return () => timers.forEach(clearTimeout);
   }, [storyStep, currentCallHasScreening, storyboardSteps.length]);
@@ -3596,8 +3598,8 @@ export default function DashboardPage() {
                 const screeningResult = storyData.call.screeningResults?.find(
                   s => s.status === 'completed'
                 );
-                const cohortData = getCohortOutcomeData();
-                const payerCard = getPayerEvidenceCard();
+                const cohortData = getCohortOutcomeData(brand);
+                const payerCard = getPayerEvidenceCard(brand);
                 const trajectory = cohortData.trajectory;
 
                 return (
@@ -3628,6 +3630,8 @@ export default function DashboardPage() {
                         <div className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: PX.textSecondary, opacity: evidencePhase >= 2 ? 1 : 0, transition: 'opacity 0.4s ease-out' }}>
                           Population Evidence
                         </div>
+
+                        {/* Row 1: Trajectory Chart */}
                         <div style={{ opacity: evidencePhase >= 2 ? 1 : 0, transition: 'opacity 0.4s ease-out' }}>
                           <div className="border p-4" style={{ borderColor: PX.cardBorder }}>
                             <div className="text-[10px] font-semibold mb-2" style={{ color: PX.textSecondary }}>
@@ -3635,28 +3639,64 @@ export default function DashboardPage() {
                             </div>
                             <EvidenceMiniChart
                               data={trajectory}
+                              height={140}
                               patientScore={screeningResult?.totalScore}
                             />
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 mt-3" style={{ opacity: evidencePhase >= 4 ? 1 : 0, transition: 'opacity 0.4s ease-out' }}>
-                          <div className="border p-3" style={{ borderColor: PX.cardBorder }}>
-                            <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: PX.textSecondary }}>Enrolled</div>
-                            <div className="text-xl font-bold mt-1" style={{ color: PX.teal }}>{evidenceCounter}</div>
-                            <div className="text-[10px]" style={{ color: PX.textMuted }}>patients in RWE dataset</div>
+                        {/* Row 2: Key Metrics Grid */}
+                        <div className="grid grid-cols-3 gap-2.5 mt-3" style={{ opacity: evidencePhase >= 4 ? 1 : 0, transition: 'opacity 0.5s ease-out' }}>
+                          <div className="border p-2.5" style={{ borderColor: PX.cardBorder }}>
+                            <div className="text-[9px] font-bold uppercase tracking-wider" style={{ color: PX.textSecondary }}>Enrolled</div>
+                            <div className="text-lg font-bold mt-0.5" style={{ color: PX.teal }}>{evidenceCounter}</div>
+                            <div className="text-[9px]" style={{ color: PX.textMuted }}>in RWE dataset</div>
                           </div>
-                          <div className="border p-3" style={{ borderColor: PX.cardBorder }}>
-                            <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: PX.textSecondary }}>Headline</div>
-                            <div className="text-sm font-bold mt-1" style={{ color: PX.navy }}>{payerCard.headline}</div>
-                            <div className="text-[10px]" style={{ color: PX.textMuted }}>{payerCard.meanImprovementPct}% mean improvement at 90d</div>
+                          <div className="border p-2.5" style={{ borderColor: PX.cardBorder }}>
+                            <div className="text-[9px] font-bold uppercase tracking-wider" style={{ color: PX.textSecondary }}>Mean Improvement</div>
+                            <div className="text-lg font-bold mt-0.5" style={{ color: PX.teal }}>{payerCard.meanImprovementPct}%</div>
+                            <div className="text-[9px]" style={{ color: PX.textMuted }}>at 90d (95% CI: {payerCard.ci95[0]}&ndash;{payerCard.ci95[1]}%)</div>
                           </div>
+                          <div className="border p-2.5" style={{ borderColor: PX.cardBorder }}>
+                            <div className="text-[9px] font-bold uppercase tracking-wider" style={{ color: PX.textSecondary }}>Persistence</div>
+                            <div className="text-lg font-bold mt-0.5" style={{ color: PX.teal }}>{Math.round(payerCard.persistenceRate90d * 100)}%</div>
+                            <div className="text-[9px]" style={{ color: PX.textMuted }}>on therapy at 90d</div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2.5 mt-2.5" style={{ opacity: evidencePhase >= 5 ? 1 : 0, transition: 'opacity 0.5s ease-out' }}>
+                          <div className="border p-2.5" style={{ borderColor: PX.cardBorder }}>
+                            <div className="text-[9px] font-bold uppercase tracking-wider" style={{ color: PX.textSecondary }}>Adherence</div>
+                            <div className="text-lg font-bold mt-0.5" style={{ color: PX.navy }}>{Math.round(payerCard.adherenceRate90d * 100)}%</div>
+                            <div className="text-[9px]" style={{ color: PX.textMuted }}>high adherence at 90d</div>
+                          </div>
+                          <div className="border p-2.5" style={{ borderColor: PX.cardBorder }}>
+                            <div className="text-[9px] font-bold uppercase tracking-wider" style={{ color: PX.textSecondary }}>Safety</div>
+                            <div className="text-lg font-bold mt-0.5" style={{ color: PX.navy }}>{Math.round(payerCard.aeRate * 100)}% AE</div>
+                            <div className="text-[9px]" style={{ color: PX.textMuted }}>{Math.round(payerCard.seriousAeRate * 100)}% serious AE</div>
+                          </div>
+                          <div className="border p-2.5" style={{ borderColor: PX.cardBorder }}>
+                            <div className="text-[9px] font-bold uppercase tracking-wider" style={{ color: PX.textSecondary }}>Baseline &rarr; 90d</div>
+                            <div className="text-lg font-bold mt-0.5" style={{ color: PX.navy }}>{payerCard.meanBaselineScore.toFixed(1)} &rarr; {payerCard.mean90dScore.toFixed(1)}</div>
+                            <div className="text-[9px]" style={{ color: PX.textMuted }}>mean score change</div>
+                          </div>
+                        </div>
+
+                        {/* Row 3: Payer Headline */}
+                        <div className="mt-3 p-3" style={{
+                          opacity: evidencePhase >= 6 ? 1 : 0,
+                          transition: 'opacity 0.5s ease-out',
+                          backgroundColor: `${PX.teal}08`,
+                          border: `1px solid ${PX.teal}25`,
+                        }}>
+                          <div className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: PX.teal }}>Payer Evidence Summary</div>
+                          <div className="text-xs font-semibold" style={{ color: PX.navy }}>{payerCard.headline}</div>
                         </div>
                       </div>
                     </div>
 
                     {/* Caption */}
-                    <div className="text-xs text-center mt-4" style={{ color: PX.textMuted, opacity: evidencePhase >= 4 ? 1 : 0, transition: 'opacity 0.4s ease-out' }}>
+                    <div className="text-xs text-center mt-4" style={{ color: PX.textMuted, opacity: evidencePhase >= 6 ? 1 : 0, transition: 'opacity 0.4s ease-out' }}>
                       Every screening administered generates clinical evidence. This patient&apos;s score joins {evidenceCounter} others in a continuously updated real-world evidence dataset.
                     </div>
                   </div>
@@ -3891,8 +3931,8 @@ export default function DashboardPage() {
 
         {/* ---- OUTCOMES & EVIDENCE TAB ---- */}
         {activeTab === 'outcomes-evidence' && (() => {
-          const cohort = getCohortOutcomeData();
-          const payer = getPayerEvidenceCard();
+          const cohort = getCohortOutcomeData(brand);
+          const payer = getPayerEvidenceCard(brand);
           const trajectory = cohort.trajectory;
           const baselineMean = trajectory[0]?.mean ?? 0;
 

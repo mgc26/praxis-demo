@@ -80,6 +80,15 @@ function brandTA0Label(brand: BrandPack): string { return brand.therapeuticAreas
 function brandTA1Label(brand: BrandPack): string { return (brand.therapeuticAreas[1] ?? brand.therapeuticAreas[0]).label; }
 function brandPathwayIds(brand: BrandPack): string[] { return brand.supportPathways.map(sp => sp.id); }
 
+/** Brand-specific outcome instrument metadata */
+function brandInstrument(brand: BrandPack): { id: string; label: string } {
+  switch (brand.id) {
+    case 'amgen': return { id: 'LDL-C-ASSESS', label: 'LDL-C Assessment Score' };
+    case 'ptc':   return { id: 'PHE-MONITOR', label: 'PHE Monitoring Score' };
+    default:      return { id: 'TETRAS-LITE', label: 'TETRAS-LITE Tremor Score' };
+  }
+}
+
 // ---------------------------------------------------------------------------
 // 12 Contacts (6 patients, 6 HCPs) -- brand-aware
 // ---------------------------------------------------------------------------
@@ -1655,7 +1664,7 @@ function computePayerCard(
   const adherentAt90d = withMmas90d.filter(p => p.mmasScores['90d']! >= 3);
   const adherenceRate90d = withMmas90d.length > 0 ? adherentAt90d.length / withMmas90d.length : 0;
 
-  const headline = `${meanImprovementPct}% mean TETRAS-LITE improvement at 90 days in ${patients.length} patients on ${brand.products[0].brandName}`;
+  const headline = `${meanImprovementPct}% mean ${brandInstrument(brand).id} improvement at 90 days in ${patients.length} patients on ${brand.products[0].brandName}`;
 
   return {
     generatedAt: '2026-03-18',
@@ -1700,8 +1709,8 @@ function getEvidenceCache(brand: BrandPack): EvidenceCache {
   const cohort: CohortOutcomeData = {
     therapeuticArea: brandTA0(brand),
     drugProduct: brandDrug0(brand).id,
-    instrumentId: 'TETRAS-LITE',
-    instrumentLabel: 'TETRAS-LITE Tremor Score',
+    instrumentId: brandInstrument(brand).id,
+    instrumentLabel: brandInstrument(brand).label,
     totalEnrolled: total,
     trajectory,
     persistenceRate,
