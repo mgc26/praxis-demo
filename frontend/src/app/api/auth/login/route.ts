@@ -4,7 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
   const { password } = await request.json();
-  const expected = process.env.DASHBOARD_PASSWORD || 'praxis2026';
+  const expected = process.env.DASHBOARD_PASSWORD;
+  if (!expected) {
+    return NextResponse.json({ error: 'DASHBOARD_PASSWORD not configured' }, { status: 500 });
+  }
 
   if (typeof password !== 'string' || password !== expected) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -14,6 +17,7 @@ export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
   cookieStore.set('praxis_session', session, {
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
   });
