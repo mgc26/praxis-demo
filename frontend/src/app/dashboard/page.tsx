@@ -1481,7 +1481,7 @@ export default function DashboardPage() {
       )}
 
       {/* ========== HEADER ========== */}
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between px-6" style={{ backgroundColor: brand.id === 'ptc' ? brand.theme.colors.primaryLight : brand.theme.colors.primary }}>
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between px-6" style={{ backgroundColor: brand.id === 'ptc' ? brand.theme.colors.primaryLight : brand.theme.colors.primaryDark }}>
         <div className="flex items-center gap-3">
           <img src={brand.logoAsset} alt={brand.shortName} className="h-7" />
           <span className="mx-1 text-white/30">|</span>
@@ -2620,28 +2620,30 @@ export default function DashboardPage() {
               <div className="border bg-white p-6" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
                 <div className="text-sm font-bold mb-4" style={{ color: PX.navy }}>Daily Activity Trend (7 days)</div>
                 <div className="relative">
-                  <div className="flex items-end gap-2 h-40">
-                    {perfDailyTrend.map((day) => {
-                      const maxVal = Math.max(...perfDailyTrend.map(d => d.interactions), 1);
-                      const h = (day.interactions / maxVal) * 100;
-                      const engH = (day.engagements / maxVal) * 100;
-                      const convH = (day.conversions / maxVal) * 100;
-                      return (
-                        <div key={day.date} className="flex-1 flex flex-col items-center gap-1">
-                          <div className="text-[9px] font-bold" style={{ color: PX.teal }}>{day.convRate > 0 ? `${day.convRate.toFixed(0)}%` : ''}</div>
-                          <div className="w-full flex flex-col items-center" style={{ height: '110px' }}>
-                            <div className="flex-1" />
-                            <div className="w-full flex gap-0.5 justify-center">
-                              <div className="w-4" style={{ height: `${Math.max(h, 4)}%`, backgroundColor: PX.navy }} />
-                              <div className="w-4" style={{ height: `${Math.max(engH, 4)}%`, backgroundColor: PX.teal }} />
-                              <div className="w-4" style={{ height: `${Math.max(convH, 4)}%`, backgroundColor: PX.success }} />
+                  {(() => {
+                    const maxVal = Math.max(...perfDailyTrend.map(d => d.interactions), 1);
+                    const barH = 120; // max bar height in px
+                    return (
+                      <div className="flex items-end gap-3" style={{ height: `${barH + 30}px` }}>
+                        {perfDailyTrend.map((day) => {
+                          const intPx = Math.max((day.interactions / maxVal) * barH, 4);
+                          const engPx = Math.max((day.engagements / maxVal) * barH, 4);
+                          const convPx = Math.max((day.conversions / maxVal) * barH, 4);
+                          return (
+                            <div key={day.date} className="flex-1 flex flex-col items-center">
+                              <div className="text-[9px] font-bold mb-1" style={{ color: PX.teal }}>{day.convRate > 0 ? `${day.convRate.toFixed(0)}%` : ''}</div>
+                              <div className="flex gap-0.5 items-end" style={{ height: `${barH}px` }}>
+                                <div className="w-3 rounded-t-sm" style={{ height: `${intPx}px`, backgroundColor: PX.navy }} />
+                                <div className="w-3 rounded-t-sm" style={{ height: `${engPx}px`, backgroundColor: PX.teal }} />
+                                <div className="w-3 rounded-t-sm" style={{ height: `${convPx}px`, backgroundColor: PX.success }} />
+                              </div>
+                              <div className="text-[9px] font-medium mt-2" style={{ color: PX.textMuted }}>{day.date.slice(5)}</div>
                             </div>
-                          </div>
-                          <div className="text-[9px] font-medium" style={{ color: PX.textMuted }}>{day.date.slice(5)}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="flex items-center gap-4 mt-3 justify-center flex-wrap">
                   <div className="flex items-center gap-1.5"><span className="h-2 w-2" style={{ backgroundColor: PX.navy }} /><span className="text-[10px]" style={{ color: PX.textMuted }}>Interactions</span></div>
