@@ -1,23 +1,41 @@
-# Research — Jobs to Be Done
+# Research
 
-Background research for validating and sharpening the four Vi Praxis agent types
-and the cross-cutting concerns they share.
-
-Drop files (PDFs, text dumps, Claude research outputs, notes) into the relevant folder.
+Background research for the Vi Praxis agent platform — JTBD validation, clinical context, integration feasibility, brand guides, and GTM materials.
 
 ## Structure
 
 ```
 research/
-  patient-support/       # Agent 1: Emma (inbound patient/caregiver support)
-  hcp-support/           # Agent 2: Inbound medical information line for HCPs
-  hcp-outbound/          # Agent 3: Emma (signal-driven outbound HCP engagement)
-  medcomms-qa/           # Agent 4: Omnichannel medical information Q&A
-  pharmacovigilance/     # Cross-cutting: AE reporting, C-SSRS, FDA requirements
-  dashboard-consumers/   # Cross-cutting: MSL, FRM, brand team, PV team workflows
+  clinical-literature/       # Published papers, clinical context briefings, deep research
+  expert-briefings/          # Agent-specific expert briefings (patient-support, hcp-support, etc.)
+  jtbd-studies/              # Jobs-to-Be-Done research by persona and workflow
+  integration/               # API docs, feasibility reports, integration study guides
+    api-docs/                # Vendor API reports (Twilio, Deepgram, Salesforce, Veeva, etc.)
+  brand-guides/              # Brand identity guides and product portfolios
+  gtm/                       # Sales enablement — GTM one-pager, generator scripts
 ```
 
-## Research prompts
+## Expert Briefings
+
+| File | Agent / Domain |
+|------|---------------|
+| `expert-briefings/patient-support.md` | Agent 1: Emma — inbound patient/caregiver support |
+| `expert-briefings/hcp-support.md` | Agent 2: Aria — inbound medical information for HCPs |
+| `expert-briefings/hcp-outbound.md` | Agent 3: Marcus — signal-driven outbound HCP engagement |
+| `expert-briefings/pharmacovigilance.md` | Cross-cutting: AE reporting, C-SSRS, FDA requirements |
+| `expert-briefings/dashboard-consumers.md` | Cross-cutting: MSL, FRM, brand team, PV workflows |
+
+## JTBD Studies
+
+| File | Focus |
+|------|-------|
+| `jtbd-studies/patient-support-hub-jtbd.md` | Top JTBD for US manufacturer patient support hubs |
+| `jtbd-studies/neurology-medical-information-jtbd.md` | JTBD and compliance for neurology MI calls |
+| `jtbd-studies/hcp-outbound-engagement-jtbd.md` | Outbound engagement with US neurologists |
+| `jtbd-studies/dashboard-consumers-jtbd.md` | Who uses pharma engagement dashboards and what they need |
+| `jtbd-studies/ae-capture-regulatory-requirements.md` | Regulatory requirements for AE capture in neurology |
+
+## Research Prompts
 
 The prompts used to generate this research are captured below for reference.
 
@@ -52,7 +70,7 @@ handoff looks like from MI to MSL, pharmacovigilance, or commercial. What are th
 highest-value MI interactions from the manufacturer's perspective, and which of those
 could an AI agent handle end-to-end vs. which require human escalation?
 
-### 3. HCP Outbound (Emma — signal-driven proactive engagement)
+### 3. HCP Outbound (Marcus — signal-driven proactive engagement)
 
 For pharmaceutical companies conducting outbound engagement with neurologists and
 epileptologists in the US (specifically around branded specialty drugs for Essential
