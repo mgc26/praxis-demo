@@ -17,7 +17,7 @@ import type {
   InteractionOutcome,
   UrgencyLevel,
 } from '@/app/lib/types';
-import { CONVERSION_OUTCOMES } from '@/app/lib/constants';
+import { CONVERSION_OUTCOMES, getDemoScenarios } from '@/app/lib/constants';
 import { getCohortOutcomeData, getPatientOutcomes, getPayerEvidenceCard } from '@/app/lib/seed-data';
 import { useBrand } from '@/app/components/BrandContext';
 
@@ -122,15 +122,10 @@ const PRIORITY_COLORS: Record<string, { text: string; bg: string; border: string
   LOW: { text: PX.success, bg: `${PX.success}10`, border: `${PX.success}30` },
 };
 
-const TA_LABELS: Record<string, string> = {
-  'essential-tremor': 'ET / ELEX',
-  'dee': 'DEE / Relutrigine',
-};
+// TA_LABELS: built dynamically from brand inside the component via useMemo
 
-const TA_COLORS: Record<string, string> = {
-  'essential-tremor': PX.teal,
-  'dee': PX.purple,
-};
+// TA_COLORS: built dynamically from brand inside the component via useMemo
+const TA_COLOR_PALETTE = [PX.teal, PX.purple, PX.blue, PX.accent, PX.navy, PX.coral];
 
 const SIGNAL_LABELS: Record<string, string> = {
   SEARCH_INTENT: 'Search Intent',
@@ -337,12 +332,16 @@ function KPICard({ label, value, sub, color }: { label: string; value: string | 
 function ContactRow({
   contact,
   onInitiate,
+  taLabels,
+  taColors,
 }: {
   contact: ContactRecord;
   onInitiate: (id: string) => void;
+  taLabels: Record<string, string>;
+  taColors: Record<string, string>;
 }) {
   const priority = PRIORITY_COLORS[contact.priorityTier] || PRIORITY_COLORS.LOW;
-  const taColor = TA_COLORS[contact.therapeuticArea] || PX.teal;
+  const taColor = taColors[contact.therapeuticArea] || PX.teal;
   const topSignal = contact.behavioralSignals[0];
 
   return (
@@ -371,7 +370,7 @@ function ContactRow({
             {contact.contactType === 'patient' ? `Age ${contact.age}` : contact.specialty?.split(' -- ')[0] || 'HCP'}
           </span>
           <span className="text-[10px] font-semibold" style={{ color: taColor }}>
-            {TA_LABELS[contact.therapeuticArea]}
+            {taLabels[contact.therapeuticArea] ?? contact.therapeuticArea}
           </span>
         </div>
         {topSignal && (
@@ -397,13 +396,17 @@ function ContactRow({
 function CallDetailDrawer({
   call,
   onClose,
+  taLabels,
+  taColors,
 }: {
   call: CallRecord;
   onClose: () => void;
+  taLabels: Record<string, string>;
+  taColors: Record<string, string>;
 }) {
   const outcomeColor = OUTCOME_COLORS[call.outcome] || PX.textMuted;
   const agentConfig = AGENT_TYPE_LABELS[call.agentType];
-  const taColor = TA_COLORS[call.therapeuticArea];
+  const taColor = taColors[call.therapeuticArea] || PX.teal;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
@@ -422,7 +425,7 @@ function CallDetailDrawer({
                   {agentConfig.label}
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ color: taColor, backgroundColor: `${taColor}15` }}>
-                  {TA_LABELS[call.therapeuticArea]}
+                  {taLabels[call.therapeuticArea] ?? call.therapeuticArea}
                 </span>
                 {call.aeDetected && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-[#FF7D7810] px-2 py-0.5 text-[10px] font-bold text-[#FF7D78] border border-[#FF7D7830]">
@@ -1001,6 +1004,28 @@ export default function DashboardPage() {
   const [customEscalationText, setCustomEscalationText] = useState('');
   const [requestToast, setRequestToast] = useState<string | null>(null);
 
+  // ---- Brand-derived lookups ----
+  const TA_LABELS: Record<string, string> = useMemo(
+    () => Object.fromEntries(brand.therapeuticAreas.map(ta => {
+      const prod = brand.products.find(p => p.therapeuticArea === ta.id);
+      return [ta.id, prod ? `${ta.label.replace(/\s*\(.*\)/, '')} / ${prod.brandName}` : ta.label];
+    })),
+    [brand],
+  );
+
+  const drugBrandName = useMemo(
+    () => (genericId: string) => {
+      const prod = brand.products.find(p => p.id === genericId || p.genericName.toLowerCase() === genericId.toLowerCase());
+      return prod?.brandName ?? genericId;
+    },
+    [brand],
+  );
+
+  const TA_COLORS: Record<string, string> = useMemo(
+    () => Object.fromEntries(brand.therapeuticAreas.map((ta, i) => [ta.id, TA_COLOR_PALETTE[i % TA_COLOR_PALETTE.length]])),
+    [brand],
+  );
+
   // ---- Outcomes-Based Contract Simulator ----
   const [contractThreshold, setContractThreshold] = useState(30);
   const [contractRebate, setContractRebate] = useState(50);
@@ -1093,22 +1118,22 @@ export default function DashboardPage() {
   // -- Fetch personas --
   const fetchPersonas = useCallback(async () => {
     try {
-      const res = await fetch('/api/persona');
+      const res = await fetch(`/api/persona?brandId=${encodeURIComponent(brand.id)}`);
       if (!res.ok) throw new Error();
       const data = await res.json();
       setPersonas(data as Record<AgentType, AgentPersona>);
     } catch { /* ignore */ }
-  }, []);
+  }, [brand.id]);
 
   // -- Fetch MSL follow-up requests --
   const fetchMSLFollowUps = useCallback(async () => {
     try {
-      const res = await fetch('/api/msl-followups');
+      const res = await fetch(`/api/msl-followups?brandId=${encodeURIComponent(brand.id)}`);
       if (!res.ok) throw new Error();
       const data: { requests: MSLFollowUpRequest[] } = await res.json();
       setMslFollowUps(data.requests);
     } catch { setMslFollowUps([]); }
-  }, []);
+  }, [brand.id]);
 
   const loadDashboard = useCallback(async () => {
     await Promise.all([fetchAnalytics(), fetchCalls(), fetchContacts(), fetchPersonas(), fetchMSLFollowUps()]);
@@ -1145,7 +1170,7 @@ export default function DashboardPage() {
       const res = await fetch('/api/demo-call', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: configPhone, scenarioId: configScenario, agentType: configAgent }),
+        body: JSON.stringify({ phoneNumber: configPhone, scenarioId: configScenario, agentType: configAgent, brandId: brand.id }),
       });
       const data = await res.json();
       setDemoCallStatus(data.status === 'simulated' ? 'Simulated (backend offline)' : data.status === 'error' ? `Error: ${data.message}` : 'Call initiated!');
@@ -1172,6 +1197,7 @@ export default function DashboardPage() {
           phoneNumber: configPhone,
           scenarioId: configScenario,
           agentType: configAgent,
+          brandId: brand.id,
           ...(liveContactName.trim() ? { contactName: liveContactName.trim() } : {}),
         }),
       });
@@ -1229,30 +1255,11 @@ export default function DashboardPage() {
   const badgeData = { calls: calls.length, contacts: contacts.length, signals: signals.length, mslFollowUps: openMslFollowUps };
   const loading = loadingAnalytics;
 
-  // Demo scenarios
-  const demoScenarios: Record<AgentType, Array<{ id: string; label: string; description: string }>> = {
-    'patient-support': [
-      { id: 'ps-hub-enroll', label: 'Hub Enrollment', description: `New patient enrolling in ${brand.shortName} Support Hub for ELEX` },
-      { id: 'ps-copay', label: 'Copay Card Activation', description: 'Patient activating copay assistance for Relutrigine' },
-      { id: 'ps-ae', label: 'AE Report', description: 'Patient reports adverse event during adherence check-in' },
-      { id: 'ps-adherence', label: 'Adherence Check-in', description: 'Proactive adherence support call for ELEX patient' },
-    ],
-    'hcp-support': [
-      { id: 'hcp-medinfo', label: 'Medical Inquiry', description: 'Neurologist requesting ELEX clinical trial data' },
-      { id: 'hcp-sample', label: 'Sample Request', description: 'Movement disorder specialist requesting ELEX samples' },
-      { id: 'hcp-formulary', label: 'Formulary Support', description: 'HCP needs prior auth support for Relutrigine' },
-    ],
-    'hcp-outbound': [
-      { id: 'hco-detail', label: 'Product Detail', description: 'Proactive ELEX detail call to neurologist' },
-      { id: 'hco-switch', label: 'Switch Opportunity', description: 'Competitive switch discussion for ET patients' },
-      { id: 'hco-launch', label: 'Launch Update', description: 'Relutrigine launch update to epileptologist' },
-    ],
-    'medcomms-qa': [
-      { id: 'mqa-review', label: 'Transcript Review', description: 'QA review of patient support interaction' },
-      { id: 'mqa-offlabel', label: 'Off-Label Check', description: 'Off-label mention detection in HCP call' },
-      { id: 'mqa-ae-audit', label: 'AE Audit', description: 'Audit AE capture completeness across interactions' },
-    ],
-  };
+  // Demo scenarios — derived from brand pack
+  const demoScenarios = useMemo(
+    () => getDemoScenarios(brand) as Record<AgentType, Array<{ id: string; label: string; description: string }>>,
+    [brand],
+  );
 
   // -- Storyboard derived data --
   const storyData = useMemo(() => {
@@ -1289,7 +1296,7 @@ export default function DashboardPage() {
     return [
       { label: 'HCP Profile', value: `${c.name}, ${c.specialty?.split(' — ')[0] || 'HCP'}` },
       { label: 'Specialty & Practice', value: `${c.specialty || 'N/A'} — ${c.practiceLocation || 'N/A'}` },
-      { label: 'Patients on Therapy', value: `${c.patientsOnTherapy || 0} patients on ${c.drugProduct === 'euloxacaltenamide' ? 'ELEX' : 'Relutrigine'}` },
+      { label: 'Patients on Therapy', value: `${c.patientsOnTherapy || 0} patients on ${drugBrandName(c.drugProduct)}` },
       { label: 'Prescribing Patterns', value: c.behavioralSignals.find(s => s.category === 'RX_PATTERN')?.detail || 'Standard prescriber' },
       { label: 'Behavioral Signals', value: c.behavioralSignals.map(s => s.detail).slice(0, 2).join('; ') },
       { label: 'Recommended Pathway', value: PATHWAY_LABELS[c.recommendedPathway] },
@@ -1297,26 +1304,26 @@ export default function DashboardPage() {
     ];
   }, [storyData.contact]);
 
-  const currentCallHasTetras = useMemo(() => {
+  const currentCallHasScreening = useMemo(() => {
     return storyData.call?.screeningResults?.some(
-      s => s.instrumentId === 'TETRAS-LITE' && s.status === 'completed'
+      s => s.status === 'completed'
     ) ?? false;
   }, [storyData.call]);
 
   const storyboardSteps = useMemo(() => {
     const steps = [...BASE_STORYBOARD_STEPS];
-    if (currentCallHasTetras) {
+    if (currentCallHasScreening) {
       steps.push({ id: 'evidence-capture', label: 'Evidence Capture' });
     }
     return steps;
-  }, [currentCallHasTetras]);
+  }, [currentCallHasScreening]);
 
   // ---- Evidence Capture staggered animation ----
   const [evidencePhase, setEvidencePhase] = useState(0);
   const [evidenceCounter, setEvidenceCounter] = useState(436);
 
   useEffect(() => {
-    if (storyStep !== storyboardSteps.length - 1 || !currentCallHasTetras) {
+    if (storyStep !== storyboardSteps.length - 1 || !currentCallHasScreening) {
       setEvidencePhase(0);
       setEvidenceCounter(436);
       return;
@@ -1328,7 +1335,7 @@ export default function DashboardPage() {
       setTimeout(() => { setEvidencePhase(4); setEvidenceCounter(437); }, 2000),
     ];
     return () => timers.forEach(clearTimeout);
-  }, [storyStep, currentCallHasTetras, storyboardSteps.length]);
+  }, [storyStep, currentCallHasScreening, storyboardSteps.length]);
 
   // Reset storyboard on agent type change — skip animation, show data instantly
   useEffect(() => {
@@ -1403,7 +1410,7 @@ export default function DashboardPage() {
       (storyData.call?.transcript.length || 8) * 800 + 1000,
       2000,
       1500,
-      ...(currentCallHasTetras ? [4000] : []),
+      ...(currentCallHasScreening ? [4000] : []),
     ];
     const timer = setTimeout(() => {
       if (storyStep < storyboardSteps.length - 1) {
@@ -1549,8 +1556,9 @@ export default function DashboardPage() {
                   className="border px-2 py-1 text-xs" style={{ borderColor: PX.cardBorder, color: PX.textPrimary }}
                 >
                   <option value="all">All Areas</option>
-                  <option value="essential-tremor">ET / ELEX</option>
-                  <option value="dee">DEE / Relutrigine</option>
+                  {brand.therapeuticAreas.map(ta => (
+                    <option key={ta.id} value={ta.id}>{TA_LABELS[ta.id] ?? ta.label}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -1734,7 +1742,7 @@ export default function DashboardPage() {
                           <div className="space-y-2">
                             {contacts.slice(0, 8).map((c) => (
                               <div key={c.contactId} className="relative">
-                                <ContactRow contact={c} onInitiate={handleInitiateOutreach} />
+                                <ContactRow contact={c} onInitiate={handleInitiateOutreach} taLabels={TA_LABELS} taColors={TA_COLORS} />
                                 {/* Vi Pulse attribution badge */}
                                 <span
                                   className="absolute top-1.5 right-16 text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5"
@@ -2349,23 +2357,20 @@ export default function DashboardPage() {
             {/* ===== Campaign Selector ===== */}
             <div className="flex items-center gap-3 flex-wrap">
               <span className="text-xs font-bold uppercase tracking-wider" style={{ color: PX.textSecondary }}>Campaign</span>
-              {([
-                { value: 'essential-tremor' as const, label: 'ET / ELEX' },
-                { value: 'dee' as const, label: 'DEE / Relutrigine' },
-              ] as const).map(opt => {
-                const isActive = perfCampaign === opt.value;
+              {brand.therapeuticAreas.map(ta => {
+                const isActive = perfCampaign === ta.id;
                 return (
                   <button
-                    key={opt.value}
-                    onClick={() => setPerfCampaign(isActive ? 'all' : opt.value)}
+                    key={ta.id}
+                    onClick={() => setPerfCampaign(isActive ? 'all' : ta.id)}
                     className="px-4 py-1.5 text-xs font-semibold border transition-all"
                     style={{
-                      backgroundColor: isActive ? TA_COLORS[opt.value] : 'white',
-                      color: isActive ? 'white' : TA_COLORS[opt.value],
-                      borderColor: isActive ? TA_COLORS[opt.value] : PX.cardBorder,
+                      backgroundColor: isActive ? (TA_COLORS[ta.id] || PX.teal) : 'white',
+                      color: isActive ? 'white' : (TA_COLORS[ta.id] || PX.teal),
+                      borderColor: isActive ? (TA_COLORS[ta.id] || PX.teal) : PX.cardBorder,
                     }}
                   >
-                    {opt.label}
+                    {TA_LABELS[ta.id] ?? ta.label}
                   </button>
                 );
               })}
@@ -2949,7 +2954,7 @@ export default function DashboardPage() {
                       <div className="border px-3 py-2 text-xs" style={{ borderColor: PX.cardBorder, color: PX.textPrimary }}>
                         {personas[configAgent].greeting
                           .replace('{contactName}', storyData.contact.name)
-                          .replace('{drugProduct}', storyData.contact.drugProduct === 'euloxacaltenamide' ? 'ELEX' : 'Relutrigine')}
+                          .replace('{drugProduct}', drugBrandName(storyData.contact.drugProduct))}
                       </div>
                     </div>
 
@@ -3584,9 +3589,9 @@ export default function DashboardPage() {
               )}
 
               {/* ===== STEP 5: Evidence Capture ===== */}
-              {storyStep === storyboardSteps.length - 1 && currentCallHasTetras && storyData.call && (() => {
-                const tetrasResult = storyData.call.screeningResults?.find(
-                  s => s.instrumentId === 'TETRAS-LITE' && s.status === 'completed'
+              {storyStep === storyboardSteps.length - 1 && currentCallHasScreening && storyData.call && (() => {
+                const screeningResult = storyData.call.screeningResults?.find(
+                  s => s.status === 'completed'
                 );
                 const cohortData = getCohortOutcomeData();
                 const payerCard = getPayerEvidenceCard();
@@ -3604,13 +3609,13 @@ export default function DashboardPage() {
                         </div>
                         <div className="border p-4 space-y-3" style={{ borderColor: PX.cardBorder }}>
                           <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ color: PX.teal, backgroundColor: `${PX.teal}15` }}>
-                            {tetrasResult?.instrumentName || 'TETRAS Performance Subscale (Lite)'}
+                            {screeningResult?.instrumentName || 'Screening Instrument'}
                           </span>
                           <div className="text-3xl font-bold" style={{ color: PX.navy }}>
-                            {tetrasResult?.totalScore ?? '—'}/{tetrasResult?.maxScore ?? '—'}
+                            {screeningResult?.totalScore ?? '—'}/{screeningResult?.maxScore ?? '—'}
                           </div>
                           <div className="text-xs" style={{ color: PX.textSecondary }}>
-                            {tetrasResult?.clinicalInterpretation || 'Score recorded'}
+                            {screeningResult?.clinicalInterpretation || 'Score recorded'}
                           </div>
                         </div>
                       </div>
@@ -3627,7 +3632,7 @@ export default function DashboardPage() {
                             </div>
                             <EvidenceMiniChart
                               data={trajectory}
-                              patientScore={tetrasResult?.totalScore}
+                              patientScore={screeningResult?.totalScore}
                             />
                           </div>
                         </div>
@@ -3649,7 +3654,7 @@ export default function DashboardPage() {
 
                     {/* Caption */}
                     <div className="text-xs text-center mt-4" style={{ color: PX.textMuted, opacity: evidencePhase >= 4 ? 1 : 0, transition: 'opacity 0.4s ease-out' }}>
-                      Every screening administered generates clinical evidence. This patient&apos;s TETRAS-LITE score joins {evidenceCounter} others in a continuously updated real-world evidence dataset.
+                      Every screening administered generates clinical evidence. This patient&apos;s score joins {evidenceCounter} others in a continuously updated real-world evidence dataset.
                     </div>
                   </div>
                 );
@@ -3912,14 +3917,14 @@ export default function DashboardPage() {
             <div className="space-y-6 animate-fade-in">
               <div>
                 <p className="text-sm" style={{ color: PX.textSecondary }}>
-                  Real-world evidence generated from hub interactions. TETRAS-LITE outcome trajectories, therapy persistence, and payer-ready evidence summaries — powered by screening data collected during routine patient support calls.
+                  Real-world evidence generated from hub interactions. Outcome trajectories, therapy persistence, and payer-ready evidence summaries — powered by screening data collected during routine patient support calls.
                 </p>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                {/* ===== Panel 1: TETRAS-LITE Cohort Trajectory ===== */}
+                {/* ===== Panel 1: Cohort Trajectory ===== */}
                 <div className="border bg-white p-6" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
-                  <h2 className="text-base font-bold mb-1" style={{ color: PX.navy }}>TETRAS-LITE Score Trajectory — ELEX Cohort</h2>
+                  <h2 className="text-base font-bold mb-1" style={{ color: PX.navy }}>Score Trajectory — {brand.products[0]?.brandName ?? 'Primary'} Cohort</h2>
                   <p className="text-xs mb-4" style={{ color: PX.textMuted }}>Mean % improvement from baseline (95% CI shaded)</p>
                   <EvidenceFullChart data={trajectory} />
                   <div className="flex items-center gap-3 mt-4 flex-wrap">
@@ -3939,7 +3944,7 @@ export default function DashboardPage() {
 
                 {/* ===== Panel 2: Therapy Persistence ===== */}
                 <div className="border bg-white p-6" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
-                  <h2 className="text-base font-bold mb-1" style={{ color: PX.navy }}>Therapy Persistence — ELEX Cohort</h2>
+                  <h2 className="text-base font-bold mb-1" style={{ color: PX.navy }}>Therapy Persistence — {brand.products[0]?.brandName ?? 'Primary'} Cohort</h2>
                   <p className="text-xs mb-5" style={{ color: PX.textMuted }}>Patients remaining on therapy at each timepoint</p>
                   <div className="space-y-3">
                     {persistenceData.map((d, i) => (
@@ -3979,10 +3984,10 @@ export default function DashboardPage() {
                   <div className="flex items-start justify-between mb-1">
                     <div>
                       <h2 className="text-base font-bold" style={{ color: PX.navy }}>Real-World Evidence Summary</h2>
-                      <p className="text-sm font-semibold mt-0.5" style={{ color: PX.teal }}>ELEX (Euloxacaltenamide) — Essential Tremor</p>
+                      <p className="text-sm font-semibold mt-0.5" style={{ color: PX.teal }}>{brand.products[0]?.brandName ?? 'Primary'} ({brand.products[0]?.genericName ?? ''}) — {brand.products[0]?.therapeuticAreaLabel ?? ''}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-[10px] font-medium px-2 py-0.5" style={{ backgroundColor: PX.tealBg, color: PX.teal }}>PRAXIS BIOSCIENCES</div>
+                      <div className="text-[10px] font-medium px-2 py-0.5" style={{ backgroundColor: PX.tealBg, color: PX.teal }}>{brand.companyName.toUpperCase()}</div>
                     </div>
                   </div>
                   <p className="text-[10px] mb-5" style={{ color: PX.textMuted }}>Generated {new Date(payer.generatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
@@ -3993,8 +3998,8 @@ export default function DashboardPage() {
 
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { label: 'Cohort Size', value: `n=${payer.cohortSize}`, sub: 'ELEX-treated patients' },
-                      { label: 'Mean TETRAS Improvement', value: `${payer.meanImprovementPct.toFixed(1)}%`, sub: `95% CI: [${payer.ci95[0].toFixed(1)}%, ${payer.ci95[1].toFixed(1)}%]` },
+                      { label: 'Cohort Size', value: `n=${payer.cohortSize}`, sub: `${brand.products[0]?.brandName ?? 'Drug'}-treated patients` },
+                      { label: 'Mean Improvement', value: `${payer.meanImprovementPct.toFixed(1)}%`, sub: `95% CI: [${payer.ci95[0].toFixed(1)}%, ${payer.ci95[1].toFixed(1)}%]` },
                       { label: '90-Day Persistence', value: `${(payer.persistenceRate90d * 100).toFixed(0)}%`, sub: 'On therapy at 90 days' },
                       { label: 'Adherence Rate', value: `${(payer.adherenceRate90d * 100).toFixed(0)}%`, sub: 'MMAS-4 adherent at 90d' },
                       { label: 'AE Incidence', value: `${(payer.aeRate * 100).toFixed(1)}%`, sub: 'Any adverse event' },
@@ -4009,7 +4014,7 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="mt-5 pt-3 text-[9px]" style={{ borderTop: `1px solid ${PX.cardBorder}`, color: PX.textMuted }}>
-                    Data source: Vi Operate patient engagement platform. Observational cohort, not a controlled trial. TETRAS-LITE validated screening instrument administered via AI voice agent. All scores subject to confirmation by treating physician.
+                    Data source: Vi Operate patient engagement platform. Observational cohort, not a controlled trial. Validated screening instrument administered via AI voice agent. All scores subject to confirmation by treating physician.
                   </div>
                 </div>
 
@@ -4022,7 +4027,7 @@ export default function DashboardPage() {
                     {/* Threshold slider */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-semibold" style={{ color: PX.navy }}>Required TETRAS Improvement</label>
+                        <label className="text-xs font-semibold" style={{ color: PX.navy }}>Required Score Improvement</label>
                         <span className="text-sm font-bold tabular-nums" style={{ color: PX.teal }}>{contractThreshold}%</span>
                       </div>
                       <input
@@ -4098,18 +4103,20 @@ export default function DashboardPage() {
                     </div>
 
                     <p className="text-[10px]" style={{ color: PX.textMuted }}>
-                      {contractResults.dropped} patients excluded (no 90-day TETRAS score — dropouts or pending assessment).
+                      {contractResults.dropped} patients excluded (no 90-day score — dropouts or pending assessment).
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* DEE placeholder */}
-              <div className="border bg-white p-5 text-center" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
-                <p className="text-xs" style={{ color: PX.textMuted }}>
-                  DEE / Relutrigine outcomes tracking will appear here once the Phase III readout populates the evidence engine. Currently pre-launch.
-                </p>
-              </div>
+              {/* Secondary product placeholder */}
+              {brand.products.length > 1 && (
+                <div className="border bg-white p-5 text-center" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
+                  <p className="text-xs" style={{ color: PX.textMuted }}>
+                    {TA_LABELS[brand.products[1].therapeuticArea] ?? brand.products[1].therapeuticAreaLabel} outcomes tracking will appear here once data populates the evidence engine. Currently pre-launch.
+                  </p>
+                </div>
+              )}
             </div>
           );
         })()}
@@ -4674,7 +4681,7 @@ export default function DashboardPage() {
 
       {/* ========== CALL DETAIL DRAWER ========== */}
       {selectedCall && (
-        <CallDetailDrawer call={selectedCall} onClose={() => setSelectedCallId(null)} />
+        <CallDetailDrawer call={selectedCall} onClose={() => setSelectedCallId(null)} taLabels={TA_LABELS} taColors={TA_COLORS} />
       )}
     </div>
   );

@@ -1,5 +1,8 @@
 import { DEFAULT_PERSONAS, LANGUAGES } from './constants';
+import type { BrandPack } from './brands';
 import type { AgentPersona, AgentType } from './types';
+
+const AGENT_TYPES: AgentType[] = ['patient-support', 'hcp-support', 'hcp-outbound', 'medcomms-qa'];
 
 const personas: Record<AgentType, AgentPersona> = {
   'patient-support': { ...DEFAULT_PERSONAS['patient-support'] },
@@ -7,6 +10,9 @@ const personas: Record<AgentType, AgentPersona> = {
   'hcp-outbound': { ...DEFAULT_PERSONAS['hcp-outbound'] },
   'medcomms-qa': { ...DEFAULT_PERSONAS['medcomms-qa'] },
 };
+
+// Tracks the "factory defaults" so resetPersona / resetAllPersonas restore brand-specific values
+let currentDefaults: Record<AgentType, AgentPersona> = { ...DEFAULT_PERSONAS };
 
 const VALID_LANGUAGES: string[] = LANGUAGES.map((l) => l.value);
 
@@ -51,6 +57,34 @@ function sanitize(raw: Record<string, unknown>, current: AgentPersona): Partial<
   return clean;
 }
 
+/**
+ * Initialize (or re-initialize) the persona store with brand-specific defaults.
+ * Call this when the active brand changes so that greetings, names, etc. reflect
+ * the selected brand pack.
+ */
+export function initializeFromBrand(brand: BrandPack): void {
+  const brandDefaults: Partial<Record<AgentType, AgentPersona>> = {};
+
+  for (const bp of brand.agentPersonas) {
+    const at = bp.agentType as AgentType;
+    if (!AGENT_TYPES.includes(at)) continue;
+    const base = DEFAULT_PERSONAS[at];
+    brandDefaults[at] = {
+      ...base,
+      name: bp.name,
+      greeting: bp.greeting,
+    };
+  }
+
+  for (const at of AGENT_TYPES) {
+    const bd = brandDefaults[at];
+    if (bd) {
+      personas[at] = { ...bd };
+      currentDefaults[at] = { ...bd };
+    }
+  }
+}
+
 export function getPersona(agentType?: AgentType): AgentPersona | Record<AgentType, AgentPersona> {
   if (agentType && agentType in personas) {
     return { ...personas[agentType] };
@@ -67,13 +101,13 @@ export function setPersona(agentType: AgentType, raw: Record<string, unknown>): 
 }
 
 export function resetPersona(agentType: AgentType): AgentPersona {
-  personas[agentType] = { ...DEFAULT_PERSONAS[agentType] };
+  personas[agentType] = { ...currentDefaults[agentType] };
   return { ...personas[agentType] };
 }
 
 export function resetAllPersonas(): Record<AgentType, AgentPersona> {
-  for (const key of Object.keys(DEFAULT_PERSONAS) as AgentType[]) {
-    personas[key] = { ...DEFAULT_PERSONAS[key] };
+  for (const key of AGENT_TYPES) {
+    personas[key] = { ...currentDefaults[key] };
   }
   return getPersona() as Record<AgentType, AgentPersona>;
 }
