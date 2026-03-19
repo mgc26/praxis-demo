@@ -66,54 +66,57 @@ const AGENT_TYPE_LABELS: Record<AgentType, { label: string; color: string }> = {
   'medcomms-qa': { label: 'MedComms QA', color: PX.accent },
 };
 
-const PATHWAY_LABELS: Record<SupportPathwayId, string> = {
-  'hub-enrollment': 'Hub Enrollment',
-  'copay-assistance': 'Copay Assistance',
-  'ae-reporting': 'AE Reporting',
-  'adherence-support': 'Adherence Support',
-  'sample-request': 'Sample Request',
-  'medical-inquiry': 'Medical Inquiry',
-};
-
-const PATHWAY_COLORS: Record<SupportPathwayId, string> = {
-  'hub-enrollment': PX.teal,
-  'copay-assistance': PX.blue,
-  'ae-reporting': PX.coral,
-  'adherence-support': PX.gold,
-  'sample-request': PX.accent,
-  'medical-inquiry': PX.navy,
-};
+// Pathway labels/colors are derived from brand config inside the component.
+// These module-scope fallbacks prevent crashes in child components before brand is available.
+const DEFAULT_PATHWAY_COLORS = [PX.teal, PX.coral, PX.blue, PX.gold, PX.accent, PX.navy];
+function pathwayLabel(id: string, brand?: { supportPathways: { id: string; label: string }[] }): string {
+  const pw = brand?.supportPathways.find(p => p.id === id);
+  return pw?.label || id.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+function pathwayColor(id: string, brand?: { supportPathways: { id: string; color?: string }[] }): string {
+  const idx = brand?.supportPathways.findIndex(p => p.id === id) ?? -1;
+  if (idx >= 0 && brand?.supportPathways[idx] && 'color' in brand.supportPathways[idx]) {
+    return (brand.supportPathways[idx] as { color: string }).color;
+  }
+  return DEFAULT_PATHWAY_COLORS[idx >= 0 ? idx % DEFAULT_PATHWAY_COLORS.length : 0] || PX.textMuted;
+}
 
 const OUTCOME_LABELS: Record<string, string> = {
-  'hub-enrolled': 'Hub Enrolled',
+  'hub-enrollment': 'Hub Enrollment',
   'copay-card-issued': 'Copay Card Issued',
-  'ae-report-filed': 'AE Report Filed',
-  'adherence-counseling': 'Adherence Counseling',
-  'sample-shipped': 'Sample Shipped',
+  'ae-reported': 'AE Reported',
+  'ae-escalated': 'AE Escalated',
+  'nurse-educator-referral': 'Nurse Educator Referral',
+  'sample-request': 'Sample Request',
   'medical-info-provided': 'Medical Info Provided',
-  'hcp-detail-completed': 'HCP Detail Completed',
-  'prior-auth-initiated': 'Prior Auth Initiated',
+  'information-provided': 'Information Provided',
+  'prior-auth-assist': 'Prior Auth Assist',
   'callback-requested': 'Callback Requested',
-  'follow-up-scheduled': 'Follow-Up Scheduled',
+  'appointment-scheduled': 'Appointment Scheduled',
+  'speaker-program-interest': 'Speaker Program Interest',
+  'crisis-escalation': 'Crisis Escalation',
   'declined': 'Declined',
   'no-answer': 'No Answer',
   'voicemail': 'Voicemail Left',
 };
 
 const OUTCOME_COLORS: Record<string, string> = {
-  'hub-enrolled': PX.teal,           // primary action — teal
-  'copay-card-issued': PX.blue,      // financial — blue
-  'ae-report-filed': PX.coral,       // safety — coral
-  'adherence-counseling': PX.navy,   // support — navy
-  'sample-shipped': PX.accent,       // commercial — accent orange
-  'medical-info-provided': PX.navy,  // information — navy
-  'hcp-detail-completed': PX.teal,   // engagement — teal
-  'prior-auth-initiated': PX.gold,   // pending action — gold
-  'callback-requested': PX.accent,   // deferred — accent orange
-  'follow-up-scheduled': PX.success, // positive next step — green
-  'declined': PX.coral,              // negative — coral
-  'no-answer': PX.textMuted,         // inactive — muted
-  'voicemail': PX.textMuted,         // inactive — muted
+  'hub-enrollment': PX.teal,             // primary action — teal
+  'copay-card-issued': PX.blue,          // financial — blue
+  'ae-reported': PX.coral,               // safety — coral
+  'ae-escalated': PX.coral,              // safety — coral
+  'nurse-educator-referral': PX.navy,    // support — navy
+  'sample-request': PX.accent,           // commercial — accent orange
+  'medical-info-provided': PX.navy,      // information — navy
+  'information-provided': PX.teal,       // engagement — teal
+  'prior-auth-assist': PX.gold,          // pending action — gold
+  'callback-requested': PX.accent,       // deferred — accent orange
+  'appointment-scheduled': PX.success,   // positive next step — green
+  'speaker-program-interest': PX.blue,   // engagement — blue
+  'crisis-escalation': PX.coral,         // urgent — coral
+  'declined': PX.coral,                  // negative — coral
+  'no-answer': PX.textMuted,             // inactive — muted
+  'voicemail': PX.textMuted,             // inactive — muted
 };
 
 const PRIORITY_COLORS: Record<string, { text: string; bg: string; border: string }> = {
@@ -450,8 +453,8 @@ function CallDetailDrawer({
             </div>
             <div>
               <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: PX.textSecondary }}>Support Pathway</div>
-              <div className="mt-1 text-sm font-medium" style={{ color: PATHWAY_COLORS[call.supportPathway] }}>
-                {PATHWAY_LABELS[call.supportPathway]}
+              <div className="mt-1 text-sm font-medium" style={{ color: pathwayColor(call.supportPathway) }}>
+                {pathwayLabel(call.supportPathway)}
               </div>
             </div>
             <div>
@@ -1289,7 +1292,7 @@ export default function DashboardPage() {
         { label: 'Current Medications', value: (c.currentMedications || []).join(', ') || 'None listed' },
         { label: 'Insurance & Coverage', value: c.insurancePlan || 'N/A' },
         { label: 'Behavioral Signals', value: c.behavioralSignals.map(s => s.detail).slice(0, 2).join('; ') },
-        { label: 'Recommended Pathway', value: PATHWAY_LABELS[c.recommendedPathway] },
+        { label: 'Recommended Pathway', value: pathwayLabel(c.recommendedPathway) },
         { label: 'Priority Assessment', value: `${c.priorityTier} (Score: ${c.priorityScore})` },
       ];
     }
@@ -1299,7 +1302,7 @@ export default function DashboardPage() {
       { label: 'Patients on Therapy', value: `${c.patientsOnTherapy || 0} patients on ${drugBrandName(c.drugProduct)}` },
       { label: 'Prescribing Patterns', value: c.behavioralSignals.find(s => s.category === 'RX_PATTERN')?.detail || 'Standard prescriber' },
       { label: 'Behavioral Signals', value: c.behavioralSignals.map(s => s.detail).slice(0, 2).join('; ') },
-      { label: 'Recommended Pathway', value: PATHWAY_LABELS[c.recommendedPathway] },
+      { label: 'Recommended Pathway', value: pathwayLabel(c.recommendedPathway) },
       { label: 'Priority Assessment', value: `${c.priorityTier} (Score: ${c.priorityScore})` },
     ];
   }, [storyData.contact]);
@@ -1690,9 +1693,9 @@ export default function DashboardPage() {
                                         </span>
                                       </td>
                                       <td className="px-4 py-3">
-                                        <span className="inline-flex items-center gap-1 text-[10px] font-medium" style={{ color: PATHWAY_COLORS[call.supportPathway] }}>
-                                          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: PATHWAY_COLORS[call.supportPathway] }} />
-                                          {PATHWAY_LABELS[call.supportPathway]}
+                                        <span className="inline-flex items-center gap-1 text-[10px] font-medium" style={{ color: pathwayColor(call.supportPathway) }}>
+                                          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: pathwayColor(call.supportPathway) }} />
+                                          {pathwayLabel(call.supportPathway)}
                                         </span>
                                       </td>
                                       <td className="px-4 py-3">
@@ -2022,7 +2025,7 @@ export default function DashboardPage() {
                         )}
                         <div className="mt-2 flex items-center gap-2">
                           <span className="text-[10px] font-bold text-red-600">Agent: {AGENT_TYPE_LABELS[call.agentType].label}</span>
-                          <span className="text-[10px] text-red-500">Pathway: {PATHWAY_LABELS[call.supportPathway]}</span>
+                          <span className="text-[10px] text-red-500">Pathway: {pathwayLabel(call.supportPathway)}</span>
                         </div>
                       </div>
                     ))}
@@ -2581,11 +2584,11 @@ export default function DashboardPage() {
               <div className="text-sm font-bold mb-4" style={{ color: PX.navy }}>Pathway Effectiveness</div>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {perfPathways.map(pw => {
-                  const pwColor = PATHWAY_COLORS[pw.id] || PX.teal;
+                  const pwColor = pathwayColor(pw.id) || PX.teal;
                   return (
                     <div key={pw.id} className="border p-4" style={{ borderColor: PX.cardBorder }}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold" style={{ color: pwColor }}>{PATHWAY_LABELS[pw.id]}</span>
+                        <span className="text-xs font-bold" style={{ color: pwColor }}>{pathwayLabel(pw.id)}</span>
                         <span className="text-[10px] font-semibold px-1.5 py-0.5 border" style={{ color: PX.teal, borderColor: `${PX.teal}30`, backgroundColor: PX.tealBg }}>
                           {pw.convRate.toFixed(0)}% conv
                         </span>
@@ -2853,7 +2856,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div className="text-xs" style={{ color: PX.textPrimary }}>
-                        <span className="font-semibold">Pathway:</span> {PATHWAY_LABELS[storyData.contact.recommendedPathway]}
+                        <span className="font-semibold">Pathway:</span> {pathwayLabel(storyData.contact.recommendedPathway)}
                       </div>
                       <div className="text-xs mt-1" style={{ color: PX.textPrimary }}>
                         <span className="font-semibold">Priority:</span>{' '}
@@ -2880,7 +2883,7 @@ export default function DashboardPage() {
                       <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: PX.teal }}>Agent Selection Rationale</div>
                       <div className="text-xs" style={{ color: PX.textPrimary }}>
                         {storyData.contact.contactType === 'patient' ? 'Patient' : 'HCP'} contact with{' '}
-                        {PATHWAY_LABELS[storyData.contact.recommendedPathway].toLowerCase()} pathway &rarr; routed to{' '}
+                        {pathwayLabel(storyData.contact.recommendedPathway).toLowerCase()} pathway &rarr; routed to{' '}
                         <span className="font-semibold" style={{ color: AGENT_TYPE_LABELS[configAgent].color }}>{AGENT_TYPE_LABELS[configAgent].label}</span> agent ({personas[configAgent].name}).
                       </div>
                     </div>
@@ -3340,8 +3343,8 @@ export default function DashboardPage() {
                         </div>
                         <div>
                           <div className="text-[10px] font-semibold uppercase" style={{ color: PX.textSecondary }}>Pathway</div>
-                          <div className="text-xs font-medium mt-1" style={{ color: PATHWAY_COLORS[storyData.call.supportPathway] }}>
-                            {PATHWAY_LABELS[storyData.call.supportPathway]}
+                          <div className="text-xs font-medium mt-1" style={{ color: pathwayColor(storyData.call.supportPathway) }}>
+                            {pathwayLabel(storyData.call.supportPathway)}
                           </div>
                         </div>
                         <div>
@@ -3467,9 +3470,9 @@ export default function DashboardPage() {
                                   <span className="text-[10px] font-semibold" style={{ color: TA_COLORS[sc.therapeuticArea] }}>{TA_LABELS[sc.therapeuticArea]}</span>
                                 </td>
                                 <td className="px-4 py-3">
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-medium" style={{ color: PATHWAY_COLORS[sc.supportPathway] }}>
-                                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: PATHWAY_COLORS[sc.supportPathway] }} />
-                                    {PATHWAY_LABELS[sc.supportPathway]}
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-medium" style={{ color: pathwayColor(sc.supportPathway) }}>
+                                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: pathwayColor(sc.supportPathway) }} />
+                                    {pathwayLabel(sc.supportPathway)}
                                   </span>
                                 </td>
                                 <td className="px-4 py-3">
@@ -3513,9 +3516,9 @@ export default function DashboardPage() {
                                   <span className="text-[10px] font-semibold" style={{ color: TA_COLORS[call.therapeuticArea] }}>{TA_LABELS[call.therapeuticArea]}</span>
                                 </td>
                                 <td className="px-4 py-3">
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-medium" style={{ color: PATHWAY_COLORS[call.supportPathway] }}>
-                                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: PATHWAY_COLORS[call.supportPathway] }} />
-                                    {PATHWAY_LABELS[call.supportPathway]}
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-medium" style={{ color: pathwayColor(call.supportPathway) }}>
+                                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: pathwayColor(call.supportPathway) }} />
+                                    {pathwayLabel(call.supportPathway)}
                                   </span>
                                 </td>
                                 <td className="px-4 py-3">
