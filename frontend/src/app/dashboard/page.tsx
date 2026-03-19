@@ -1481,11 +1481,10 @@ export default function DashboardPage() {
       )}
 
       {/* ========== HEADER ========== */}
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between px-6" style={{ backgroundColor: PX.navy }}>
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between px-6" style={{ backgroundColor: brand.id === 'ptc' ? brand.theme.colors.primaryLight : brand.theme.colors.primary }}>
         <div className="flex items-center gap-3">
           <img src={brand.logoAsset} alt={brand.shortName} className="h-7" />
           <span className="mx-1 text-white/30">|</span>
-          <span className="text-[13px] font-bold text-white/90">{brand.shortName}</span>
           <span className="text-[12px] text-white/50">{brand.tagline}</span>
         </div>
         <div className="flex items-center gap-6">
@@ -2615,63 +2614,66 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* ===== Section 6: Daily Trend (enhanced with conversion rate line) ===== */}
-            <div className="border bg-white p-6" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
-              <div className="text-sm font-bold mb-4" style={{ color: PX.navy }}>Daily Activity Trend (7 days)</div>
-              <div className="relative">
-                <div className="flex items-end gap-2 h-40">
-                  {perfDailyTrend.map((day) => {
-                    const maxVal = Math.max(...perfDailyTrend.map(d => d.interactions), 1);
-                    const h = (day.interactions / maxVal) * 100;
-                    const engH = (day.engagements / maxVal) * 100;
-                    const convH = (day.conversions / maxVal) * 100;
-                    return (
-                      <div key={day.date} className="flex-1 flex flex-col items-center gap-1">
-                        <div className="text-[9px] font-bold" style={{ color: PX.teal }}>{day.convRate > 0 ? `${day.convRate.toFixed(0)}%` : ''}</div>
-                        <div className="w-full flex flex-col items-center" style={{ height: '110px' }}>
-                          <div className="flex-1" />
-                          <div className="w-full flex gap-0.5 justify-center">
-                            <div className="w-2.5" style={{ height: `${Math.max(h, 4)}%`, backgroundColor: PX.navy }} />
-                            <div className="w-2.5" style={{ height: `${Math.max(engH, 4)}%`, backgroundColor: PX.teal }} />
-                            <div className="w-2.5" style={{ height: `${Math.max(convH, 4)}%`, backgroundColor: PX.success }} />
-                          </div>
-                        </div>
-                        <div className="text-[9px] font-medium" style={{ color: PX.textMuted }}>{day.date.slice(5)}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-              <div className="flex items-center gap-4 mt-3 justify-center flex-wrap">
-                <div className="flex items-center gap-1.5"><span className="h-2 w-2" style={{ backgroundColor: PX.navy }} /><span className="text-[10px]" style={{ color: PX.textMuted }}>Interactions</span></div>
-                <div className="flex items-center gap-1.5"><span className="h-2 w-2" style={{ backgroundColor: PX.teal }} /><span className="text-[10px]" style={{ color: PX.textMuted }}>Engagements</span></div>
-                <div className="flex items-center gap-1.5"><span className="h-2 w-2" style={{ backgroundColor: PX.success }} /><span className="text-[10px]" style={{ color: PX.textMuted }}>Conversions</span></div>
-                <div className="flex items-center gap-1.5"><span className="text-[10px] font-bold" style={{ color: PX.teal }}>%</span><span className="text-[10px]" style={{ color: PX.textMuted }}>Conv. Rate</span></div>
-              </div>
-            </div>
-
-            {/* ===== Section 7: Top Contact Concerns ===== */}
-            {perfTopConcerns.length > 0 && (
+            {/* ===== Section 6+7: Daily Trend & Top Concerns (side by side) ===== */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Daily Activity Trend */}
               <div className="border bg-white p-6" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
-                <div className="text-sm font-bold mb-4" style={{ color: PX.navy }}>Top Contact Concerns</div>
-                <div className="space-y-2">
-                  {perfTopConcerns.map((tc, i) => {
-                    const barW = perfTopConcerns[0].count > 0 ? (tc.count / perfTopConcerns[0].count) * 100 : 0;
-                    return (
-                      <div key={i} className="flex items-center gap-3">
-                        <span className="text-[10px] font-bold w-4 text-right" style={{ color: PX.textMuted }}>{i + 1}</span>
-                        <span className="text-xs font-medium flex-1 truncate" style={{ color: PX.textPrimary }}>{tc.concern}</span>
-                        <div className="w-24 h-1.5 overflow-hidden" style={{ backgroundColor: PX.cardBorder }}>
-                          <div className="h-full" style={{ width: `${barW}%`, backgroundColor: PX.navy }} />
+                <div className="text-sm font-bold mb-4" style={{ color: PX.navy }}>Daily Activity Trend (7 days)</div>
+                <div className="relative">
+                  <div className="flex items-end gap-2 h-40">
+                    {perfDailyTrend.map((day) => {
+                      const maxVal = Math.max(...perfDailyTrend.map(d => d.interactions), 1);
+                      const h = (day.interactions / maxVal) * 100;
+                      const engH = (day.engagements / maxVal) * 100;
+                      const convH = (day.conversions / maxVal) * 100;
+                      return (
+                        <div key={day.date} className="flex-1 flex flex-col items-center gap-1">
+                          <div className="text-[9px] font-bold" style={{ color: PX.teal }}>{day.convRate > 0 ? `${day.convRate.toFixed(0)}%` : ''}</div>
+                          <div className="w-full flex flex-col items-center" style={{ height: '110px' }}>
+                            <div className="flex-1" />
+                            <div className="w-full flex gap-0.5 justify-center">
+                              <div className="w-4" style={{ height: `${Math.max(h, 4)}%`, backgroundColor: PX.navy }} />
+                              <div className="w-4" style={{ height: `${Math.max(engH, 4)}%`, backgroundColor: PX.teal }} />
+                              <div className="w-4" style={{ height: `${Math.max(convH, 4)}%`, backgroundColor: PX.success }} />
+                            </div>
+                          </div>
+                          <div className="text-[9px] font-medium" style={{ color: PX.textMuted }}>{day.date.slice(5)}</div>
                         </div>
-                        <span className="text-xs font-bold w-6 text-right" style={{ color: PX.navy }}>{tc.count}</span>
-                        <span className="text-[10px] w-10 text-right" style={{ color: PX.textMuted }}>{tc.percentage}%</span>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 mt-3 justify-center flex-wrap">
+                  <div className="flex items-center gap-1.5"><span className="h-2 w-2" style={{ backgroundColor: PX.navy }} /><span className="text-[10px]" style={{ color: PX.textMuted }}>Interactions</span></div>
+                  <div className="flex items-center gap-1.5"><span className="h-2 w-2" style={{ backgroundColor: PX.teal }} /><span className="text-[10px]" style={{ color: PX.textMuted }}>Engagements</span></div>
+                  <div className="flex items-center gap-1.5"><span className="h-2 w-2" style={{ backgroundColor: PX.success }} /><span className="text-[10px]" style={{ color: PX.textMuted }}>Conversions</span></div>
+                  <div className="flex items-center gap-1.5"><span className="text-[10px] font-bold" style={{ color: PX.teal }}>%</span><span className="text-[10px]" style={{ color: PX.textMuted }}>Conv. Rate</span></div>
                 </div>
               </div>
-            )}
+
+              {/* Top Contact Concerns */}
+              {perfTopConcerns.length > 0 && (
+                <div className="border bg-white p-6" style={{ borderColor: PX.cardBorder, boxShadow: PX.cardShadow }}>
+                  <div className="text-sm font-bold mb-4" style={{ color: PX.navy }}>Top Contact Concerns</div>
+                  <div className="space-y-2.5">
+                    {perfTopConcerns.map((tc, i) => {
+                      const barW = perfTopConcerns[0].count > 0 ? (tc.count / perfTopConcerns[0].count) * 100 : 0;
+                      return (
+                        <div key={i} className="flex items-center gap-3">
+                          <span className="text-[10px] font-bold w-4 text-right" style={{ color: PX.textMuted }}>{i + 1}</span>
+                          <span className="text-xs font-medium flex-1 truncate" style={{ color: PX.textPrimary }}>{tc.concern}</span>
+                          <div className="w-28 h-2 overflow-hidden" style={{ backgroundColor: `${PX.teal}18` }}>
+                            <div className="h-full" style={{ width: `${barW}%`, backgroundColor: PX.teal }} />
+                          </div>
+                          <span className="text-xs font-bold w-6 text-right" style={{ color: PX.navy }}>{tc.count}</span>
+                          <span className="text-[10px] w-10 text-right" style={{ color: PX.textMuted }}>{tc.percentage}%</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           );
         })()}
@@ -4686,12 +4688,12 @@ export default function DashboardPage() {
                   </thead>
                   <tbody>
                     {[
-                      { decision: 'Patient CM system selection', status: 'In progress', statusColor: PX.warning, owner: 'Suzanne / Allison', rec: 'Salesforce Health Cloud — mature API, pharma data model, no lock-in risk' },
-                      { decision: 'Veeva contract — agent write access', status: 'Pending', statusColor: PX.error, owner: 'Megan (Ironclad)', rec: 'Add clause: third-party agent systems can write Activities + Call Reports via API' },
-                      { decision: 'Veeva contract — email engagement data', status: 'Pending', statusColor: PX.error, owner: 'Megan (Ironclad)', rec: 'Require: open/delivered events + raw reply text exported via API or Databricks' },
-                      { decision: 'Databricks routing layer', status: 'Active', statusColor: PX.success, owner: 'Osuke / Ambit', rec: 'Route all Vi events through Databricks. Avoid direct CRM writes where possible.' },
+                      { decision: 'Patient CM system selection', status: 'In progress', statusColor: PX.warning, owner: 'IT / Commercial Ops', rec: 'Salesforce Health Cloud — mature API, pharma data model, no lock-in risk' },
+                      { decision: 'Veeva contract — agent write access', status: 'Pending', statusColor: PX.error, owner: 'Legal / Contracts', rec: 'Add clause: third-party agent systems can write Activities + Call Reports via API' },
+                      { decision: 'Veeva contract — email engagement data', status: 'Pending', statusColor: PX.error, owner: 'Legal / Contracts', rec: 'Require: open/delivered events + raw reply text exported via API or Databricks' },
+                      { decision: 'Databricks routing layer', status: 'Active', statusColor: PX.success, owner: 'Data Engineering', rec: 'Route all Vi events through Databricks. Avoid direct CRM writes where possible.' },
                       { decision: 'PV system selection', status: 'TBD', statusColor: PX.textMuted, owner: 'Drug Safety', rec: 'Veeva Vault Safety or Oracle Argus — both have case intake APIs' },
-                      { decision: 'Veeva long-term strategy', status: 'Strategic', statusColor: PX.blue, owner: 'Megan / Allison', rec: 'Short-term contract. Agents write THROUGH Veeva, not IN Veeva. Keep data portable.' },
+                      { decision: 'Veeva long-term strategy', status: 'Strategic', statusColor: PX.blue, owner: 'Legal / Commercial Ops', rec: 'Short-term contract. Agents write THROUGH Veeva, not IN Veeva. Keep data portable.' },
                     ].map((row) => (
                       <tr key={row.decision} style={{ borderBottom: `1px solid ${PX.cardBorder}` }}>
                         <td className="py-2.5 pr-4 font-medium" style={{ color: PX.navy }}>{row.decision}</td>
