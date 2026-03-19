@@ -26,6 +26,7 @@ import {
   type SMSTemplateType,
 } from '../prompts/sms-templates.js';
 import { twilioService } from './twilio-service.js';
+import { getBrandConfig, type BrandBackendConfig } from '../brands/index.js';
 
 function maskPhone(phone: string): string {
   if (phone.length <= 4) return '****';
@@ -137,7 +138,9 @@ export async function sendTemplatedSMS(
     nurseEducatorDate?: string;
     clinicalDataType?: string;
   },
+  brandConfig?: BrandBackendConfig,
 ): Promise<SMSDeliveryResult> {
+  const cfg = brandConfig ?? getBrandConfig();
   const message = getSMSTemplate(template, {
     contactName: contact.name,
     contactType: contact.contactType,
@@ -146,7 +149,7 @@ export async function sendTemplatedSMS(
     hubProgram: overrides?.hubProgram,
     nurseEducatorDate: overrides?.nurseEducatorDate,
     clinicalDataType: overrides?.clinicalDataType,
-  });
+  }, cfg);
 
   // Warn if the message will be split into many segments (cost/reliability concern)
   logSegmentWarning(message, `template=${template}, contact=${contact.contactId}`);
@@ -192,6 +195,7 @@ export async function sendTemplatedSMS(
 export async function sendFollowUpSMS(
   contact: ContactRecord,
   outcome: OutcomeType,
+  brandConfig?: BrandBackendConfig,
 ): Promise<SMSDeliveryResult> {
   const template = resolveOutcomeTemplate(outcome);
   if (!template) {
@@ -205,7 +209,7 @@ export async function sendFollowUpSMS(
     };
   }
 
-  return sendTemplatedSMS(contact, template);
+  return sendTemplatedSMS(contact, template, undefined, brandConfig);
 }
 
 export async function sendPostCallSMS(
@@ -216,6 +220,7 @@ export async function sendPostCallSMS(
     drugName?: string;
     hubProgram?: string;
   },
+  brandConfig?: BrandBackendConfig,
 ): Promise<SMSDeliveryResult> {
   const template = options.requestedTemplate
     ?? (options.outcome ? resolveOutcomeTemplate(options.outcome) : null);
@@ -234,5 +239,5 @@ export async function sendPostCallSMS(
   return sendTemplatedSMS(contact, template, {
     drugName: options.drugName,
     hubProgram: options.hubProgram,
-  });
+  }, brandConfig);
 }

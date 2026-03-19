@@ -5,6 +5,7 @@ import {
   getSMSTemplate,
 } from './sms-templates.js';
 import type { SMSTemplateType, SMSTemplateData } from './sms-templates.js';
+import type { BrandBackendConfig } from '../brands/index.js';
 
 const ALL_TEMPLATE_TYPES: SMSTemplateType[] = [
   'copay_card_info',
@@ -195,6 +196,73 @@ describe('sms-templates', () => {
       it('welcome mentions reaching out', () => {
         const result = getSMSTemplate('welcome', makeTemplateData());
         expect(result).toContain('reach you today');
+      });
+    });
+
+    describe('brand parameterization', () => {
+      const altBrand: BrandBackendConfig = {
+        id: 'testco',
+        companyName: 'TestCo Therapeutics',
+        shortName: 'TestCo',
+        hubName: 'TestConnect',
+        agentPersonas: {
+          'patient-support': { name: 'Lily', greeting: 'Hi from Lily.' },
+          'hcp-support': { name: 'Aria', greeting: 'Hello.' },
+        },
+        phoneNumbers: {
+          patientSupport: '1-888-TEST-PS',
+          medicalInfo: '1-888-TEST-MI',
+          safety: '1-888-TEST-AE',
+        },
+        urls: {
+          patientPortal: 'TestCoPatient.com',
+          hcpPortal: 'TestCoHCP.com',
+        },
+        drugProfiles: [],
+        supportPathways: [],
+        contactNetwork: [],
+        vocabularyBoosts: [],
+      };
+
+      it('uses custom agent name in patient-support templates', () => {
+        const result = getSMSTemplate('welcome', makeTemplateData(), altBrand);
+        expect(result).toContain('Lily from TestCo Patient Support');
+        expect(result).not.toContain('Emma');
+        expect(result).not.toContain('Praxis');
+      });
+
+      it('uses custom phone numbers', () => {
+        const result = getSMSTemplate('general_followup', makeTemplateData(), altBrand);
+        expect(result).toContain('1-888-TEST-PS');
+        expect(result).toContain('1-888-TEST-MI');
+        expect(result).toContain('1-888-TEST-AE');
+        expect(result).not.toContain('1-800-PRAXIS');
+      });
+
+      it('uses custom URLs', () => {
+        const result = getSMSTemplate('general_followup', makeTemplateData(), altBrand);
+        expect(result).toContain('TestCoPatient.com');
+        expect(result).toContain('TestCoHCP.com');
+        expect(result).not.toContain('PraxisPatientSupport.com');
+        expect(result).not.toContain('PraxisHCP.com');
+      });
+
+      it('uses custom company name in hcp templates', () => {
+        const result = getSMSTemplate('hcp_clinical_data', makeTemplateData({ agentType: 'hcp-support' }), altBrand);
+        expect(result).toContain('TestCo Medical Information');
+        expect(result).not.toContain('Praxis Medical Information');
+      });
+
+      it('uses custom safety phone in ae_followup', () => {
+        const result = getSMSTemplate('ae_followup', makeTemplateData(), altBrand);
+        expect(result).toContain('1-888-TEST-AE');
+        expect(result).not.toContain('1-800-PRAXIS-AE');
+      });
+
+      it('falls back to default brand when no config is provided', () => {
+        const result = getSMSTemplate('welcome', makeTemplateData());
+        expect(result).toContain('Emma');
+        expect(result).toContain('Praxis');
       });
     });
   });

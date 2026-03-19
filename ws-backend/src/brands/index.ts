@@ -7,6 +7,8 @@
 // ---------------------------------------------------------------------------
 
 import praxis from './praxis.js';
+import amgen from './amgen.js';
+import ptc from './ptc.js';
 
 // ---------------------------------------------------------------------------
 // Interface
@@ -93,6 +95,8 @@ export interface BrandBackendConfig {
 
 const BRAND_REGISTRY: Record<string, BrandBackendConfig> = {
   praxis,
+  amgen,
+  ptc,
 };
 
 /** Default brand used when none is specified */
