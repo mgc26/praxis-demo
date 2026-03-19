@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 
 import type { SupportPathway, SignalCategory, ScreeningInstrumentId, RecommendedScreening } from '../types/index.js';
+import { getBrandConfig, type BrandBackendConfig } from '../brands/index.js';
 
 export interface SignalMapping {
   category: SignalCategory;
@@ -254,6 +255,41 @@ export const EXTENDED_SIGNAL_MAPPINGS: Record<string, ExtendedSignalMapping> = {
     contextRestriction: null,
   },
 };
+
+// ---------------------------------------------------------------------------
+// Brand-aware extended signal accessor
+// ---------------------------------------------------------------------------
+// The FIRST_PARTY_ENGAGEMENT talking points reference brand-specific hub names
+// (e.g. "PraxisConnect"). This function replaces those references with the
+// active brand's hub name so the agent speaks in the correct brand voice.
+// ---------------------------------------------------------------------------
+
+export function getExtendedSignalMappings(
+  config?: BrandBackendConfig,
+): Record<string, ExtendedSignalMapping> {
+  const cfg = config ?? getBrandConfig();
+  if (cfg.id === 'praxis') return EXTENDED_SIGNAL_MAPPINGS;
+
+  const hubName = cfg.hubName;
+  const companyName = cfg.companyName;
+  const result: Record<string, ExtendedSignalMapping> = {};
+
+  for (const [key, mapping] of Object.entries(EXTENDED_SIGNAL_MAPPINGS)) {
+    result[key] = {
+      ...mapping,
+      talkingPoints: mapping.talkingPoints.map((tp) =>
+        tp.replace(/PraxisConnect/g, hubName).replace(/Praxis/g, companyName),
+      ),
+      agentOpeningHint: mapping.agentOpeningHint
+        .replace(/PraxisConnect/g, hubName)
+        .replace(/Praxis/g, companyName),
+      description: mapping.description
+        .replace(/PraxisConnect/g, hubName)
+        .replace(/Praxis/g, companyName),
+    };
+  }
+  return result;
+}
 
 // ---------------------------------------------------------------------------
 // Signal severity -> urgency escalation

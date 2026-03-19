@@ -5,7 +5,11 @@ import {
   SUPPORT_PATHWAYS,
   RISK_TIER_PREFS,
   PHARMA_CONTACT_NETWORK,
+  getDrugProfiles,
+  getSupportPathways,
+  getContactNetwork,
 } from './support-knowledge.js';
+import { getBrandConfig } from '../brands/index.js';
 import type { SupportPathway, RiskTier } from '../types/index.js';
 
 // ---------------------------------------------------------------------------
@@ -388,5 +392,56 @@ describe('PHARMA_CONTACT_NETWORK', () => {
     );
     expect(mslCategory).toBeDefined();
     expect(mslCategory!.resources.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Brand-aware accessor functions
+// ---------------------------------------------------------------------------
+
+describe('getDrugProfiles (brand-aware)', () => {
+  it('should return Praxis drug profiles when called with Praxis config', () => {
+    const praxisConfig = getBrandConfig('praxis');
+    const profiles = getDrugProfiles(praxisConfig);
+    expect(profiles).toHaveProperty('euloxacaltenamide');
+    expect(profiles).toHaveProperty('relutrigine');
+    expect(profiles.euloxacaltenamide.brandName).toBe('ELEX');
+  });
+
+  it('should return the same profiles as DRUG_PROFILES when called with default config', () => {
+    const profiles = getDrugProfiles();
+    expect(profiles).toBe(DRUG_PROFILES);
+  });
+});
+
+describe('getSupportPathways (brand-aware)', () => {
+  it('should return Praxis pathways when called with Praxis config', () => {
+    const praxisConfig = getBrandConfig('praxis');
+    const pathways = getSupportPathways(praxisConfig);
+    expect(pathways).toHaveProperty('medication-access');
+    expect(pathways).toHaveProperty('safety-reporting');
+    expect(pathways).toHaveProperty('crisis-support');
+  });
+
+  it('should return the same pathways as SUPPORT_PATHWAYS when called with default config', () => {
+    const pathways = getSupportPathways();
+    expect(pathways).toBe(SUPPORT_PATHWAYS);
+  });
+});
+
+describe('getContactNetwork (brand-aware)', () => {
+  it('should return Praxis contact network when called with Praxis config', () => {
+    const praxisConfig = getBrandConfig('praxis');
+    const network = getContactNetwork(praxisConfig);
+    expect(network.length).toBeGreaterThan(0);
+    const pvResource = network
+      .flatMap((cat) => cat.resources)
+      .find((r) => r.type === 'Pharmacovigilance' || r.name.toLowerCase().includes('pharmacovigilance'));
+    expect(pvResource).toBeDefined();
+  });
+
+  it('should return the same network as PHARMA_CONTACT_NETWORK when called with default config', () => {
+    const network = getContactNetwork();
+    expect(network).toBe(PHARMA_CONTACT_NETWORK);
   });
 });

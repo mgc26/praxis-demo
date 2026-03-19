@@ -7,6 +7,7 @@
 // ---------------------------------------------------------------------------
 
 import type { ScreeningInstrumentId, RecommendedScreening } from '../types/index.js';
+import { getBrandConfig, type BrandBackendConfig } from '../brands/index.js';
 
 export interface ScreeningQuestion {
   index: number;
@@ -237,6 +238,74 @@ export function getScreeningInstrument(id: string): ScreeningInstrumentDefinitio
     throw new Error(`Unknown screening instrument: ${id}`);
   }
   return instrument;
+}
+
+// ---------------------------------------------------------------------------
+// Brand-aware screening instrument accessor
+// ---------------------------------------------------------------------------
+// Merges the shared base instruments (AE-TRIAGE, C-SSRS-LITE, TETRAS-LITE,
+// MMAS-4) with any brand-specific screening instruments defined in the brand
+// config's screeningInstruments array. Brand instruments are converted from
+// the lighter BrandBackendConfig schema to full ScreeningInstrumentDefinition.
+// ---------------------------------------------------------------------------
+
+export function getScreeningInstruments(
+  config?: BrandBackendConfig,
+): Record<string, ScreeningInstrumentDefinition> {
+  const cfg = config ?? getBrandConfig();
+
+  // Start with the shared base instruments
+  const result: Record<string, ScreeningInstrumentDefinition> = { ...SCREENING_INSTRUMENTS };
+
+  // Layer in brand-specific instruments (if any that are not already in base)
+  if (cfg.screeningInstruments) {
+    for (const brandInst of cfg.screeningInstruments) {
+      // Skip if this instrument is already in the base registry
+      if (result[brandInst.id]) continue;
+
+      // Convert from brand config shape to full ScreeningInstrumentDefinition
+      const questions: ScreeningQuestion[] = brandInst.questions.map((q, i) => ({
+        index: i,
+        text: q.text,
+        responseOptions: (q.options ?? []).map((opt, v) => ({
+          label: opt,
+          value: v,
+        })),
+      }));
+
+      const maxScore = questions.reduce(
+        (sum, q) => sum + Math.max(...q.responseOptions.map((o) => o.value), 0),
+        0,
+      );
+
+      result[brandInst.id] = {
+        id: brandInst.id as ScreeningInstrumentId,
+        name: brandInst.name,
+        shortName: brandInst.id,
+        description: brandInst.name,
+        questions,
+        maxScore: maxScore || 1,
+        positiveThreshold: Math.ceil((maxScore || 1) / 2),
+        positiveInterpretation: `Positive screen on ${brandInst.name}.`,
+        negativeInterpretation: `Negative screen on ${brandInst.name}.`,
+        followUpAction: null,
+        regulatoryReportable: false,
+        requiresEscalation: false,
+        conversationalPreamble: `I'd like to ask you a few questions from the ${brandInst.name}.`,
+        conversationalClosingPositive: 'Thank you for sharing that. We will follow up with you.',
+        conversationalClosingNegative: 'Thank you for answering those questions.',
+      };
+    }
+  }
+
+  return result;
+}
+
+/** Return all screening instrument IDs for the active brand. */
+export function getScreeningInstrumentIds(
+  config?: BrandBackendConfig,
+): string[] {
+  return Object.keys(getScreeningInstruments(config));
 }
 
 // ---------------------------------------------------------------------------

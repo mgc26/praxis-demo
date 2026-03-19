@@ -6,13 +6,14 @@
 
 import WebSocket from 'ws';
 import type { ContactRecord, TranscriptEntry, RecommendedScreening } from '../types/index.js';
-import type { BrandBackendConfig } from '../brands/index.js';
+import { getBrandConfig, type BrandBackendConfig } from '../brands/index.js';
 import {
   buildAgentPrompt,
   buildAgentVoicemailMessage,
   buildAgentGreeting,
 } from '../prompts/agent-prompts.js';
 import { isMachineAnsweredBy } from '../utils/answered-by.js';
+import { getScreeningInstrumentIds } from '../config/screening-instruments.js';
 
 interface DeepgramAgentCallbacks {
   onAudio: (audioBuffer: Buffer) => void;
@@ -44,6 +45,9 @@ export function createDeepgramAgent(
     },
   });
 
+  // Resolve brand config for brand-aware vocabulary and function definitions
+  const brandCfg = options?.brandConfig ?? getBrandConfig();
+
   const systemPrompt = buildAgentPrompt({
     contact,
     answeredBy: options?.answeredBy,
@@ -58,6 +62,17 @@ export function createDeepgramAgent(
         therapeuticArea: contact.therapeuticArea,
       })
     : buildAgentGreeting(contact);
+
+  // Build drug name list from brand config for function descriptions
+  const drugNames = brandCfg.drugProfiles
+    .map((dp) => `${dp.brandName} (${dp.genericName})`)
+    .join(' or ');
+  const drugNameShort = brandCfg.drugProfiles
+    .map((dp) => dp.brandName)
+    .join(' or ');
+
+  // Build screening instrument IDs from brand config
+  const instrumentIds = getScreeningInstrumentIds(brandCfg);
 
   ws.on('open', () => {
     const config = {
@@ -81,23 +96,10 @@ export function createDeepgramAgent(
           provider: {
             type: 'deepgram',
             model: 'nova-3',
-            keyterms: [
-              { term: 'Euloxacaltenamide', boost: 5 },
-              { term: 'ELEX', boost: 5 },
-              { term: 'Relutrigine', boost: 5 },
-              { term: 'Praxis', boost: 3 },
-              { term: 'TETRAS', boost: 3 },
-              { term: 'Dravet', boost: 3 },
-              { term: 'clobazam', boost: 2 },
-              { term: 'stiripentol', boost: 2 },
-              { term: 'valproate', boost: 2 },
-              { term: 'propranolol', boost: 2 },
-              { term: 'primidone', boost: 2 },
-              { term: 'topiramate', boost: 2 },
-              { term: 'carbamazepine', boost: 2 },
-              { term: 'phenytoin', boost: 2 },
-              { term: 'lamotrigine', boost: 2 },
-            ],
+            keyterms: brandCfg.vocabularyBoosts.map((vb) => ({
+              term: vb.word,
+              boost: vb.boost,
+            })),
           },
         },
         think: {
@@ -111,7 +113,7 @@ export function createDeepgramAgent(
             {
               name: 'report_adverse_event',
               description:
-                'Report an adverse event (AE). Call when a patient or HCP describes a side effect, unexpected reaction, or safety concern related to ELEX (Euloxacaltenamide) or Relutrigine. A valid ICSR requires four minimum elements per 21 CFR 314.80: (1) identifiable reporter, (2) identifiable patient, (3) suspect drug, and (4) adverse event description. Collect all four before calling.',
+                `Report an adverse event (AE). Call when a patient or HCP describes a side effect, unexpected reaction, or safety concern related to ${drugNames}. A valid ICSR requires four minimum elements per 21 CFR 314.80: (1) identifiable reporter, (2) identifiable patient, (3) suspect drug, and (4) adverse event description. Collect all four before calling.`,
               parameters: {
                 type: 'object',
                 properties: {
@@ -130,7 +132,7 @@ export function createDeepgramAgent(
                   },
                   drug_name: {
                     type: 'string',
-                    description: 'Drug associated with the AE (ELEX or Relutrigine)',
+                    description: `Drug associated with the AE (${drugNameShort})`,
                   },
                   reporter_type: {
                     type: 'string',
@@ -222,13 +224,13 @@ export function createDeepgramAgent(
             {
               name: 'report_pregnancy_exposure',
               description:
-                'Report pregnancy exposure to a Praxis product. MANDATORY reporting for all anti-epileptic drugs. Call immediately when pregnancy is mentioned by a patient, caregiver, or HCP.',
+                `Report pregnancy exposure to a ${brandCfg.shortName} product. MANDATORY reporting for all anti-epileptic drugs. Call immediately when pregnancy is mentioned by a patient, caregiver, or HCP.`,
               parameters: {
                 type: 'object',
                 properties: {
                   drug_name: {
                     type: 'string',
-                    description: 'Praxis drug the patient was exposed to (ELEX or Relutrigine)',
+                    description: `${brandCfg.shortName} drug the patient was exposed to (${drugNameShort})`,
                   },
                   trimester: {
                     type: 'string',
@@ -258,13 +260,13 @@ export function createDeepgramAgent(
             {
               name: 'request_samples',
               description:
-                'Process an HCP sample request. Use when a healthcare provider requests drug samples of ELEX or Relutrigine.',
+                `Process an HCP sample request. Use when a healthcare provider requests drug samples of ${drugNameShort}.`,
               parameters: {
                 type: 'object',
                 properties: {
                   drug_name: {
                     type: 'string',
-                    description: 'Drug being requested (ELEX or Relutrigine)',
+                    description: `Drug being requested (${drugNameShort})`,
                   },
                   quantity: {
                     type: 'string',
@@ -281,7 +283,7 @@ export function createDeepgramAgent(
             {
               name: 'enroll_in_hub',
               description:
-                'Enroll a patient in the Praxis Patient Support Hub. Use when a patient agrees to enrollment for copay assistance, nursing support, or access services.',
+                `Enroll a patient in the ${brandCfg.shortName} Patient Support Hub. Use when a patient agrees to enrollment for copay assistance, nursing support, or access services.`,
               parameters: {
                 type: 'object',
                 properties: {
@@ -421,13 +423,13 @@ export function createDeepgramAgent(
                   {
                     name: 'record_screening_result',
                     description:
-                      'Record the contact\'s response to a clinical screening question. Call this after EACH individual question in a screening instrument (AE-TRIAGE, C-SSRS-LITE, TETRAS-LITE, MMAS-4). Do NOT wait until the end — call after every single question.',
+                      `Record the contact's response to a clinical screening question. Call this after EACH individual question in a screening instrument (${instrumentIds.join(', ')}). Do NOT wait until the end — call after every single question.`,
                     parameters: {
                       type: 'object',
                       properties: {
                         instrument_id: {
                           type: 'string',
-                          enum: ['AE-TRIAGE', 'C-SSRS-LITE', 'TETRAS-LITE', 'MMAS-4'],
+                          enum: instrumentIds,
                           description: 'Which screening instrument this question belongs to',
                         },
                         question_index: {

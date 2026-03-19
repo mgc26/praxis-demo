@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import type { SupportPathway, RiskTier, TherapeuticArea, DrugProduct } from '../types/index.js';
+import { getBrandConfig, type BrandBackendConfig } from '../brands/index.js';
 
 // ---------------------------------------------------------------------------
 // Clinical Drug Product Profiles
@@ -521,6 +522,124 @@ export const PHARMA_CONTACT_NETWORK: ResourceCategory[] = [
     ],
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Brand-aware accessors
+// ---------------------------------------------------------------------------
+// These functions derive drug profiles, support pathways, and contact network
+// from the active BrandBackendConfig. The hardcoded constants above remain
+// exported for backward compatibility (they match the Praxis default).
+// ---------------------------------------------------------------------------
+
+/**
+ * Format a brand-config drug profile into the richer DrugProductProfile shape
+ * used by the legacy DRUG_PROFILES constant. For fields not present in the
+ * brand config, sensible defaults are provided.
+ */
+export function formatDrugProfile(
+  bp: BrandBackendConfig['drugProfiles'][number],
+  hubName: string,
+): DrugProductProfile {
+  return {
+    genericName: bp.genericName,
+    brandName: bp.brandName,
+    mechanismOfAction: bp.moa,
+    approvedIndication: bp.indication,
+    therapeuticArea: bp.therapeuticArea as TherapeuticArea,
+    pivotalTrialName: bp.trialData?.split(':')[0] ?? '',
+    primaryEndpoint: '',
+    primaryResult: bp.trialData ?? '',
+    keySecondaryEndpoints: [],
+    responderRate: '',
+    nnt: '',
+    commonAEs: bp.commonAEs.map((ae) => {
+      const match = ae.match(/^(.+?)\s*\((\d+%)\)$/);
+      return match
+        ? { event: match[1], incidence: match[2] }
+        : { event: ae, incidence: '' };
+    }),
+    seriousAEWarnings: bp.seriousAEs,
+    contraindications: [],
+    drugInteractions: [],
+    blackBoxWarning: bp.boxWarning ?? null,
+    startingDose: bp.dosing.split(',')[0] ?? bp.dosing,
+    titrationSchedule: '',
+    maintenanceDose: bp.dosing,
+    maxDose: '',
+    renalAdjustment: '',
+    hepaticAdjustment: '',
+    pediatricDosing: null,
+    specialtyPharmacyRequired: true,
+    remsRequired: false,
+    hubServiceName: hubName,
+  };
+}
+
+/** Return drug profiles derived from the brand config. */
+export function getDrugProfiles(
+  config?: BrandBackendConfig,
+): Record<string, DrugProductProfile> {
+  const cfg = config ?? getBrandConfig();
+  // If the caller is using the default Praxis brand, return the richer
+  // hardcoded profiles which contain full clinical detail.
+  if (cfg.id === 'praxis') return DRUG_PROFILES;
+  const result: Record<string, DrugProductProfile> = {};
+  for (const dp of cfg.drugProfiles) {
+    result[dp.id] = formatDrugProfile(dp, cfg.hubName);
+  }
+  return result;
+}
+
+/** Return support pathways derived from the brand config. */
+export function getSupportPathways(
+  config?: BrandBackendConfig,
+): Record<string, SupportPathwayDefinition> {
+  const cfg = config ?? getBrandConfig();
+  // If the caller is using the default Praxis brand, return the rich
+  // hardcoded pathways which include talking points and escalation criteria.
+  if (cfg.id === 'praxis') return SUPPORT_PATHWAYS;
+  const result: Record<string, SupportPathwayDefinition> = {};
+  for (const sp of cfg.supportPathways) {
+    result[sp.id as SupportPathway] = {
+      id: sp.id as SupportPathway,
+      name: sp.label,
+      description: sp.description,
+      urgencyLevel: 'routine',
+      suggestedResources: [],
+      keyTalkingPoints: [],
+      escalationCriteria: [],
+    };
+  }
+  return result;
+}
+
+/** Return contact network derived from the brand config. */
+export function getContactNetwork(
+  config?: BrandBackendConfig,
+): ResourceCategory[] {
+  const cfg = config ?? getBrandConfig();
+  // If the caller is using the default Praxis brand, return the rich
+  // hardcoded contact network with full availability and capability data.
+  if (cfg.id === 'praxis') return PHARMA_CONTACT_NETWORK;
+  // Group contacts by role
+  const roleMap = new Map<string, ContactResource[]>();
+  for (const c of cfg.contactNetwork) {
+    const category = c.role;
+    if (!roleMap.has(category)) roleMap.set(category, []);
+    roleMap.get(category)!.push({
+      name: c.name,
+      type: c.role,
+      phone: c.phone ?? '',
+      coverage: c.territory ?? 'Nationwide',
+      availability: '',
+      capabilities: [],
+    });
+  }
+  return Array.from(roleMap.entries()).map(([category, resources]) => ({
+    category,
+    resources,
+  }));
+}
 
 // ---------------------------------------------------------------------------
 // Contact Communication Preferences by Risk Tier

@@ -2,11 +2,13 @@ import { describe, it, expect } from 'vitest';
 import {
   SIGNAL_MAPPINGS,
   EXTENDED_SIGNAL_MAPPINGS,
+  getExtendedSignalMappings,
   getSignalUrgency,
   getPrimaryPathway,
   buildSignalContextSummary,
   getRecommendedScreenings,
 } from './behavioral-signals.js';
+import { getBrandConfig } from '../brands/index.js';
 import type { SignalCategory } from '../types/index.js';
 
 const ALL_SIGNAL_CATEGORIES: SignalCategory[] = [
@@ -406,6 +408,30 @@ describe('behavioral-signals', () => {
       // Access barriers risk treatment abandonment or gaps — especially
       // dangerous for AEDs where gaps can trigger breakthrough seizures.
       expect(EXTENDED_SIGNAL_MAPPINGS.ACCESS_RESTRICTION.urgencyLevel).toBe('urgent');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Brand-aware extended signal accessor
+  // ---------------------------------------------------------------------------
+
+  describe('getExtendedSignalMappings (brand-aware)', () => {
+    it('should return EXTENDED_SIGNAL_MAPPINGS for Praxis config', () => {
+      const praxisConfig = getBrandConfig('praxis');
+      const mappings = getExtendedSignalMappings(praxisConfig);
+      expect(mappings).toBe(EXTENDED_SIGNAL_MAPPINGS);
+    });
+
+    it('should return same structure when called with default config', () => {
+      const mappings = getExtendedSignalMappings();
+      expect(mappings).toHaveProperty('FIRST_PARTY_ENGAGEMENT');
+      expect(mappings).toHaveProperty('ACCESS_RESTRICTION');
+    });
+
+    it('should preserve pathway and urgency from base mappings', () => {
+      const mappings = getExtendedSignalMappings();
+      expect(mappings.FIRST_PARTY_ENGAGEMENT.recommendedPathway).toBe('patient-education');
+      expect(mappings.ACCESS_RESTRICTION.urgencyLevel).toBe('urgent');
     });
   });
 });

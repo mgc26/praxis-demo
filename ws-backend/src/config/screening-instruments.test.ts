@@ -2,10 +2,13 @@ import { describe, it, expect } from 'vitest';
 import {
   SCREENING_INSTRUMENTS,
   getScreeningInstrument,
+  getScreeningInstruments,
+  getScreeningInstrumentIds,
   isPositiveScreen,
   getInterpretation,
   buildScreeningPromptBlock,
 } from './screening-instruments.js';
+import { getBrandConfig } from '../brands/index.js';
 import type { ScreeningInstrumentId } from '../types/index.js';
 
 const ALL_INSTRUMENT_IDS: ScreeningInstrumentId[] = [
@@ -461,6 +464,54 @@ describe('screening-instruments', () => {
         { instrumentId: 'MMAS-4', reason: 'Adherence monitoring', priority: 1 },
       ]);
       expect(result).not.toContain('REGULATORY NOTE');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Brand-aware screening instrument functions
+  // ---------------------------------------------------------------------------
+
+  describe('getScreeningInstruments (brand-aware)', () => {
+    it('should include all 4 base instruments with default config', () => {
+      const instruments = getScreeningInstruments();
+      for (const id of ALL_INSTRUMENT_IDS) {
+        expect(instruments).toHaveProperty(id);
+      }
+    });
+
+    it('should include all 4 base instruments with Praxis config', () => {
+      const praxisConfig = getBrandConfig('praxis');
+      const instruments = getScreeningInstruments(praxisConfig);
+      for (const id of ALL_INSTRUMENT_IDS) {
+        expect(instruments).toHaveProperty(id);
+        expect(instruments[id].id).toBe(id);
+      }
+    });
+
+    it('should not duplicate base instruments even if brand config lists them', () => {
+      const praxisConfig = getBrandConfig('praxis');
+      const instruments = getScreeningInstruments(praxisConfig);
+      // Praxis brand config lists AE-TRIAGE, C-SSRS-LITE, TETRAS-LITE, MMAS-4
+      // These should all come from the base registry, not be duplicated
+      expect(instruments['AE-TRIAGE']).toBe(SCREENING_INSTRUMENTS['AE-TRIAGE']);
+    });
+  });
+
+  describe('getScreeningInstrumentIds (brand-aware)', () => {
+    it('should return all 4 base instrument IDs with default config', () => {
+      const ids = getScreeningInstrumentIds();
+      for (const id of ALL_INSTRUMENT_IDS) {
+        expect(ids).toContain(id);
+      }
+      expect(ids.length).toBeGreaterThanOrEqual(4);
+    });
+
+    it('should return all 4 base instrument IDs with Praxis config', () => {
+      const praxisConfig = getBrandConfig('praxis');
+      const ids = getScreeningInstrumentIds(praxisConfig);
+      for (const id of ALL_INSTRUMENT_IDS) {
+        expect(ids).toContain(id);
+      }
     });
   });
 });

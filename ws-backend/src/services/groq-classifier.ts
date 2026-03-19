@@ -16,6 +16,7 @@ import type {
   ScreeningResult,
 } from '../types/index.js';
 import { buildClassificationPrompt } from '../prompts/classification-prompt.js';
+import { type BrandBackendConfig } from '../brands/index.js';
 
 // ---------------------------------------------------------------------------
 // Valid enum values — kept as lightweight fallback validation. With Structured
@@ -252,6 +253,7 @@ export async function classifyCall(
   transcript: TranscriptEntry[],
   contact: ContactRecord,
   screeningResults?: ScreeningResult[],
+  _brandConfig?: BrandBackendConfig,
 ): Promise<ClassificationResult> {
   const openai = getOpenAIClient();
   if (!openai) {

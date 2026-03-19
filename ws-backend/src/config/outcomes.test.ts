@@ -3,7 +3,9 @@ import {
   OUTCOMES,
   CONVERSION_OUTCOMES,
   getOutcomeDefinition,
+  getOutcomeLabels,
 } from './outcomes.js';
+import { getBrandConfig } from '../brands/index.js';
 import type { OutcomeType } from '../types/index.js';
 
 const ALL_OUTCOME_TYPES: OutcomeType[] = [
@@ -301,6 +303,49 @@ describe('outcomes', () => {
       // A callback request is deferred engagement, not a completed conversion
       const def = OUTCOMES.find((o) => o.id === 'callback-requested')!;
       expect(def.isConversion).toBe(false);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Brand-aware outcome labels
+  // ---------------------------------------------------------------------------
+
+  describe('getOutcomeLabels (brand-aware)', () => {
+    it('should return labels for all outcome types with default config', () => {
+      const labels = getOutcomeLabels();
+      for (const type of ALL_OUTCOME_TYPES) {
+        expect(labels[type]).toBeDefined();
+        expect(typeof labels[type]).toBe('string');
+        expect(labels[type].length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should return labels matching OUTCOMES array with Praxis config', () => {
+      const praxisConfig = getBrandConfig('praxis');
+      const labels = getOutcomeLabels(praxisConfig);
+      for (const outcome of OUTCOMES) {
+        expect(labels[outcome.id]).toBe(outcome.label);
+      }
+    });
+
+    it('should apply outcome overrides from brand config', () => {
+      // Create a mock config with outcome overrides
+      const mockConfig = {
+        ...getBrandConfig('praxis'),
+        outcomeOverrides: {
+          'ae-reported': 'Custom AE Label',
+        },
+      };
+      const labels = getOutcomeLabels(mockConfig);
+      expect(labels['ae-reported']).toBe('Custom AE Label');
+      // Other labels should remain unchanged
+      expect(labels['hub-enrollment']).toBe('Hub Enrollment');
+    });
+
+    it('should return base labels when no overrides are present', () => {
+      const praxisConfig = getBrandConfig('praxis');
+      const labels = getOutcomeLabels(praxisConfig);
+      expect(labels['ae-reported']).toBe('Adverse Event Reported');
     });
   });
 });

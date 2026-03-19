@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import type { OutcomeType } from '../types/index.js';
+import { getBrandConfig, type BrandBackendConfig } from '../brands/index.js';
 
 export interface OutcomeDefinition {
   id: OutcomeType;
@@ -151,4 +152,28 @@ export const CONVERSION_OUTCOMES: OutcomeType[] = OUTCOMES
 export function getOutcomeDefinition(outcome: OutcomeType): OutcomeDefinition {
   return OUTCOMES.find((o) => o.id === outcome)
     ?? OUTCOMES.find((o) => o.id === 'information-provided')!;
+}
+
+// ---------------------------------------------------------------------------
+// Brand-aware outcome labels
+// ---------------------------------------------------------------------------
+// Returns a map of outcome ID -> display label, merging base labels with
+// any brand-specific overrides from config.outcomeOverrides.
+// ---------------------------------------------------------------------------
+
+export function getOutcomeLabels(
+  config?: BrandBackendConfig,
+): Record<string, string> {
+  const cfg = config ?? getBrandConfig();
+  const labels: Record<string, string> = {};
+  for (const o of OUTCOMES) {
+    labels[o.id] = o.label;
+  }
+  // Apply brand-specific overrides
+  if (cfg.outcomeOverrides) {
+    for (const [id, label] of Object.entries(cfg.outcomeOverrides)) {
+      labels[id] = label;
+    }
+  }
+  return labels;
 }
