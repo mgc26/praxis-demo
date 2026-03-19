@@ -16,6 +16,7 @@ import { twilioStatusRoutes } from './routes/twilio-status.js';
 import { apiCallsRoutes } from './routes/api-calls.js';
 import { apiContactsRoutes } from './routes/api-contacts.js';
 import { apiDemoCallRoutes } from './routes/api-demo-call.js';
+import { apiCallStatusRoutes } from './routes/api-call-status.js';
 import { processContactOutreach } from './services/contact-outreach-processor.js';
 
 // ---------------------------------------------------------------------------
@@ -83,6 +84,7 @@ async function bootstrap() {
   await server.register(apiCallsRoutes);
   await server.register(apiContactsRoutes);
   await server.register(apiDemoCallRoutes);
+  await server.register(apiCallStatusRoutes);
 
   // ---- Legacy single-endpoint outreach trigger (mirrors /api/contacts/outreach) ----
 

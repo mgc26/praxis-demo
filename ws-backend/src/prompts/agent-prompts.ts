@@ -97,18 +97,18 @@ export function buildAgentGreeting(contact: ContactRecord): string {
 
     case 'hcp-outbound': {
       if (hasCompetitorResearch || hasFormularyLookup) {
-        return `Hello ${title}${lastName}, this is Emma from Praxis BioSciences. I'm reaching out because there have been some exciting clinical developments in ${taShort} treatment, and I thought you'd find our latest data particularly relevant. Do you have a quick moment?`;
+        return `Hello ${title}${lastName}, this is Emma from Praxis BioSciences. I'm reaching out because there's been an important evidence review in ${taShort} treatment, and I thought our clinical data might be relevant to your practice. Do you have a quick moment?`;
       }
 
       if (hasConferenceActivity) {
-        return `Hello ${title}${lastName}, this is Emma from Praxis BioSciences. I'm reaching out because I wanted to follow up on some of the recent clinical data in ${taShort} — I think you'd find it valuable. Is this a good time?`;
+        return `Hello ${title}${lastName}, this is Emma from Praxis BioSciences. I'm reaching out to follow up on some of the recent clinical evidence in ${taShort} — I have some data that may be useful for your patients. Is this a good time?`;
       }
 
       if (isHighRisk) {
-        return `Hello ${title}${lastName}, this is Emma from Praxis BioSciences. I'm reaching out because I'd love to share some compelling clinical data about our ${taShort} treatment. Do you have just a couple minutes?`;
+        return `Hello ${title}${lastName}, this is Emma from Praxis BioSciences. I'm reaching out because we have clinical data on our ${taShort} treatment that may be relevant to your practice. Do you have just a couple minutes?`;
       }
 
-      return `Hello ${title}${lastName}, this is Emma from Praxis BioSciences. I'm reaching out to share some clinical information about our ${taShort} treatment and see if there's anything our team can support you with. Is now a good time?`;
+      return `Hello ${title}${lastName}, this is Emma from Praxis BioSciences. I'm reaching out because we have clinical data on our ${taShort} treatment that may be relevant to your practice. Is now a good time?`;
     }
 
     case 'medcomms-qa': {
@@ -123,6 +123,22 @@ export function buildAgentGreeting(contact: ContactRecord): string {
       throw new Error(`Unknown agent type: ${_exhaustive}`);
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Gatekeeper greeting builder — for use when answeredBy detection suggests
+// a non-physician pickup on HCP outbound calls
+// ---------------------------------------------------------------------------
+
+export function buildGatekeeperGreeting(contact: ContactRecord): string {
+  const title = contact.contactType === 'hcp' ? 'Dr. ' : '';
+  const lastName = (contact.name || '').split(' ').slice(-1)[0] || 'there';
+
+  const taShort = contact.therapeuticArea === 'essential-tremor'
+    ? 'Essential Tremor'
+    : 'DEE / Dravet Syndrome';
+
+  return `Hello, this is Emma from Praxis BioSciences. I'm reaching out to share some clinical information with ${title}${lastName} about treatments for ${taShort}. Is the doctor available for just a couple of minutes?`;
 }
 
 // ---------------------------------------------------------------------------

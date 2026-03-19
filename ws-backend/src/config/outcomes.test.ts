@@ -113,7 +113,6 @@ describe('outcomes', () => {
         'hub-enrollment',
         'prior-auth-assist',
         'nurse-educator-referral',
-        'speaker-program-interest',
         'appointment-scheduled',
         'crisis-escalation',
       ];
@@ -126,6 +125,7 @@ describe('outcomes', () => {
       const nonConversions: OutcomeType[] = [
         'information-provided',
         'callback-requested',
+        'speaker-program-interest',
         'declined',
         'no-answer',
         'voicemail',
@@ -164,6 +164,143 @@ describe('outcomes', () => {
       // We can test this by casting an invalid string
       const def = getOutcomeDefinition('nonexistent' as OutcomeType);
       expect(def.id).toBe('information-provided');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // speaker-program-interest reclassification
+  // Tracking speaker-program-interest as a conversion documents a commercial
+  // incentive that OIG (Office of Inspector General) flags as a kickback risk.
+  // This was reclassified from conversion to non-conversion for compliance.
+  // -------------------------------------------------------------------------
+  describe('speaker-program-interest reclassification', () => {
+    it('should classify speaker-program-interest as NON-conversion (compliance fix)', () => {
+      // OIG Anti-Kickback Statute concern: speaker program participation
+      // cannot be counted as a "conversion" because it implies commercial
+      // incentive tracking, which creates audit liability
+      const speakerOutcome = OUTCOMES.find((o) => o.id === 'speaker-program-interest')!;
+      expect(speakerOutcome.isConversion).toBe(false);
+    });
+
+    it('should NOT include speaker-program-interest in CONVERSION_OUTCOMES array', () => {
+      // Double-check the derived array also excludes it — this is what the
+      // dashboard and analytics queries actually use
+      expect(CONVERSION_OUTCOMES).not.toContain('speaker-program-interest');
+    });
+
+    it('should still classify crisis-escalation as a conversion outcome', () => {
+      // Regression guard: the reclassification of speaker-program-interest
+      // must not accidentally change crisis-escalation, which is a genuine
+      // safety conversion that triggers regulatory workflows
+      const crisisOutcome = OUTCOMES.find((o) => o.id === 'crisis-escalation')!;
+      expect(crisisOutcome.isConversion).toBe(true);
+      expect(CONVERSION_OUTCOMES).toContain('crisis-escalation');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Outcome completeness
+  // Every outcome record must have complete metadata. Missing labels or
+  // descriptions cause blank cards on the dashboard; invalid colors break
+  // the status chip rendering.
+  // -------------------------------------------------------------------------
+  describe('outcome completeness', () => {
+    it('should have a non-empty label for every outcome', () => {
+      for (const outcome of OUTCOMES) {
+        expect(outcome.label.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should have a non-empty description for every outcome', () => {
+      for (const outcome of OUTCOMES) {
+        expect(outcome.description.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should have a valid hex color for every outcome', () => {
+      // Colors are rendered directly in the dashboard badge/chip components;
+      // an invalid hex crashes the color parser
+      for (const outcome of OUTCOMES) {
+        expect(outcome.color).toMatch(/^#[0-9a-fA-F]{6}$/);
+      }
+    });
+
+    it('should have unique IDs across all outcomes', () => {
+      // Duplicate IDs would cause getOutcomeDefinition to return the wrong
+      // definition for some outcome types
+      const ids = OUTCOMES.map((o) => o.id);
+      const uniqueIds = new Set(ids);
+      expect(uniqueIds.size).toBe(ids.length);
+    });
+
+    it('should have unique colors across all outcomes', () => {
+      // Duplicate colors make outcomes visually indistinguishable on dashboards
+      const colors = OUTCOMES.map((o) => o.color);
+      const uniqueColors = new Set(colors);
+      expect(uniqueColors.size).toBe(colors.length);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // AE-related outcomes must all be conversions
+  // AE events trigger pharmacovigilance workflows and must always count as
+  // conversions so they appear in safety dashboards and regulatory reports.
+  // -------------------------------------------------------------------------
+  describe('AE-related outcome classification', () => {
+    it('should classify ae-reported as a conversion', () => {
+      const def = OUTCOMES.find((o) => o.id === 'ae-reported')!;
+      expect(def.isConversion).toBe(true);
+    });
+
+    it('should classify ae-escalated as a conversion', () => {
+      const def = OUTCOMES.find((o) => o.id === 'ae-escalated')!;
+      expect(def.isConversion).toBe(true);
+    });
+
+    it('should classify crisis-escalation as a conversion', () => {
+      // Crisis escalation involves acute safety concerns (suicidal ideation)
+      // that mandate regulatory reporting — must be a conversion
+      const def = OUTCOMES.find((o) => o.id === 'crisis-escalation')!;
+      expect(def.isConversion).toBe(true);
+    });
+
+    it('should include all three AE-related outcomes in CONVERSION_OUTCOMES', () => {
+      expect(CONVERSION_OUTCOMES).toContain('ae-reported');
+      expect(CONVERSION_OUTCOMES).toContain('ae-escalated');
+      expect(CONVERSION_OUTCOMES).toContain('crisis-escalation');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Non-conversion outcomes
+  // Certain outcomes must never be conversions because they represent
+  // non-engagement (no-answer, voicemail) or are compliance-sensitive.
+  // -------------------------------------------------------------------------
+  describe('non-conversion outcomes', () => {
+    it('should classify no-answer as NOT a conversion', () => {
+      // No-answer means no engagement occurred — counting it as a conversion
+      // would inflate conversion rates and mislead commercial leadership
+      const def = OUTCOMES.find((o) => o.id === 'no-answer')!;
+      expect(def.isConversion).toBe(false);
+    });
+
+    it('should classify voicemail as NOT a conversion', () => {
+      // Voicemail is a one-way communication — no patient/HCP engagement
+      // occurred, so it cannot be a conversion
+      const def = OUTCOMES.find((o) => o.id === 'voicemail')!;
+      expect(def.isConversion).toBe(false);
+    });
+
+    it('should classify declined as NOT a conversion', () => {
+      // Explicit refusal must not be counted as a conversion
+      const def = OUTCOMES.find((o) => o.id === 'declined')!;
+      expect(def.isConversion).toBe(false);
+    });
+
+    it('should classify callback-requested as NOT a conversion', () => {
+      // A callback request is deferred engagement, not a completed conversion
+      const def = OUTCOMES.find((o) => o.id === 'callback-requested')!;
+      expect(def.isConversion).toBe(false);
     });
   });
 });

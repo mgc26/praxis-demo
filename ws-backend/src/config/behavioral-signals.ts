@@ -18,6 +18,13 @@ export interface SignalMapping {
   talkingPoints: string[];
   agentOpeningHint: string;
   recommendedScreenings: ScreeningInstrumentId[];
+  /**
+   * Restricts outbound usage of this signal. Signals with
+   * `contextRestriction: 'patient-facing-only'` should NOT trigger HCP
+   * outbound commercial calls. They are intended for patient/caregiver
+   * support workflows only.
+   */
+  contextRestriction?: 'patient-facing-only' | 'hcp-facing-only' | null;
 }
 
 export const SIGNAL_MAPPINGS: Record<SignalCategory, SignalMapping> = {
@@ -74,6 +81,8 @@ export const SIGNAL_MAPPINGS: Record<SignalCategory, SignalMapping> = {
     agentOpeningHint:
       'I wanted to reach out and see how you\'re doing with your treatment, and to let you know about some resources that might be helpful.',
     recommendedScreenings: ['AE-TRIAGE'],
+    // Patient/caregiver signal — should NOT trigger HCP outbound commercial calls
+    contextRestriction: 'patient-facing-only',
   },
   ADHERENCE_GAP: {
     category: 'ADHERENCE_GAP',
@@ -93,6 +102,8 @@ export const SIGNAL_MAPPINGS: Record<SignalCategory, SignalMapping> = {
     agentOpeningHint:
       'I\'m reaching out because it looks like your prescription may not have been refilled recently, and I want to make sure everything is going okay with your treatment.',
     recommendedScreenings: ['MMAS-4', 'AE-TRIAGE'],
+    // Patient/caregiver signal — should NOT trigger HCP outbound commercial calls
+    contextRestriction: 'patient-facing-only',
   },
   KOL_ENGAGEMENT: {
     category: 'KOL_ENGAGEMENT',
@@ -148,6 +159,8 @@ export const SIGNAL_MAPPINGS: Record<SignalCategory, SignalMapping> = {
     agentOpeningHint:
       'I wanted to check in with you to see how you\'re doing. We know that caring for someone with this condition can be really challenging, and we\'re here to support you too.',
     recommendedScreenings: ['C-SSRS-LITE'],
+    // Patient/caregiver signal — should NOT trigger HCP outbound commercial calls
+    contextRestriction: 'patient-facing-only',
   },
   CONFERENCE_ACTIVITY: {
     category: 'CONFERENCE_ACTIVITY',
@@ -166,6 +179,79 @@ export const SIGNAL_MAPPINGS: Record<SignalCategory, SignalMapping> = {
     agentOpeningHint:
       'I wanted to follow up after the recent conference to see if there are any presentations or data you\'d like to discuss in more detail.',
     recommendedScreenings: [],
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Extended Signal Categories
+// ---------------------------------------------------------------------------
+// These signal categories supplement the core SignalCategory type. They
+// represent CRM-derived and access-related signals that may not originate
+// from behavioral/digital signals but are important for complete contact
+// context. When the core SignalCategory type is extended to include these,
+// they can be merged into SIGNAL_MAPPINGS above.
+// ---------------------------------------------------------------------------
+
+export interface ExtendedSignalMapping {
+  category: string;
+  label: string;
+  description: string;
+  recommendedPathway: SupportPathway;
+  urgencyLevel: 'routine' | 'soon' | 'urgent';
+  suggestedResource: string;
+  clinicalImplication: string;
+  talkingPoints: string[];
+  agentOpeningHint: string;
+  recommendedScreenings: ScreeningInstrumentId[];
+  contextRestriction?: 'patient-facing-only' | 'hcp-facing-only' | null;
+}
+
+export const EXTENDED_SIGNAL_MAPPINGS: Record<string, ExtendedSignalMapping> = {
+  FIRST_PARTY_ENGAGEMENT: {
+    category: 'FIRST_PARTY_ENGAGEMENT',
+    label: 'First-Party CRM Engagement',
+    description:
+      'Contact has engaged with Praxis first-party channels: website visits, email opens, webinar attendance, hub portal logins, ' +
+      'or PraxisConnect app activity. These are CRM-derived signals indicating active interest or need for support.',
+    recommendedPathway: 'patient-education',
+    urgencyLevel: 'routine',
+    suggestedResource: 'Hub Services / Nurse Educator',
+    clinicalImplication:
+      'First-party engagement signals indicate the contact is actively seeking information or managing their treatment. ' +
+      'This is an opportunity to provide timely, relevant support and deepen the relationship.',
+    talkingPoints: [
+      'Thank you for being an active part of the PraxisConnect community — we want to make sure you have everything you need.',
+      'I noticed you may have some questions about your treatment, and I wanted to reach out to see how we can help.',
+      'Our digital resources are a great starting point, and I can connect you with a nurse educator for personalized guidance.',
+    ],
+    agentOpeningHint:
+      'I wanted to reach out because we noticed you\'ve been engaging with some of our resources, and I want to make sure you have all the support you need.',
+    recommendedScreenings: [],
+    contextRestriction: null,
+  },
+  ACCESS_RESTRICTION: {
+    category: 'ACCESS_RESTRICTION',
+    label: 'Formulary / Access Restriction',
+    description:
+      'Contact is facing a formulary restriction, step-therapy requirement, prior authorization denial, or other access barrier ' +
+      'that may prevent or delay treatment initiation or continuation.',
+    recommendedPathway: 'medication-access',
+    urgencyLevel: 'urgent',
+    suggestedResource: 'Field Reimbursement Manager / Hub Services',
+    clinicalImplication:
+      'Access restrictions create a critical risk of treatment abandonment or delay. For anti-epileptic drugs, delays in ' +
+      'treatment initiation or gaps in therapy carry risk of breakthrough seizures. For ET patients, access barriers during ' +
+      'titration may lead to suboptimal dosing and perceived treatment failure.',
+    talkingPoints: [
+      'We understand that navigating insurance requirements can be frustrating, and we\'re here to help.',
+      'Our field reimbursement team has experience with your specific payer and can guide the appeals process.',
+      'PraxisConnect can provide bridge supply in some cases to ensure there is no gap in your therapy while access issues are resolved.',
+      'If prior authorization has been denied, our hub team can assist with a peer-to-peer review or formal appeal.',
+    ],
+    agentOpeningHint:
+      'I\'m reaching out because it looks like there may be a coverage issue with your medication, and I want to make sure we get that resolved as quickly as possible.',
+    recommendedScreenings: [],
+    contextRestriction: null,
   },
 };
 

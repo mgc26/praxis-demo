@@ -2,7 +2,230 @@
 // Vi Praxis BioSciences — Support Knowledge Configuration
 // ---------------------------------------------------------------------------
 
-import type { SupportPathway, RiskTier } from '../types/index.js';
+import type { SupportPathway, RiskTier, TherapeuticArea, DrugProduct } from '../types/index.js';
+
+// ---------------------------------------------------------------------------
+// Clinical Drug Product Profiles
+// ---------------------------------------------------------------------------
+// All clinical data below is FICTIONAL but plausible. These profiles are
+// designed for demo purposes and do not represent real approved products.
+// ---------------------------------------------------------------------------
+
+export interface DrugProductProfile {
+  genericName: string;
+  brandName: string;
+  mechanismOfAction: string;
+  approvedIndication: string;
+  therapeuticArea: TherapeuticArea;
+  // Efficacy
+  pivotalTrialName: string;
+  primaryEndpoint: string;
+  primaryResult: string;
+  keySecondaryEndpoints: string[];
+  responderRate: string;
+  nnt: string;
+  // Safety
+  commonAEs: Array<{ event: string; incidence: string }>;
+  seriousAEWarnings: string[];
+  contraindications: string[];
+  drugInteractions: string[];
+  blackBoxWarning: string | null;
+  // Dosing
+  startingDose: string;
+  titrationSchedule: string;
+  maintenanceDose: string;
+  maxDose: string;
+  renalAdjustment: string;
+  hepaticAdjustment: string;
+  pediatricDosing: string | null;
+  // Access
+  specialtyPharmacyRequired: boolean;
+  remsRequired: boolean;
+  hubServiceName: string;
+}
+
+export const DRUG_PROFILES: Record<DrugProduct, DrugProductProfile> = {
+  euloxacaltenamide: {
+    genericName: 'Euloxacaltenamide',
+    brandName: 'ELEX',
+    mechanismOfAction:
+      'Novel selective T-type calcium channel modulator (Cav3.1/Cav3.3) — first-in-class for essential tremor. ' +
+      'Reduces oscillatory thalamocortical activity implicated in tremor generation without broad CNS depression.',
+    approvedIndication: 'Treatment of essential tremor (ET) in adults',
+    therapeuticArea: 'essential-tremor',
+
+    // Efficacy
+    pivotalTrialName: 'STEADY (Phase 3, N=412, randomized, double-blind, placebo-controlled, 24 weeks)',
+    primaryEndpoint: 'Change from baseline in TETRAS Performance Subscale score at Week 24',
+    primaryResult: '-4.2 points vs -1.8 placebo (p<0.001)',
+    keySecondaryEndpoints: [
+      'QUEST (Quality of Life in Essential Tremor) total score improvement: -12.6 vs -5.1 placebo (p<0.001)',
+      'TETRAS Activities of Daily Living subscale: -3.1 vs -1.2 placebo (p<0.001)',
+      'Clinician Global Impression of Change (CGI-C) responder rate: 68% vs 34% placebo',
+      'Patient Global Impression of Change (PGI-C): 71% reported "much improved" or "very much improved" vs 29% placebo',
+    ],
+    responderRate: '62% achieved >=50% improvement on TETRAS-P vs 27% placebo',
+    nnt: '3',
+
+    // Safety
+    commonAEs: [
+      { event: 'Dizziness', incidence: '12%' },
+      { event: 'Fatigue', incidence: '8%' },
+      { event: 'Nausea', incidence: '6%' },
+      { event: 'Headache', incidence: '5%' },
+      { event: 'Somnolence', incidence: '4%' },
+    ],
+    seriousAEWarnings: [
+      'Rare QTc prolongation (<1%) — ECG monitoring recommended at baseline and after dose adjustments',
+      'Cases of syncope reported in patients with pre-existing cardiac conduction abnormalities',
+    ],
+    contraindications: [
+      'Known hypersensitivity to euloxacaltenamide or any excipient',
+      'Congenital long QT syndrome or baseline QTc >450 ms',
+      'Concurrent use of strong CYP3A4 inhibitors (ketoconazole, itraconazole, clarithromycin, ritonavir)',
+    ],
+    drugInteractions: [
+      'Strong CYP3A4 inhibitors: CONTRAINDICATED — increased ELEX exposure and QTc prolongation risk',
+      'Moderate CYP3A4 inhibitors (fluconazole, erythromycin, diltiazem): reduce ELEX dose by 50%',
+      'Strong CYP3A4 inducers (rifampin, phenytoin, carbamazepine): may reduce ELEX efficacy; dose adjustment may be needed',
+      'QTc-prolonging agents: use with caution; additive QTc effect possible',
+    ],
+    blackBoxWarning: null,
+
+    // Dosing
+    startingDose: '25 mg orally once daily',
+    titrationSchedule: 'Increase by 25 mg weekly as tolerated. Most patients reach therapeutic dose within 3-4 weeks.',
+    maintenanceDose: '75-150 mg orally once daily',
+    maxDose: '200 mg once daily',
+    renalAdjustment: 'Reduce to 50% of target dose if CrCl <30 mL/min. No adjustment needed for CrCl >=30 mL/min.',
+    hepaticAdjustment:
+      'Mild (Child-Pugh A): no adjustment. Moderate (Child-Pugh B): reduce to 75% of target dose. ' +
+      'Severe (Child-Pugh C): AVOID — not studied in severe hepatic impairment.',
+    pediatricDosing: null, // Not indicated for pediatric use
+
+    // Access
+    specialtyPharmacyRequired: true,
+    remsRequired: false,
+    hubServiceName: 'PraxisConnect',
+  },
+
+  relutrigine: {
+    genericName: 'Relutrigine',
+    brandName: 'Relutrigine',
+    mechanismOfAction:
+      'Selective sodium channel modulator with preferential Nav1.6 inhibition — avoids Nav1.1 blockade. ' +
+      'CRITICAL DISTINCTION: Traditional sodium channel blockers (carbamazepine, oxcarbazepine, phenytoin, lamotrigine) ' +
+      'are CONTRAINDICATED in Dravet syndrome because they further impair already-deficient Nav1.1 function in ' +
+      'inhibitory interneurons. Relutrigine selectively targets Nav1.6 on excitatory neurons to reduce seizure ' +
+      'propagation while preserving inhibitory interneuron function.',
+    approvedIndication:
+      'Treatment of seizures associated with Dravet syndrome and other developmental and epileptic encephalopathies (DEEs) ' +
+      'in patients 2 years of age and older',
+    therapeuticArea: 'dee-dravet',
+
+    // Efficacy
+    pivotalTrialName:
+      'PROTECT (Phase 3, N=188, randomized, double-blind, placebo-controlled, 16-week treatment period + open-label extension)',
+    primaryEndpoint: 'Median percent change in monthly convulsive seizure frequency vs placebo over the 16-week treatment period',
+    primaryResult: '-48% vs -15% placebo (p<0.001)',
+    keySecondaryEndpoints: [
+      'Proportion achieving >=50% reduction in convulsive seizures: 54% vs 18% placebo (p<0.001)',
+      'Seizure-free rate at 16 weeks: 28% vs 4% placebo (p<0.001)',
+      'Reduction in status epilepticus episodes: 72% fewer events vs placebo',
+      'Caregiver Global Impression of Change: 65% reported improvement vs 22% placebo',
+      'Reduction in rescue medication use: -41% vs -8% placebo',
+    ],
+    responderRate: '54% achieved >=50% reduction in convulsive seizures; 28% achieved seizure freedom at 16 weeks vs 4% placebo',
+    nnt: '4',
+
+    // Safety
+    commonAEs: [
+      { event: 'Somnolence', incidence: '15%' },
+      { event: 'Decreased appetite', incidence: '9%' },
+      { event: 'Diarrhea', incidence: '7%' },
+      { event: 'Pyrexia', incidence: '5%' },
+      { event: 'Upper respiratory infection', incidence: '4%' },
+    ],
+    seriousAEWarnings: [
+      'Drug Reaction with Eosinophilia and Systemic Symptoms (DRESS) reported in <0.5% of patients — requires immediate discontinuation',
+      'Requires slow titration to minimize risk of serious dermatologic reactions',
+      'Suicidal ideation monitoring per FDA anti-epileptic drug class labeling',
+      'Status epilepticus reported during rapid dose changes — dose adjustments must follow prescribed titration schedule',
+    ],
+    contraindications: [
+      'Known hypersensitivity to relutrigine or any excipient',
+      'CRITICAL: Do NOT use in combination with traditional sodium channel blockers (carbamazepine, oxcarbazepine, phenytoin, lamotrigine) in Dravet syndrome patients — may worsen seizures',
+      'History of DRESS or Stevens-Johnson Syndrome with any anti-epileptic drug',
+    ],
+    drugInteractions: [
+      'Traditional sodium channel blockers (carbamazepine, oxcarbazepine, phenytoin, lamotrigine): CONTRAINDICATED in Dravet syndrome — may exacerbate seizures via Nav1.1 inhibition',
+      'Valproate: may increase relutrigine levels by 25-40%; monitor and consider dose reduction',
+      'Stiripentol: additive somnolence; monitor closely when co-administered',
+      'Strong CYP3A4 inducers: may reduce relutrigine exposure; dose adjustment may be needed',
+    ],
+    blackBoxWarning:
+      'Suicidality Risk: Anti-epileptic drugs, including relutrigine, increase the risk of suicidal thoughts or behavior. ' +
+      'Monitor patients for the emergence or worsening of depression, suicidal thoughts or behavior, and/or any unusual changes in mood or behavior.',
+
+    // Dosing
+    startingDose: '0.5 mg/kg/day divided BID (oral solution or dispersible tablet)',
+    titrationSchedule:
+      'Increase by 0.5 mg/kg/day every 2 weeks as tolerated. Target dose reached in approximately 6-8 weeks. ' +
+      'SLOW TITRATION IS ESSENTIAL to minimize risk of DRESS and to monitor for seizure response.',
+    maintenanceDose: '2-4 mg/kg/day divided BID',
+    maxDose: '6 mg/kg/day (not to exceed 300 mg/day)',
+    renalAdjustment: 'Mild-moderate renal impairment: no adjustment. Severe (CrCl <30 mL/min): reduce to 75% of target dose.',
+    hepaticAdjustment:
+      'Mild (Child-Pugh A): no adjustment. Moderate (Child-Pugh B): reduce to 50% of target dose and extend titration interval to every 3 weeks. ' +
+      'Severe (Child-Pugh C): not recommended.',
+    pediatricDosing:
+      'Approved for patients >=2 years. Weight-based dosing: 0.5 mg/kg/day starting dose, titrate to 2-4 mg/kg/day. ' +
+      'Oral solution (20 mg/mL) available for patients unable to swallow tablets. ' +
+      'For patients <20 kg: use oral solution only. For patients >=20 kg: oral solution or dispersible tablet.',
+
+    // Access
+    specialtyPharmacyRequired: true,
+    remsRequired: false, // No formal REMS, but enhanced safety monitoring program
+    hubServiceName: 'PraxisConnect',
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Dravet Syndrome Contraindicated Medications
+// ---------------------------------------------------------------------------
+// CRITICAL SAFETY REFERENCE: These medications are contraindicated in Dravet
+// syndrome (SCN1A-related) because they block Nav1.1 sodium channels,
+// further impairing already-deficient inhibitory interneuron function and
+// potentially worsening seizures with adverse developmental consequences.
+// ---------------------------------------------------------------------------
+
+export interface ContraindicatedMedication {
+  drug: string;
+  reason: string;
+}
+
+export const DRAVET_CONTRAINDICATED_MEDICATIONS: ContraindicatedMedication[] = [
+  {
+    drug: 'Carbamazepine (Tegretol)',
+    reason: 'Sodium channel blocker — may worsen seizures in SCN1A-related Dravet by further inhibiting Nav1.1 in inhibitory interneurons',
+  },
+  {
+    drug: 'Oxcarbazepine (Trileptal)',
+    reason: 'Sodium channel blocker — may worsen seizures in SCN1A-related Dravet by further inhibiting Nav1.1 in inhibitory interneurons',
+  },
+  {
+    drug: 'Phenytoin (Dilantin)',
+    reason: 'Sodium channel blocker — may worsen seizures in SCN1A-related Dravet by further inhibiting Nav1.1 in inhibitory interneurons',
+  },
+  {
+    drug: 'Lamotrigine (Lamictal)',
+    reason: 'Sodium channel blocker — may exacerbate seizures in some Dravet patients via Nav1.1 inhibition',
+  },
+  {
+    drug: 'Rufinamide (Banzel)',
+    reason: 'Sodium channel blocker — may worsen seizures in SCN1A-related Dravet by further inhibiting Nav1.1 in inhibitory interneurons',
+  },
+];
 
 // ---------------------------------------------------------------------------
 // Support Pathway Definitions
@@ -27,9 +250,12 @@ export const SUPPORT_PATHWAYS: Record<SupportPathway, SupportPathwayDefinition> 
     suggestedResources: ['Hub Services', 'Field Reimbursement Manager', 'Specialty Pharmacy'],
     keyTalkingPoints: [
       'Our hub services team can initiate and track prior authorizations on your behalf.',
-      'The Praxis copay assistance program may reduce your out-of-pocket cost to as low as $0.',
+      'The Praxis copay assistance program may reduce your out-of-pocket cost to as low as $0 for eligible commercially insured patients.',
       'We work with specialty pharmacies nationwide to ensure timely delivery of your medication.',
       'If your insurance has denied coverage, our team can assist with the appeals process.',
+      'Both ELEX and Relutrigine are dispensed exclusively through specialty pharmacies — PraxisConnect can coordinate fulfillment and shipment directly to your home.',
+      'For Relutrigine (DEE/Dravet): our hub can coordinate benefits verification across both medical and pharmacy benefit channels, as pediatric specialty therapies may be covered under either.',
+      'For ELEX (Essential Tremor): most commercial plans cover ELEX on specialty tier with prior authorization; our field reimbursement team can provide payer-specific guidance.',
     ],
     escalationCriteria: [
       'Prior authorization denied and patient is clinically urgent',
@@ -87,6 +313,9 @@ export const SUPPORT_PATHWAYS: Record<SupportPathway, SupportPathwayDefinition> 
       'We have patient-friendly materials about your condition and how your medication works.',
       'Understanding your titration schedule helps you get the most benefit from your treatment.',
       'Patient advocacy organizations like the Dravet Syndrome Foundation and IETF offer community support.',
+      'For ELEX (Essential Tremor): tracking your tremor with the TETRAS scale helps your doctor assess whether your dose is optimized — we can show you how to self-monitor between visits.',
+      'For Relutrigine (DEE/Dravet): keeping a daily seizure diary — including seizure type, duration, and any triggers — is essential for your care team to evaluate treatment response.',
+      'For Relutrigine caregivers: we have resources on environmental trigger avoidance (heat, fever, overexertion), seizure action plans, and emergency rescue medication administration.',
     ],
     escalationCriteria: [
       'Patient expressing confusion about dosing that could lead to medication error',
@@ -106,6 +335,9 @@ export const SUPPORT_PATHWAYS: Record<SupportPathway, SupportPathwayDefinition> 
       'If you\'re experiencing side effects, there are strategies that may help — let\'s talk about them.',
       'Our specialty pharmacy can set up automatic refill reminders so you never miss a dose.',
       'If cost is making it hard to stay on your medication, our copay program may be able to help.',
+      'CRITICAL — For Relutrigine and all anti-epileptic drugs: do NOT stop taking your medication suddenly without talking to your doctor. Abrupt discontinuation of anti-epileptic drugs can cause rebound seizures, including status epilepticus, which can be life-threatening.',
+      'For ELEX (Essential Tremor): if you miss a dose, take it as soon as you remember unless it is close to your next scheduled dose. Do not double up.',
+      'For Relutrigine (DEE/Dravet): consistent twice-daily dosing is essential for maintaining steady drug levels and seizure control. Setting alarms or using a pill organizer can help caregivers manage the schedule.',
     ],
     escalationCriteria: [
       'Patient has missed more than 2 consecutive refills',

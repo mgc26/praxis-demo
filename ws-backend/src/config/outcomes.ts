@@ -83,7 +83,7 @@ export const OUTCOMES: OutcomeDefinition[] = [
     label: 'Speaker Program Interest',
     description: 'HCP expressed interest in attending or participating in a Praxis speaker program or educational event.',
     smsTemplate: 'speaker_program_info',
-    isConversion: true,
+    isConversion: false, // Not a conversion — tracking speaker interest as conversion documents a commercial incentive that OIG flags
     color: '#8b5cf6', // violet-500
   },
   {

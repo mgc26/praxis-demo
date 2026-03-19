@@ -295,4 +295,172 @@ describe('screening-instruments', () => {
       expect(result).toContain('If NEGATIVE:');
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Pharmacovigilance & Safety — Extended Tests
+  // -------------------------------------------------------------------------
+
+  describe('C-SSRS-LITE regulatory terminology', () => {
+    // The C-SSRS description was updated to remove "black box warning"
+    // language and replace it with proper "FDA class" terminology.
+    // "Black box warning" is informal slang; FDA communications should
+    // reference the formal "class-wide safety monitoring requirements."
+
+    it('should not contain "black box warning" in description', () => {
+      const cssrs = SCREENING_INSTRUMENTS['C-SSRS-LITE'];
+      expect(cssrs.description.toLowerCase()).not.toContain('black box warning');
+    });
+
+    it('should contain "FDA class" language in description', () => {
+      // The description should reference the FDA class-wide requirement
+      // for suicidal ideation monitoring on anti-epileptic drugs.
+      const cssrs = SCREENING_INSTRUMENTS['C-SSRS-LITE'];
+      expect(cssrs.description).toContain('FDA class');
+    });
+
+    it('should not reference "black box" in conversationalPreamble', () => {
+      // Patient-facing language must never use alarming regulatory jargon
+      // like "black box" — it could cause unnecessary distress and is
+      // not how clinicians communicate with patients.
+      const cssrs = SCREENING_INSTRUMENTS['C-SSRS-LITE'];
+      expect(cssrs.conversationalPreamble.toLowerCase()).not.toContain('black box');
+    });
+  });
+
+  describe('MMAS-4 aeInquiryTrigger field', () => {
+    // The MMAS-4 instrument does NOT currently have an aeInquiryTrigger
+    // field in ScreeningInstrumentDefinition. This test documents that
+    // absence. If adherence screening should trigger AE inquiry in the
+    // future, the field must be added to the type and instrument config.
+
+    it('should not have an aeInquiryTrigger property (field does not exist in schema)', () => {
+      const mmas4 = SCREENING_INSTRUMENTS['MMAS-4'] as unknown as Record<string, unknown>;
+      expect(mmas4).not.toHaveProperty('aeInquiryTrigger');
+    });
+  });
+
+  describe('instrument data integrity — all instruments', () => {
+    it('should have maxScore > 0 for every instrument', () => {
+      // A maxScore of 0 would make scoring meaningless and break
+      // threshold-based clinical logic.
+      for (const id of ALL_INSTRUMENT_IDS) {
+        const inst = SCREENING_INSTRUMENTS[id];
+        expect(inst.maxScore).toBeGreaterThan(0);
+      }
+    });
+
+    it('should have positiveThreshold <= maxScore for every instrument', () => {
+      // If the threshold exceeds the maximum achievable score, no patient
+      // could ever screen positive — a silent clinical safety failure.
+      for (const id of ALL_INSTRUMENT_IDS) {
+        const inst = SCREENING_INSTRUMENTS[id];
+        expect(inst.positiveThreshold).toBeLessThanOrEqual(inst.maxScore);
+      }
+    });
+
+    it('should have non-empty conversationalPreamble for every instrument', () => {
+      // The preamble introduces the screening to the patient. An empty
+      // preamble would cause the agent to launch into questions without
+      // context, violating informed consent best practices.
+      for (const id of ALL_INSTRUMENT_IDS) {
+        const inst = SCREENING_INSTRUMENTS[id];
+        expect(inst.conversationalPreamble.trim().length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should have non-empty conversationalClosingPositive for every instrument', () => {
+      // A positive screen closing is spoken when the patient may need
+      // escalation or follow-up. An empty string would leave the patient
+      // with no guidance after a concerning result.
+      for (const id of ALL_INSTRUMENT_IDS) {
+        const inst = SCREENING_INSTRUMENTS[id];
+        expect(inst.conversationalClosingPositive.trim().length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should have non-empty conversationalClosingNegative for every instrument', () => {
+      // Even negative results deserve a compassionate closing statement
+      // to maintain rapport and encourage future engagement.
+      for (const id of ALL_INSTRUMENT_IDS) {
+        const inst = SCREENING_INSTRUMENTS[id];
+        expect(inst.conversationalClosingNegative.trim().length).toBeGreaterThan(0);
+      }
+    });
+  });
+
+  describe('isPositiveScreen — exact boundary tests', () => {
+    // Boundary tests verify the >= comparison at the exact threshold.
+    // Off-by-one errors in threshold logic could cause missed safety
+    // escalations (false negative) or unnecessary alarms (false positive).
+
+    it('should return true at exact threshold for every instrument', () => {
+      for (const id of ALL_INSTRUMENT_IDS) {
+        const inst = SCREENING_INSTRUMENTS[id];
+        expect(isPositiveScreen(id, inst.positiveThreshold)).toBe(true);
+      }
+    });
+
+    it('should return false at threshold minus one for every instrument', () => {
+      for (const id of ALL_INSTRUMENT_IDS) {
+        const inst = SCREENING_INSTRUMENTS[id];
+        expect(isPositiveScreen(id, inst.positiveThreshold - 1)).toBe(false);
+      }
+    });
+  });
+
+  describe('getInterpretation — threshold boundary behavior', () => {
+    // These tests confirm that getInterpretation returns the correct
+    // clinical text at the exact boundary, complementing the existing
+    // tests that use arbitrary above/below-threshold scores.
+
+    it('should return positive interpretation text at exact threshold for every instrument', () => {
+      for (const id of ALL_INSTRUMENT_IDS) {
+        const inst = SCREENING_INSTRUMENTS[id];
+        const result = getInterpretation(id, inst.positiveThreshold);
+        expect(result).toBe(inst.positiveInterpretation);
+      }
+    });
+
+    it('should return negative interpretation text below threshold for every instrument', () => {
+      for (const id of ALL_INSTRUMENT_IDS) {
+        const inst = SCREENING_INSTRUMENTS[id];
+        const result = getInterpretation(id, inst.positiveThreshold - 1);
+        expect(result).toBe(inst.negativeInterpretation);
+      }
+    });
+  });
+
+  describe('buildScreeningPromptBlock — MMAS-4 content', () => {
+    // MMAS-4 does not have an aeInquiryTrigger field, so the prompt
+    // block should NOT contain AE inquiry trigger text for MMAS-4.
+    // This documents the current behavior and guards against accidental
+    // addition of AE inquiry language to an adherence-only instrument.
+
+    it('should not contain AE inquiry trigger text for MMAS-4', () => {
+      const result = buildScreeningPromptBlock([
+        { instrumentId: 'MMAS-4', reason: 'Adherence monitoring', priority: 1 },
+      ]);
+      expect(result).not.toContain('aeInquiryTrigger');
+      expect(result).not.toContain('AE inquiry');
+    });
+
+    it('should include all 4 MMAS-4 questions in prompt block', () => {
+      const result = buildScreeningPromptBlock([
+        { instrumentId: 'MMAS-4', reason: 'Adherence monitoring', priority: 1 },
+      ]);
+      expect(result).toContain('Q1:');
+      expect(result).toContain('Q2:');
+      expect(result).toContain('Q3:');
+      expect(result).toContain('Q4:');
+    });
+
+    it('should not include REGULATORY NOTE for MMAS-4', () => {
+      // MMAS-4 is not regulatory reportable — adherence data is for
+      // patient support, not pharmacovigilance reporting.
+      const result = buildScreeningPromptBlock([
+        { instrumentId: 'MMAS-4', reason: 'Adherence monitoring', priority: 1 },
+      ]);
+      expect(result).not.toContain('REGULATORY NOTE');
+    });
+  });
 });

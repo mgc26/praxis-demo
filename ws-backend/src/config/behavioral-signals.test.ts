@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   SIGNAL_MAPPINGS,
+  EXTENDED_SIGNAL_MAPPINGS,
   getSignalUrgency,
   getPrimaryPathway,
   buildSignalContextSummary,
@@ -321,6 +322,90 @@ describe('behavioral-signals', () => {
       });
       const ids = result.map((r) => r.instrumentId);
       expect(ids).toContain('C-SSRS-LITE');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // contextRestriction field
+  // ---------------------------------------------------------------------------
+  // contextRestriction prevents patient/caregiver signals from being used to
+  // trigger HCP commercial outbound calls, which would be both irrelevant and
+  // potentially a compliance concern.
+  // ---------------------------------------------------------------------------
+
+  describe('contextRestriction field', () => {
+    it('should have contextRestriction "patient-facing-only" for SYMPTOM_SEARCH', () => {
+      // Symptom searches originate from patients/caregivers. Using this signal
+      // to trigger an HCP commercial call would be off-target.
+      expect(SIGNAL_MAPPINGS.SYMPTOM_SEARCH.contextRestriction).toBe('patient-facing-only');
+    });
+
+    it('should have contextRestriction "patient-facing-only" for ADHERENCE_GAP', () => {
+      // Adherence gaps are patient-level events — outbound to HCPs based on
+      // individual patient refill data raises privacy and relevance concerns.
+      expect(SIGNAL_MAPPINGS.ADHERENCE_GAP.contextRestriction).toBe('patient-facing-only');
+    });
+
+    it('should have contextRestriction "patient-facing-only" for CAREGIVER_DISTRESS', () => {
+      // Caregiver distress is a sensitive patient-side signal that should not
+      // be used for commercial HCP outreach.
+      expect(SIGNAL_MAPPINGS.CAREGIVER_DISTRESS.contextRestriction).toBe('patient-facing-only');
+    });
+
+    it('should NOT have contextRestriction for COMPETITOR_RESEARCH', () => {
+      // COMPETITOR_RESEARCH is an HCP-facing signal — no restriction needed.
+      expect(
+        SIGNAL_MAPPINGS.COMPETITOR_RESEARCH.contextRestriction === undefined ||
+          SIGNAL_MAPPINGS.COMPETITOR_RESEARCH.contextRestriction === null,
+      ).toBe(true);
+    });
+
+    it('should NOT have contextRestriction for KOL_ENGAGEMENT', () => {
+      // KOL_ENGAGEMENT is an HCP-facing signal — no restriction needed.
+      expect(
+        SIGNAL_MAPPINGS.KOL_ENGAGEMENT.contextRestriction === undefined ||
+          SIGNAL_MAPPINGS.KOL_ENGAGEMENT.contextRestriction === null,
+      ).toBe(true);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // EXTENDED_SIGNAL_MAPPINGS
+  // ---------------------------------------------------------------------------
+  // Extended signals cover CRM-derived and access-related signals that
+  // supplement the core behavioral categories. These are important for
+  // complete contact context in outbound workflows.
+  // ---------------------------------------------------------------------------
+
+  describe('EXTENDED_SIGNAL_MAPPINGS', () => {
+    it('should include FIRST_PARTY_ENGAGEMENT signal', () => {
+      expect(EXTENDED_SIGNAL_MAPPINGS).toHaveProperty('FIRST_PARTY_ENGAGEMENT');
+    });
+
+    it('should include ACCESS_RESTRICTION signal', () => {
+      expect(EXTENDED_SIGNAL_MAPPINGS).toHaveProperty('ACCESS_RESTRICTION');
+    });
+
+    it('should route FIRST_PARTY_ENGAGEMENT to patient-education pathway', () => {
+      // First-party engagement (website, app, email) signals a patient actively
+      // seeking info — patient-education is the natural support pathway.
+      expect(EXTENDED_SIGNAL_MAPPINGS.FIRST_PARTY_ENGAGEMENT.recommendedPathway).toBe(
+        'patient-education',
+      );
+    });
+
+    it('should route ACCESS_RESTRICTION to medication-access pathway', () => {
+      // Access restrictions (PA denials, formulary blocks) directly map to the
+      // medication-access pathway for reimbursement support.
+      expect(EXTENDED_SIGNAL_MAPPINGS.ACCESS_RESTRICTION.recommendedPathway).toBe(
+        'medication-access',
+      );
+    });
+
+    it('should have urgent urgency for ACCESS_RESTRICTION', () => {
+      // Access barriers risk treatment abandonment or gaps — especially
+      // dangerous for AEDs where gaps can trigger breakthrough seizures.
+      expect(EXTENDED_SIGNAL_MAPPINGS.ACCESS_RESTRICTION.urgencyLevel).toBe('urgent');
     });
   });
 });

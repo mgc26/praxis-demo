@@ -10,6 +10,19 @@ import { buildAgentVoicemailMessage } from '../prompts/agent-prompts.js';
 import { isMachineAnsweredBy } from '../utils/answered-by.js';
 
 export async function twilioVoiceRoutes(fastify: FastifyInstance) {
+  // Fallback TwiML route — served when the primary /twilio/voice webhook is
+  // unreachable. Twilio will hit this fallbackUrl so the caller hears a polite
+  // message instead of silence.
+  fastify.post('/twilio/voice/fallback', async (_request, reply) => {
+    fastify.log.error('Twilio fallback URL invoked — primary voice webhook may be failing');
+    const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say>We're experiencing technical difficulties. Please call back later.</Say>
+  <Hangup />
+</Response>`;
+    return reply.type('application/xml').send(twiml);
+  });
+
   fastify.post('/twilio/voice', async (request, reply) => {
     const body = request.body as Record<string, string>;
     const query = request.query as Record<string, string>;

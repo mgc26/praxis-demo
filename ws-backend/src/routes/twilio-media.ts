@@ -48,6 +48,10 @@ export async function twilioMediaRoutes(fastify: FastifyInstance) {
       const screeningResults = new Map<string, ScreeningResult>();
       let recommendedScreenings: RecommendedScreening[] = [];
 
+      // Call duration cap — 5 minutes max
+      const CALL_DURATION_CAP_MS = 5 * 60 * 1000; // 300 seconds
+      let durationCapTimer: ReturnType<typeof setTimeout> | null = null;
+
       // Silence detection state
       let lastTranscriptTime = 0;
       let silenceCheckInterval: ReturnType<typeof setInterval> | null = null;
@@ -324,6 +328,19 @@ export async function twilioMediaRoutes(fastify: FastifyInstance) {
           } catch (err) {
             fastify.log.error({ err }, 'Failed to create Deepgram Voice Agent');
           }
+
+          // Start call duration cap timer
+          durationCapTimer = setTimeout(() => {
+            fastify.log.info(
+              { callSid, streamSid, durationCapSeconds: CALL_DURATION_CAP_MS / 1000 },
+              'Call duration cap reached — ending call via Twilio REST API',
+            );
+            if (callSid) {
+              twilioService.endCall(callSid).catch((err: unknown) => {
+                fastify.log.error({ err }, 'Failed to end call after duration cap');
+              });
+            }
+          }, CALL_DURATION_CAP_MS);
         } else {
           fastify.log.error(
             { callSid, contactId: contact?.contactId },
@@ -642,6 +659,10 @@ export async function twilioMediaRoutes(fastify: FastifyInstance) {
 
         fastify.log.info({ callId: currentCallId }, 'Starting post-call processing');
 
+        if (durationCapTimer) {
+          clearTimeout(durationCapTimer);
+          durationCapTimer = null;
+        }
         if (silenceCheckInterval) {
           clearInterval(silenceCheckInterval);
           silenceCheckInterval = null;

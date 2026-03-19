@@ -91,7 +91,7 @@ const C_SSRS_LITE: ScreeningInstrumentDefinition = {
   id: 'C-SSRS-LITE',
   name: 'Columbia Suicide Severity Rating Scale — Lite',
   shortName: 'C-SSRS Lite',
-  description: 'Two-question suicidal ideation screen adapted from the Columbia Protocol. Required for patients on anti-epileptic drugs per FDA black box warning for suicidal ideation risk.',
+  description: 'Two-question suicidal ideation screen adapted from the Columbia Protocol. Required per FDA class-wide safety monitoring requirements for anti-epileptic drugs regarding suicidal ideation risk.',
   questions: [
     {
       index: 0,
@@ -117,7 +117,7 @@ const C_SSRS_LITE: ScreeningInstrumentDefinition = {
   followUpAction: 'Immediate crisis escalation: 988 Suicide & Crisis Lifeline, notify prescribing HCP, and file pharmacovigilance report.',
   regulatoryReportable: true,
   requiresEscalation: true,
-  conversationalPreamble: "Because your medication is in a class that the FDA monitors closely, I need to ask you two important questions. These are questions we ask everyone on this type of medication, and I want you to know that your honest answers help us keep you safe.",
+  conversationalPreamble: "Because your medication is in a class that requires ongoing safety monitoring, I need to ask you two important questions. These are questions we ask everyone on this type of medication, and I want you to know that your honest answers help us keep you safe.",
   conversationalClosingPositive: "Thank you for being honest with me — that takes courage. I want to make sure you get the right support. I'm going to connect you with someone who can help right now. The 988 Suicide and Crisis Lifeline is also available anytime — you can call or text 988.",
   conversationalClosingNegative: "Thank you for answering those questions. We ask everyone on this type of medication, and I'm glad to hear you're doing okay. If anything ever changes, please don't hesitate to reach out.",
 };

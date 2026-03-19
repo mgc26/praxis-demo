@@ -60,6 +60,8 @@ export function createDeepgramAgent(
   ws.on('open', () => {
     const config = {
       type: 'Settings',
+      tags: [contact.agentType, contact.therapeuticArea, contact.contactType],
+      mip_opt_out: true,
       audio: {
         input: {
           encoding: 'mulaw',
@@ -77,19 +79,37 @@ export function createDeepgramAgent(
           provider: {
             type: 'deepgram',
             model: 'nova-3',
+            keyterms: [
+              { term: 'Euloxacaltenamide', boost: 5 },
+              { term: 'ELEX', boost: 5 },
+              { term: 'Relutrigine', boost: 5 },
+              { term: 'Praxis', boost: 3 },
+              { term: 'TETRAS', boost: 3 },
+              { term: 'Dravet', boost: 3 },
+              { term: 'clobazam', boost: 2 },
+              { term: 'stiripentol', boost: 2 },
+              { term: 'valproate', boost: 2 },
+              { term: 'propranolol', boost: 2 },
+              { term: 'primidone', boost: 2 },
+              { term: 'topiramate', boost: 2 },
+              { term: 'carbamazepine', boost: 2 },
+              { term: 'phenytoin', boost: 2 },
+              { term: 'lamotrigine', boost: 2 },
+            ],
           },
         },
         think: {
           provider: {
             type: 'open_ai',
             model: 'gpt-4o-mini',
+            temperature: 0.3,
           },
           prompt: systemPrompt,
           functions: [
             {
               name: 'report_adverse_event',
               description:
-                'Report an adverse event (AE). Call when a patient or HCP describes a side effect, unexpected reaction, or safety concern related to ELEX (Euloxacaltenamide) or Relutrigine.',
+                'Report an adverse event (AE). Call when a patient or HCP describes a side effect, unexpected reaction, or safety concern related to ELEX (Euloxacaltenamide) or Relutrigine. A valid ICSR requires four minimum elements per 21 CFR 314.80: (1) identifiable reporter, (2) identifiable patient, (3) suspect drug, and (4) adverse event description. Collect all four before calling.',
               parameters: {
                 type: 'object',
                 properties: {
@@ -115,8 +135,33 @@ export function createDeepgramAgent(
                     enum: ['patient', 'hcp', 'caregiver'],
                     description: 'Who is reporting the AE',
                   },
+                  patient_initials: {
+                    type: 'string',
+                    description: 'Patient initials (e.g., "J.S.") or "unknown" if not available. Required for identifiable patient element.',
+                  },
+                  patient_age: {
+                    type: 'string',
+                    description: 'Patient age or age range (e.g., "45", "40-50", "elderly")',
+                  },
+                  patient_sex: {
+                    type: 'string',
+                    description: 'Patient sex (male, female, unknown)',
+                  },
+                  event_outcome: {
+                    type: 'string',
+                    enum: ['resolved', 'resolving', 'not-resolved', 'fatal', 'unknown'],
+                    description: 'Outcome of the adverse event at time of report',
+                  },
+                  is_serious: {
+                    type: 'boolean',
+                    description: 'Whether this meets serious AE criteria (hospitalization, life-threatening, disability, death, congenital anomaly, or other medically important condition)',
+                  },
+                  concomitant_medications: {
+                    type: 'string',
+                    description: 'Other medications the patient is currently taking',
+                  },
                 },
-                required: ['event_description', 'severity', 'drug_name', 'reporter_type'],
+                required: ['event_description', 'severity', 'drug_name', 'reporter_type', 'patient_initials'],
               },
             },
             {
@@ -135,8 +180,21 @@ export function createDeepgramAgent(
                     enum: ['immediate', 'within-24h'],
                     description: 'Urgency level of the safety escalation',
                   },
+                  patient_initials: {
+                    type: 'string',
+                    description: 'Patient initials (e.g., "J.S.") or "unknown" if not available',
+                  },
+                  event_description: {
+                    type: 'string',
+                    description: 'Description of the serious event being escalated',
+                  },
+                  seriousness_criteria: {
+                    type: 'string',
+                    enum: ['hospitalization', 'life-threatening', 'disability', 'congenital-anomaly', 'death', 'other-medically-important'],
+                    description: 'Which ICH seriousness criterion this event meets',
+                  },
                 },
-                required: ['reason', 'urgency'],
+                required: ['reason', 'urgency', 'patient_initials', 'event_description', 'seriousness_criteria'],
               },
             },
             {
@@ -157,6 +215,42 @@ export function createDeepgramAgent(
                   },
                 },
                 required: ['trigger', 'severity'],
+              },
+            },
+            {
+              name: 'report_pregnancy_exposure',
+              description:
+                'Report pregnancy exposure to a Praxis product. MANDATORY reporting for all anti-epileptic drugs. Call immediately when pregnancy is mentioned by a patient, caregiver, or HCP.',
+              parameters: {
+                type: 'object',
+                properties: {
+                  drug_name: {
+                    type: 'string',
+                    description: 'Praxis drug the patient was exposed to (ELEX or Relutrigine)',
+                  },
+                  trimester: {
+                    type: 'string',
+                    description: 'Trimester of pregnancy at time of exposure (first, second, third, unknown)',
+                  },
+                  gestational_age: {
+                    type: 'string',
+                    description: 'Gestational age if known (e.g., "12 weeks", "5 months")',
+                  },
+                  patient_initials: {
+                    type: 'string',
+                    description: 'Patient initials (e.g., "J.S.") or "unknown" if not available',
+                  },
+                  reporter_type: {
+                    type: 'string',
+                    enum: ['patient', 'hcp', 'caregiver'],
+                    description: 'Who is reporting the pregnancy exposure',
+                  },
+                  outcome_if_known: {
+                    type: 'string',
+                    description: 'Pregnancy outcome if already known (e.g., live birth, miscarriage, ongoing)',
+                  },
+                },
+                required: ['drug_name', 'patient_initials', 'reporter_type'],
               },
             },
             {
@@ -394,6 +488,9 @@ export function createDeepgramAgent(
     ws.send(JSON.stringify(config));
   });
 
+  // KeepAlive interval — prevents WebSocket drops on long calls
+  let keepAliveInterval: ReturnType<typeof setInterval> | null = null;
+
   let textFrames = 0;
   let binaryFrames = 0;
   ws.on('message', (data: WebSocket.RawData, isBinary: boolean) => {
@@ -423,6 +520,16 @@ export function createDeepgramAgent(
 
         case 'SettingsApplied':
           console.log('[DeepgramAgent] Settings applied successfully');
+          // Start KeepAlive to prevent WebSocket drops on long calls
+          keepAliveInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+              try {
+                ws.send(JSON.stringify({ type: 'KeepAlive' }));
+              } catch (err) {
+                console.warn('[DeepgramAgent] Failed to send KeepAlive:', (err as Error).message);
+              }
+            }
+          }, 8000);
           callbacks.onReady();
           break;
 
@@ -489,7 +596,9 @@ export function createDeepgramAgent(
           // Return a meaningful function response so the agent can continue naturally
           let outputMessage = 'Done.';
           if (functionName === 'report_adverse_event') {
-            outputMessage = 'Adverse event has been logged in the pharmacovigilance system. Confirm with the reporter that safety will follow up.';
+            outputMessage = 'Adverse event has been logged in the pharmacovigilance system. Confirm you have: reporter identity, patient initials, suspect drug name, and event description — these four elements are required. Confirm with the reporter that safety will follow up.';
+          } else if (functionName === 'report_pregnancy_exposure') {
+            outputMessage = 'Pregnancy exposure report has been logged. Advise the caller to consult their prescribing physician immediately. Provide the North American Antiepileptic Drug Pregnancy Registry contact: 1-888-233-2334. Safety will follow up for outcome tracking.';
           } else if (functionName === 'escalate_to_safety') {
             outputMessage = 'Safety escalation initiated. Prepare the caller for transfer to pharmacovigilance.';
           } else if (functionName === 'escalate_crisis') {
@@ -533,11 +642,24 @@ export function createDeepgramAgent(
           break;
         }
 
+        case 'AgentStartedSpeaking':
+          console.log(
+            '[DeepgramAgent] AgentStartedSpeaking — latency:',
+            `total=${message.total_latency}s`,
+            `tts=${message.tts_latency}s`,
+            `ttt=${message.ttt_latency}s`,
+          );
+          break;
+
         case 'AgentAudioDone':
           callbacks.onAgentAudioDone();
           break;
 
         case 'EndOfThought':
+          break;
+
+        case 'Warning':
+          console.warn('[DeepgramAgent] Warning from Deepgram:', JSON.stringify(message));
           break;
 
         case 'Error':
@@ -578,6 +700,10 @@ export function createDeepgramAgent(
   });
 
   ws.on('close', (code: number, reason: Buffer) => {
+    if (keepAliveInterval) {
+      clearInterval(keepAliveInterval);
+      keepAliveInterval = null;
+    }
     const reasonStr = reason.toString();
     switch (code) {
       case 1000:
@@ -601,6 +727,10 @@ export function createDeepgramAgent(
 
   ws.on('error', (error: Error) => {
     console.error('[DeepgramAgent] WebSocket error for contact', contact.contactId, ':', error.message, error.stack);
+    if (keepAliveInterval) {
+      clearInterval(keepAliveInterval);
+      keepAliveInterval = null;
+    }
     try { ws.close(); } catch { /* ignore */ }
     callbacks.onClose();
   });
