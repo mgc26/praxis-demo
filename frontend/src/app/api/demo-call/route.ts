@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing phoneNumber or scenarioId' }, { status: 400 });
   }
 
-  const backendUrl = process.env.NEXT_PUBLIC_WS_BACKEND_URL || process.env.WS_BACKEND_URL || 'http://localhost:8080';
+  const backendUrl = process.env.WS_BACKEND_URL || process.env.NEXT_PUBLIC_WS_BACKEND_URL || 'http://localhost:8080';
 
   try {
     const res = await fetch(`${backendUrl}/api/demo-call`, {

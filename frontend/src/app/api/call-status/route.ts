@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing callSid parameter' }, { status: 400 });
   }
 
-  const backendUrl = process.env.NEXT_PUBLIC_WS_BACKEND_URL || process.env.WS_BACKEND_URL || 'http://localhost:8080';
+  const backendUrl = process.env.WS_BACKEND_URL || process.env.NEXT_PUBLIC_WS_BACKEND_URL || 'http://localhost:8080';
 
   try {
     const res = await fetch(`${backendUrl}/api/call-status?callSid=${encodeURIComponent(callSid)}`, {

@@ -35,7 +35,10 @@ export async function twilioVoiceRoutes(fastify: FastifyInstance) {
         fastify.log.error('TWILIO_WEBHOOK_URL not set — cannot validate Twilio signature');
         return reply.status(500).send('Server misconfiguration: TWILIO_WEBHOOK_URL required');
       }
-      const fullUrl = webhookUrl + request.url;
+      // TWILIO_WEBHOOK_URL includes the path (/twilio/voice) so use the
+      // base origin + the incoming request URL to avoid doubling the path.
+      const origin = new URL(webhookUrl).origin;
+      const fullUrl = origin + request.url;
       const params = (request.body as Record<string, string>) || {};
 
       if (!signature || !twilio.validateRequest(authToken, signature, fullUrl, params)) {
