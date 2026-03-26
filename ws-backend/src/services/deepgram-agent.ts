@@ -96,10 +96,7 @@ export function createDeepgramAgent(
           provider: {
             type: 'deepgram',
             model: 'nova-3',
-            keyterms: brandCfg.vocabularyBoosts.map((vb) => ({
-              term: vb.word,
-              boost: vb.boost,
-            })),
+            keyterms: brandCfg.vocabularyBoosts.map((vb) => vb.word),
           },
         },
         think: {
