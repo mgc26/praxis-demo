@@ -63,8 +63,8 @@ export async function twilioMediaRoutes(fastify: FastifyInstance) {
       let lastTranscriptTime = 0;
       let silenceCheckInterval: ReturnType<typeof setInterval> | null = null;
       let silencePromptSent = false;
-      const SILENCE_PROMPT_MS = 8000;
-      const SILENCE_HANGUP_MS = 25000;
+      const SILENCE_PROMPT_MS = 15000;
+      const SILENCE_HANGUP_MS = 45000;
 
       // Audio diagnostic counters
       let firstAudioLogged = false;
