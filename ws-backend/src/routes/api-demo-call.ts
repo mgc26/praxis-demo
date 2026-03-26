@@ -8,6 +8,7 @@ import { FastifyInstance } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
 import { contacts, calls, callIdBySid } from '../server.js';
 import { processContactOutreach } from '../services/contact-outreach-processor.js';
+import { getBrandConfig } from '../brands/index.js';
 import type { ContactRecord, BehavioralSignal, TherapeuticArea } from '../types/index.js';
 
 function sig(detail: string, category: BehavioralSignal['category'] = 'ADHERENCE_GAP'): BehavioralSignal {
@@ -545,8 +546,30 @@ export async function apiDemoCallRoutes(fastify: FastifyInstance) {
       callId: null,
     };
 
+    // Re-anchor contact to the selected brand — scenario defaults use Praxis
+    // drug/TA data, so override with the brand's primary drug profile when a
+    // non-default brand is selected.
+    if (brandId && brandId !== 'praxis') {
+      const brandCfg = getBrandConfig(brandId);
+      const primaryDrug = brandCfg.drugProfiles[0];
+      if (primaryDrug) {
+        contact.currentDrug = primaryDrug.id;
+        contact.currentDose = undefined;
+        contact.therapeuticArea = primaryDrug.therapeuticArea as TherapeuticArea;
+        contact.diagnosis = primaryDrug.indication;
+      }
+      // Use second drug for DEE/Dravet-mapped scenarios (caregiver, pediatric)
+      if (brandCfg.drugProfiles.length > 1 && (scenarioId.includes('dee') || scenarioId.includes('caregiver') || scenarioId.includes('launch'))) {
+        const secondDrug = brandCfg.drugProfiles[1]!;
+        contact.currentDrug = secondDrug.id;
+        contact.currentDose = undefined;
+        contact.therapeuticArea = secondDrug.therapeuticArea as TherapeuticArea;
+        contact.diagnosis = secondDrug.indication;
+      }
+    }
+
     contacts.set(contactId, contact);
-    fastify.log.info({ contactId, phone: phoneNumber, scenarioId, agentType: contact.agentType }, 'Demo call requested');
+    fastify.log.info({ contactId, phone: phoneNumber, scenarioId, agentType: contact.agentType, brandId: brandId || 'praxis' }, 'Demo call requested');
 
     try {
       const { callSid } = await processContactOutreach(contact, { contacts, calls, callIdBySid }, { brandId });
