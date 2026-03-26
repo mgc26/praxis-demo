@@ -77,6 +77,10 @@ export interface BrandBackendConfig {
   /** Optional overrides for outcome labels/descriptions */
   outcomeOverrides?: Record<string, string>;
 
+  /** TTS pronunciation overrides — appended to system prompt so the LLM
+   *  spells tricky drug names phonetically for correct text-to-speech output. */
+  pronunciationGuide?: string;
+
   /** Brand-specific screening instruments */
   screeningInstruments?: Array<{
     id: string;

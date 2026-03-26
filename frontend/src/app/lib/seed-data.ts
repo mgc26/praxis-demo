@@ -90,6 +90,101 @@ function brandInstrument(brand: BrandPack): { id: string; label: string } {
 }
 
 // ---------------------------------------------------------------------------
+// Brand-specific HCP specialties and institutions
+// Index: [0-2] for drug-0 HCPs, [3-5] for drug-1 HCPs
+// ---------------------------------------------------------------------------
+interface HcpProfile { specialty: string; institution: string }
+
+const HCP_PROFILES: Record<string, HcpProfile[]> = {
+  praxis: [
+    { specialty: 'Neurology -- Movement Disorders', institution: 'Massachusetts General Hospital' },
+    { specialty: 'Neurology', institution: 'UCSF Neurology' },
+    { specialty: 'Movement Disorder Specialist', institution: 'Mount Sinai Neurology' },
+    { specialty: 'Pediatric Neurology -- Epilepsy', institution: "Ann & Robert H. Lurie Children's Hospital" },
+    { specialty: 'Epileptologist', institution: 'Seattle Epilepsy Center' },
+    { specialty: 'Pediatric Neurologist', institution: "Children's Hospital of Philadelphia" },
+  ],
+  amgen: [
+    { specialty: 'Cardiology -- Lipid Management', institution: 'Cleveland Clinic Heart & Vascular' },
+    { specialty: 'Interventional Cardiology', institution: 'Cedars-Sinai Heart Institute' },
+    { specialty: 'Cardiology', institution: 'NYU Langone Cardiovascular' },
+    { specialty: 'Pulmonology -- Severe Asthma', institution: 'National Jewish Health' },
+    { specialty: 'Allergy & Immunology', institution: 'Mayo Clinic Respiratory' },
+    { specialty: 'Pulmonologist', institution: "Children's Hospital Colorado" },
+  ],
+  ptc: [
+    { specialty: 'Medical Genetics -- Metabolic Disease', institution: 'Boston Children\'s Hospital Metabolism' },
+    { specialty: 'Metabolic Disease Specialist', institution: 'UCSF Metabolic Clinic' },
+    { specialty: 'Clinical Geneticist', institution: 'Mount Sinai Genetics Center' },
+    { specialty: 'Pediatric Neurology -- Neuromuscular', institution: "Ann & Robert H. Lurie Children's Hospital" },
+    { specialty: 'Neuromuscular Medicine', institution: 'Nationwide Children\'s Hospital' },
+    { specialty: 'Pediatric Neurologist -- DMD', institution: "Children's Hospital of Philadelphia" },
+  ],
+};
+
+function brandHcpProfiles(brand: BrandPack): HcpProfile[] {
+  return HCP_PROFILES[brand.id] ?? HCP_PROFILES['praxis'];
+}
+
+// ---------------------------------------------------------------------------
+// Pathway mapping -- maps conceptual roles to brand-specific pathway IDs
+// Each brand's supportPathways use different IDs for the same concepts.
+// ---------------------------------------------------------------------------
+type ConceptualPathway = 'access' | 'safety' | 'education' | 'patient-ed' | 'adherence' | 'coordination';
+
+const PATHWAY_CONCEPT_MAP: Record<string, Record<ConceptualPathway, string>> = {
+  praxis: {
+    access: 'medication-access',
+    safety: 'safety-reporting',
+    education: 'clinical-education',
+    'patient-ed': 'patient-education',
+    adherence: 'adherence-support',
+    coordination: 'nurse-educator',
+  },
+  amgen: {
+    access: 'hub-enrollment',
+    safety: 'ae-reporting',
+    education: 'medical-inquiry',
+    'patient-ed': 'copay-assistance',
+    adherence: 'adherence-support',
+    coordination: 'sample-request',
+  },
+  ptc: {
+    access: 'hub-enrollment',
+    safety: 'ae-reporting',
+    education: 'medical-inquiry',
+    'patient-ed': 'copay-assistance',
+    adherence: 'adherence-support',
+    coordination: 'genetic-testing-referral',
+  },
+};
+
+function brandPathway(brand: BrandPack, concept: ConceptualPathway): string {
+  const map = PATHWAY_CONCEPT_MAP[brand.id] ?? PATHWAY_CONCEPT_MAP['praxis'];
+  return map[concept];
+}
+
+// ---------------------------------------------------------------------------
+// Brand-specific competitor references for liaison summaries
+// ---------------------------------------------------------------------------
+function brandCompetitors(brand: BrandPack, drugIdx: 0 | 1): string {
+  switch (brand.id) {
+    case 'amgen':
+      return drugIdx === 0
+        ? 'Inclisiran and bempedoic acid remain primary alternatives'
+        : 'Dupilumab and omalizumab are primary competitors';
+    case 'ptc':
+      return drugIdx === 0
+        ? 'Sapropterin (Kuvan) and dietary management remain primary alternatives'
+        : 'Prednisone and eteplirsen are primary competitors';
+    default:
+      return drugIdx === 0
+        ? 'Propranolol and primidone remain primary alternatives'
+        : 'Fenfluramine and cannabidiol are primary competitors';
+  }
+}
+
+// ---------------------------------------------------------------------------
 // 12 Contacts (6 patients, 6 HCPs) -- brand-aware
 // ---------------------------------------------------------------------------
 function buildContacts(brand: BrandPack): ContactRecord[] {
@@ -97,6 +192,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
   const d1 = brandDrug1(brand);
   const ta0 = brandTA0(brand);
   const ta1 = brandTA1(brand);
+  const hcps = brandHcpProfiles(brand);
 
   return [
   // === 3 patients on product 0 ===
@@ -116,7 +212,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
       { category: 'ADHERENCE_SIGNAL', detail: `${d0.brandName} refill 8 days overdue -- specialty pharmacy flag`, recency: '2 days ago', severity: 'high', clinicalImplication: 'Adherence gap on newly launched therapy -- risk of relapse', timestamp: new Date('2026-03-15').toISOString() },
       { category: 'SEARCH_INTENT', detail: `Searched "${d0.brandName} side effects" 3x this week`, recency: '3 days ago', severity: 'medium', clinicalImplication: 'Patient researching side effects -- possible AE concern', timestamp: new Date('2026-03-14').toISOString() },
     ],
-    recommendedPathway: 'adherence-support',
+    recommendedPathway: brandPathway(brand, 'adherence'),
     openActions: [`${d0.brandName} refill overdue`, 'Hub follow-up call due', '30-day adherence check-in'],
     priorityTier: 'HIGH',
     priorityScore: 87,
@@ -137,7 +233,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'SEARCH_INTENT', detail: `Searched "copay help for specialty medications" and "${d0.brandName} patient assistance"`, recency: 'Yesterday', severity: 'high', clinicalImplication: 'Cost barrier -- copay card activation urgent to prevent therapy abandonment', timestamp: new Date('2026-03-16').toISOString() },
     ],
-    recommendedPathway: 'medication-access',
+    recommendedPathway: brandPathway(brand, 'access'),
     openActions: ['Copay card not yet activated', 'Benefits investigation pending'],
     priorityTier: 'HIGH',
     priorityScore: 82,
@@ -158,7 +254,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'RX_PATTERN', detail: `First ${d0.brandName} fill picked up 3 days ago -- new start`, recency: '3 days ago', severity: 'medium', clinicalImplication: 'New start patient -- onboarding and hub enrollment window', timestamp: new Date('2026-03-14').toISOString() },
     ],
-    recommendedPathway: 'medication-access',
+    recommendedPathway: brandPathway(brand, 'access'),
     openActions: ['Hub enrollment not completed', 'Welcome call pending', 'Copay card activation'],
     priorityTier: 'MEDIUM',
     priorityScore: 65,
@@ -181,7 +277,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
       { category: 'ADHERENCE_SIGNAL', detail: `${d1.brandName} specialty pharmacy refill submitted but prior auth pending 12 days`, recency: '1 day ago', severity: 'high', clinicalImplication: 'Prior auth delay -- breakthrough risk for pediatric patient', timestamp: new Date('2026-03-16').toISOString() },
       { category: 'SEARCH_INTENT', detail: `Searched "${brandTA1Label(brand)} emergency plan" and "${d1.brandName} dosing pediatric"`, recency: '4 days ago', severity: 'medium', clinicalImplication: 'Caregiver anxiety about disease management -- support needed', timestamp: new Date('2026-03-13').toISOString() },
     ],
-    recommendedPathway: 'adherence-support',
+    recommendedPathway: brandPathway(brand, 'adherence'),
     openActions: ['Prior auth follow-up', 'Caregiver support check-in', 'Emergency plan review'],
     priorityTier: 'HIGH',
     priorityScore: 91,
@@ -202,7 +298,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'RX_PATTERN', detail: `${d1.brandName} first fill -- new start patient (daughter)`, recency: '5 days ago', severity: 'medium', clinicalImplication: 'New start -- hub enrollment and titration support critical', timestamp: new Date('2026-03-12').toISOString() },
     ],
-    recommendedPathway: 'medication-access',
+    recommendedPathway: brandPathway(brand, 'access'),
     openActions: ['Hub enrollment', 'Titration schedule education', 'Copay card setup'],
     priorityTier: 'MEDIUM',
     priorityScore: 68,
@@ -223,7 +319,7 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     behavioralSignals: [
       { category: 'CLAIMS_SIGNAL', detail: 'ER visit 6 days ago -- disease-related', recency: '6 days ago', severity: 'high', clinicalImplication: 'Breakthrough event -- therapy assessment and AE screening needed', timestamp: new Date('2026-03-11').toISOString() },
     ],
-    recommendedPathway: 'safety-reporting',
+    recommendedPathway: brandPathway(brand, 'safety'),
     openActions: ['Post-ER follow-up', 'AE assessment', 'Specialist coordination'],
     priorityTier: 'HIGH',
     priorityScore: 88,
@@ -239,14 +335,14 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     contactType: 'hcp',
     therapeuticArea: ta0,
     drugProduct: d0.id,
-    specialty: 'Neurology -- Movement Disorders',
+    specialty: hcps[0].specialty,
     npiNumber: '1234567890',
-    practiceLocation: 'Massachusetts General Hospital',
+    practiceLocation: hcps[0].institution,
     patientsOnTherapy: 12,
     behavioralSignals: [
       { category: 'HCP_ACTIVITY', detail: `Attended ${brand.companyName}-sponsored symposium, requested ${d0.brandName} trial reprints`, recency: '1 week ago', severity: 'medium', clinicalImplication: 'High interest -- ready for detailed clinical discussion', timestamp: new Date('2026-03-10').toISOString() },
     ],
-    recommendedPathway: 'clinical-education',
+    recommendedPathway: brandPathway(brand, 'education'),
     openActions: ['Sample fulfillment pending', 'Clinical reprint delivery', 'Follow-up detail call'],
     priorityTier: 'HIGH',
     priorityScore: 85,
@@ -261,14 +357,14 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     contactType: 'hcp',
     therapeuticArea: ta0,
     drugProduct: d0.id,
-    specialty: 'Neurology',
+    specialty: hcps[1].specialty,
     npiNumber: '2345678901',
-    practiceLocation: 'UCSF Neurology',
+    practiceLocation: hcps[1].institution,
     patientsOnTherapy: 5,
     behavioralSignals: [
       { category: 'COMPETITIVE_INTEL', detail: `Prescribing pattern shifted -- 3 patients moved to ${d0.brandName}`, recency: '2 weeks ago', severity: 'low', clinicalImplication: 'Positive adoption trend -- reinforce with outcomes data', timestamp: new Date('2026-03-03').toISOString() },
     ],
-    recommendedPathway: 'clinical-education',
+    recommendedPathway: brandPathway(brand, 'education'),
     openActions: ['Phase 3 data request pending', 'Formulary support needed'],
     priorityTier: 'MEDIUM',
     priorityScore: 62,
@@ -283,14 +379,14 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     contactType: 'hcp',
     therapeuticArea: ta0,
     drugProduct: d0.id,
-    specialty: 'Movement Disorder Specialist',
+    specialty: hcps[2].specialty,
     npiNumber: '3456789012',
-    practiceLocation: 'Mount Sinai Neurology',
+    practiceLocation: hcps[2].institution,
     patientsOnTherapy: 0,
     behavioralSignals: [
       { category: 'HCP_ACTIVITY', detail: `Downloaded ${d0.brandName} PI from ${brand.website}, viewed MOA video twice`, recency: '4 days ago', severity: 'medium', clinicalImplication: `Evaluating ${d0.brandName} -- high-value target for outbound detail`, timestamp: new Date('2026-03-13').toISOString() },
     ],
-    recommendedPathway: 'clinical-education',
+    recommendedPathway: brandPathway(brand, 'education'),
     openActions: ['Introductory detail call', 'Sample shipment', 'Speaker program invitation'],
     priorityTier: 'HIGH',
     priorityScore: 78,
@@ -305,14 +401,14 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     contactType: 'hcp',
     therapeuticArea: ta1,
     drugProduct: d1.id,
-    specialty: 'Pediatric Neurology -- Epilepsy',
+    specialty: hcps[3].specialty,
     npiNumber: '4567890123',
-    practiceLocation: "Ann & Robert H. Lurie Children's Hospital",
+    practiceLocation: hcps[3].institution,
     patientsOnTherapy: 8,
     behavioralSignals: [
       { category: 'HCP_ACTIVITY', detail: `Submitted 3 ${d1.brandName} prior auth requests in 2 weeks`, recency: '3 days ago', severity: 'high', clinicalImplication: 'Active prescriber with access challenges -- formulary support needed', timestamp: new Date('2026-03-14').toISOString() },
     ],
-    recommendedPathway: 'clinical-education',
+    recommendedPathway: brandPathway(brand, 'education'),
     openActions: ['Prior auth support', 'Formulary challenge data', 'Peer-to-peer scheduling'],
     priorityTier: 'HIGH',
     priorityScore: 90,
@@ -327,14 +423,14 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     contactType: 'hcp',
     therapeuticArea: ta1,
     drugProduct: d1.id,
-    specialty: 'Epileptologist',
+    specialty: hcps[4].specialty,
     npiNumber: '5678901234',
-    practiceLocation: 'Seattle Epilepsy Center',
+    practiceLocation: hcps[4].institution,
     patientsOnTherapy: 15,
     behavioralSignals: [
       { category: 'COMPETITIVE_INTEL', detail: `Published review article comparing ${d1.brandName} to competitor therapies`, recency: '1 week ago', severity: 'medium', clinicalImplication: 'KOL influence -- engage for speaker program and advisory board', timestamp: new Date('2026-03-10').toISOString() },
     ],
-    recommendedPathway: 'clinical-education',
+    recommendedPathway: brandPathway(brand, 'education'),
     openActions: ['Advisory board invitation', 'Speaker program recruitment', 'Real-world evidence discussion'],
     priorityTier: 'MEDIUM',
     priorityScore: 72,
@@ -349,14 +445,14 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
     contactType: 'hcp',
     therapeuticArea: ta1,
     drugProduct: d1.id,
-    specialty: 'Pediatric Neurologist',
+    specialty: hcps[5].specialty,
     npiNumber: '6789012345',
-    practiceLocation: "Children's Hospital of Philadelphia",
+    practiceLocation: hcps[5].institution,
     patientsOnTherapy: 3,
     behavioralSignals: [
       { category: 'SEARCH_INTENT', detail: `Searched "${d1.brandName} trial results" and "${brandTA1Label(brand)}" on medical portals`, recency: '2 days ago', severity: 'medium', clinicalImplication: `Researching ${d1.brandName} -- receptive to clinical data presentation`, timestamp: new Date('2026-03-15').toISOString() },
     ],
-    recommendedPathway: 'clinical-education',
+    recommendedPathway: brandPathway(brand, 'education'),
     openActions: ['Clinical data presentation', 'Sample request follow-up', 'Peer-to-peer connection'],
     priorityTier: 'MEDIUM',
     priorityScore: 58,
@@ -368,9 +464,13 @@ function buildContacts(brand: BrandPack): ContactRecord[] {
 // ---------------------------------------------------------------------------
 // Agent type assignment logic
 // ---------------------------------------------------------------------------
-function assignAgentType(contactType: 'patient' | 'hcp', pathway: SupportPathwayId): AgentType {
+// Inbound HCP pathways — these route to hcp-support; all others go hcp-outbound
+const INBOUND_HCP_CONCEPTS: ConceptualPathway[] = ['education', 'safety'];
+
+function assignAgentType(contactType: 'patient' | 'hcp', pathway: SupportPathwayId, brand: BrandPack): AgentType {
   if (contactType === 'patient') return 'patient-support';
-  if (pathway === 'clinical-education' || pathway === 'safety-reporting') return 'hcp-support';
+  const inboundIds = INBOUND_HCP_CONCEPTS.map(c => brandPathway(brand, c));
+  if (inboundIds.includes(pathway)) return 'hcp-support';
   return 'hcp-outbound';
 }
 
@@ -390,14 +490,14 @@ const OUTCOME_DISTRIBUTION: { outcome: InteractionOutcome; count: number }[] = [
   { outcome: 'voicemail', count: 1 },
 ];
 
-// Pathway distribution -- 20 total calls
-const PATHWAY_DISTRIBUTION: { pathway: SupportPathwayId; count: number }[] = [
-  { pathway: 'medication-access', count: 4 },
-  { pathway: 'safety-reporting', count: 3 },
-  { pathway: 'clinical-education', count: 3 },
-  { pathway: 'patient-education', count: 4 },
-  { pathway: 'adherence-support', count: 3 },
-  { pathway: 'nurse-educator', count: 3 },
+// Pathway distribution -- 20 total calls (uses conceptual keys, resolved per brand)
+const PATHWAY_CONCEPT_DISTRIBUTION: { concept: ConceptualPathway; count: number }[] = [
+  { concept: 'access', count: 4 },
+  { concept: 'safety', count: 3 },
+  { concept: 'education', count: 3 },
+  { concept: 'patient-ed', count: 4 },
+  { concept: 'adherence', count: 3 },
+  { concept: 'coordination', count: 3 },
 ];
 
 // ---------------------------------------------------------------------------
@@ -418,9 +518,15 @@ function flatShuffle<T>(spec: { item: T; count: number }[]): T[] {
 const OUTCOMES_LIST = flatShuffle(
   OUTCOME_DISTRIBUTION.map(({ outcome, count }) => ({ item: outcome, count })),
 );
-const PATHWAYS_LIST = flatShuffle(
-  PATHWAY_DISTRIBUTION.map(({ pathway, count }) => ({ item: pathway, count })),
+
+// Pathway concept list — shuffled once, resolved to brand-specific IDs at build time
+const PATHWAY_CONCEPTS_LIST = flatShuffle(
+  PATHWAY_CONCEPT_DISTRIBUTION.map(({ concept, count }) => ({ item: concept, count })),
 );
+
+function buildPathwaysList(brand: BrandPack): SupportPathwayId[] {
+  return PATHWAY_CONCEPTS_LIST.map(c => brandPathway(brand, c) as SupportPathwayId);
+}
 
 // ---------------------------------------------------------------------------
 // Transcript generator
@@ -505,18 +611,25 @@ function generateTranscript(
     ] as const));
   }
 
-  // Pathway-specific body
-  if (pathway === 'medication-access') {
+  // Pathway-specific body (match on conceptual pathway, not hardcoded ID)
+  const pAccess = brandPathway(brand, 'access');
+  const pSafety = brandPathway(brand, 'safety');
+  const pEducation = brandPathway(brand, 'education');
+  const pPatientEd = brandPathway(brand, 'patient-ed');
+  const pAdherence = brandPathway(brand, 'adherence');
+  const pCoordination = brandPathway(brand, 'coordination');
+
+  if (pathway === pAccess) {
     add('agent', `I'd like to help get you enrolled in our ${brand.hubName} program. This gives you access to dedicated support, copay assistance, and personalized adherence resources for ${drugName} -- all at no cost to you.`);
     add('contact', pick(["That sounds helpful. What do I need to do?", "My doctor mentioned something about a support program.", "How does the copay help work?"] as const));
     add('agent', `I can get you enrolled right now over the phone. I'll need to verify some basic information and then we'll get your benefits investigation started. The hub also provides a dedicated care coordinator who can help with any questions about your therapy.`);
     add('contact', "Okay, let's do it. I've been worried about the costs.");
-  } else if (pathway === 'patient-education') {
+  } else if (pathway === pPatientEd) {
     add('agent', `I'm calling to help you with information about your ${drugName} therapy. Our program can provide educational resources and support to help you get the most from your treatment.`);
     add('contact', pick(["That would be amazing. I have a lot of questions about what to expect.", "Yes, I definitely want to learn more.", "How can you help me with my treatment?"] as const));
     add('agent', `I can walk you through what to expect with ${drugName} and answer any questions you have. We also have patient education materials I can send to you.`);
     add('contact', "Yes, please. That would be really helpful.");
-  } else if (pathway === 'safety-reporting') {
+  } else if (pathway === pSafety) {
     if (contactType === 'hcp') {
       add('agent', `Absolutely, Dr. ${lastName}. I can help you document that. Can you describe the adverse event and when it was first observed?`);
       add('contact', pick([
@@ -537,7 +650,7 @@ function generateTranscript(
       add('contact', "It started about a week ago. It's been moderate -- not severe but definitely noticeable.");
       add('agent', `I've documented everything. Our pharmacovigilance team will review this within 24 hours. In the meantime, please contact your prescribing physician if symptoms worsen. I'll also send you our 24/7 medical support line number.`);
     }
-  } else if (pathway === 'adherence-support') {
+  } else if (pathway === pAdherence) {
     add('agent', `I'm calling for your scheduled ${drugName} adherence check-in. We want to make sure everything is going well with your therapy. Have you been able to take your medication consistently?`);
     add('contact', pick([
       "Mostly, but I've missed a few doses this week.",
@@ -546,7 +659,7 @@ function generateTranscript(
     ] as const));
     add('agent', `I appreciate your honesty. Consistent dosing is really important for ${drugName} to work effectively. Let me help coordinate your refill and we can talk through some strategies to help with adherence.`);
     add('contact', "That would be helpful. Sometimes I just forget the evening dose.");
-  } else if (pathway === 'clinical-education') {
+  } else if (pathway === pEducation) {
     if (contactType === 'patient') {
       add('agent', `${firstName}, I'd be happy to help answer your questions about ${drugName}. What would you like to know?`);
       add('contact', pick([
@@ -566,14 +679,14 @@ function generateTranscript(
       add('agent', `I can provide the full clinical data package for ${drugName}. I'll email the complete publication and prescribing information to your office.`);
       add('contact', "Fine. Arrange a peer-to-peer with one of your KOLs as well.");
     }
-  } else if (pathway === 'nurse-educator') {
-    add('agent', `Hi ${firstName}, I'm calling to let you know that one of our nurse educators is available to walk you through your ${drugName} treatment plan. They can answer questions about titration, what to expect, and day-to-day management. Would you like me to schedule a session?`);
+  } else if (pathway === pCoordination) {
+    add('agent', `Hi ${firstName}, I'm calling to let you know that one of our support specialists is available to walk you through your ${drugName} treatment plan. They can answer questions about titration, what to expect, and day-to-day management. Would you like me to schedule a session?`);
     add('contact', pick([
       "Yes, that would be really helpful. I have a lot of questions about getting started.",
       "I'd appreciate that. My doctor explained some things but I'd like to go over it again.",
       "Sure, I've been meaning to ask about managing side effects and my daily routine.",
     ] as const));
-    add('agent', `Great. Our nurse educators specialize in ${taLabel} and can provide one-on-one guidance tailored to your treatment. I can schedule a call for later this week -- would morning or afternoon work better for you?`);
+    add('agent', `Great. Our specialists focus on ${taLabel} and can provide one-on-one guidance tailored to your treatment. I can schedule a call for later this week -- would morning or afternoon work better for you?`);
     add('contact', "Afternoon would be perfect. Thank you for setting this up.");
   }
 
@@ -659,11 +772,20 @@ function generateLiaisonSummary(
     : randInt(40, 65);
 
   const highSigs = signals.filter(s => s.severity === 'high');
-  const aeDetected = outcome === 'ae-reported' || (pathway === 'safety-reporting' && rng() > 0.3);
+  const pSafety = brandPathway(brand, 'safety');
+  const aeDetected = outcome === 'ae-reported' || (pathway === pSafety && rng() > 0.3);
   const d0 = brandDrug0(brand);
   const d1 = brandDrug1(brand);
   const drugName = drug === d0.id ? d0.brandName : d1.brandName;
+  const drugIdx: 0 | 1 = drug === d0.id ? 0 : 1;
   const taLabel = drug === d0.id ? brandTA0Label(brand) : brandTA1Label(brand);
+
+  // Resolve brand-specific pathway IDs for map keys
+  const pAccess = brandPathway(brand, 'access');
+  const pEducation = brandPathway(brand, 'education');
+  const pPatientEd = brandPathway(brand, 'patient-ed');
+  const pAdherence = brandPathway(brand, 'adherence');
+  const pCoordination = brandPathway(brand, 'coordination');
 
   const indicators: string[] = [];
   if (highSigs.length > 0) indicators.push(`${highSigs.length} high-priority signal(s) detected`);
@@ -672,13 +794,13 @@ function generateLiaisonSummary(
   if (priorityTier === 'HIGH') indicators.push('HIGH priority tier -- escalated engagement protocol');
   if (signals.some(s => s.category === 'ADHERENCE_SIGNAL')) indicators.push('Adherence gap confirmed -- therapy continuity at risk');
 
-  const narrativeMap: Record<SupportPathwayId, string> = {
-    'medication-access': `Completed medication access support for ${contactName} on ${drugName}. ${isConversion ? `Patient successfully enrolled in ${brand.hubName}. Benefits investigation initiated. Dedicated coordinator to contact within 48 hours.` : 'Patient expressed interest but did not complete enrollment. Follow-up recommended within 5 business days.'}`,
-    'safety-reporting': `PHARMACOVIGILANCE ALERT -- ${contactType === 'hcp' ? `AE report received from ${contactName}` : `AE screening for ${contactName}`} on ${drugName}. ${aeDetected ? 'Adverse event captured and documented. Case submitted to pharmacovigilance team for 24-hour review. Follow-up with prescribing physician required.' : 'No reportable adverse events identified during screening. Routine monitoring continues.'}`,
-    'clinical-education': `Clinical education inquiry from ${contactName} regarding ${drugName}. ${isConversion ? 'Clinical data package sent. Peer-to-peer discussion arranged.' : 'Inquiry documented. Medical affairs team to provide detailed response within 48 hours.'} ${signals.some(s => s.category === 'COMPETITIVE_INTEL') ? 'COMPETITIVE INTELLIGENCE: Prescriber evaluating alternatives -- priority follow-up recommended.' : ''}`,
-    'patient-education': `Patient education interaction for ${contactName}. ${isConversion ? `Copay card activated -- patient eligible for reduced out-of-pocket costs on ${drugName}. Specialty pharmacy notified.` : 'Educational materials provided. Patient needs follow-up on treatment questions.'}`,
-    'adherence-support': `Adherence support call for ${contactName} on ${drugName}. ${signals.some(s => s.category === 'ADHERENCE_SIGNAL') ? 'Adherence gap confirmed. Refill coordination initiated and reminder system established.' : 'Patient reports adequate adherence. Next scheduled check-in logged.'}`,
-    'nurse-educator': `NURSE EDUCATOR COORDINATION -- ${contactName} on ${drugName}. ${aeDetected ? 'Adverse event identified during outreach. AE documented and pharmacovigilance review initiated alongside nurse educator referral.' : 'Nurse educator session scheduled. Patient/caregiver to receive one-on-one treatment guidance and titration support.'}`,
+  const narrativeMap: Record<string, string> = {
+    [pAccess]: `Completed medication access support for ${contactName} on ${drugName}. ${isConversion ? `Patient successfully enrolled in ${brand.hubName}. Benefits investigation initiated. Dedicated coordinator to contact within 48 hours.` : 'Patient expressed interest but did not complete enrollment. Follow-up recommended within 5 business days.'}`,
+    [pSafety]: `PHARMACOVIGILANCE ALERT -- ${contactType === 'hcp' ? `AE report received from ${contactName}` : `AE screening for ${contactName}`} on ${drugName}. ${aeDetected ? 'Adverse event captured and documented. Case submitted to pharmacovigilance team for 24-hour review. Follow-up with prescribing physician required.' : 'No reportable adverse events identified during screening. Routine monitoring continues.'}`,
+    [pEducation]: `Clinical education inquiry from ${contactName} regarding ${drugName}. ${isConversion ? 'Clinical data package sent. Peer-to-peer discussion arranged.' : 'Inquiry documented. Medical affairs team to provide detailed response within 48 hours.'} ${signals.some(s => s.category === 'COMPETITIVE_INTEL') ? 'COMPETITIVE INTELLIGENCE: Prescriber evaluating alternatives -- priority follow-up recommended.' : ''}`,
+    [pPatientEd]: `Patient education interaction for ${contactName}. ${isConversion ? `Copay card activated -- patient eligible for reduced out-of-pocket costs on ${drugName}. Specialty pharmacy notified.` : 'Educational materials provided. Patient needs follow-up on treatment questions.'}`,
+    [pAdherence]: `Adherence support call for ${contactName} on ${drugName}. ${signals.some(s => s.category === 'ADHERENCE_SIGNAL') ? 'Adherence gap confirmed. Refill coordination initiated and reminder system established.' : 'Patient reports adequate adherence. Next scheduled check-in logged.'}`,
+    [pCoordination]: `Support coordination -- ${contactName} on ${drugName}. ${aeDetected ? 'Adverse event identified during outreach. AE documented and pharmacovigilance review initiated alongside referral.' : 'Support session scheduled. Patient/caregiver to receive one-on-one treatment guidance and titration support.'}`,
   };
 
   // Block 1: Context summary
@@ -687,13 +809,13 @@ function generateLiaisonSummary(
     : `${contactName}, patient, ${taLabel}, ${drugName}, ${priorityTier} risk tier`;
 
   // Block 2: What happened
-  const whatHappenedMap: Record<SupportPathwayId, string> = {
-    'medication-access': `${isConversion ? 'Successful medication access support completed' : 'Medication access discussed but not completed'}. ${aeDetected ? 'AE identified during interaction.' : 'No safety signals.'} ${contactType === 'hcp' ? 'HCP engaged with clinical questions.' : 'Patient receptive to support services.'}`,
-    'safety-reporting': `AE ${contactType === 'hcp' ? 'report received via inbound HCP call' : 'screening call completed'}. ${aeDetected ? 'Adverse event captured and documented -- routed to pharmacovigilance.' : 'No reportable AEs identified.'} ${contactType === 'hcp' ? 'HCP provided detailed clinical context.' : `Patient was ${isConversion ? 'cooperative and thorough' : 'briefly engaged'}.`}`,
-    'clinical-education': `${contactType === 'hcp' ? 'Inbound medical information inquiry' : 'Clinical education interaction'} from ${contactName}. ${isConversion ? 'Clinical data package sent. Peer-to-peer discussion arranged.' : 'Inquiry documented. Medical affairs team to provide detailed response within 48 hours.'} ${signals.some(s => s.category === 'COMPETITIVE_INTEL') && contactType === 'hcp' ? 'COMPETITIVE INTELLIGENCE: Prescriber evaluating alternatives -- priority follow-up recommended.' : ''}`,
-    'patient-education': `${isConversion ? 'Patient education completed successfully' : 'Patient education discussed'}. Patient expressed ${isConversion ? 'understanding of treatment plan' : 'questions about treatment expectations'}.`,
-    'adherence-support': `Adherence check-in completed. ${signals.some(s => s.category === 'ADHERENCE_SIGNAL') ? 'Confirmed adherence gap -- refill coordination initiated.' : 'Adherence appears adequate.'} ${isConversion ? 'Intervention plan established.' : 'Monitoring continues.'}`,
-    'nurse-educator': `Nurse educator coordination call completed. ${aeDetected ? 'AE identified during outreach and documented for pharmacovigilance review.' : 'Patient/caregiver engaged and receptive to education.'} ${isConversion ? 'Nurse educator session scheduled.' : 'Follow-up recommended to confirm scheduling.'}`,
+  const whatHappenedMap: Record<string, string> = {
+    [pAccess]: `${isConversion ? 'Successful medication access support completed' : 'Medication access discussed but not completed'}. ${aeDetected ? 'AE identified during interaction.' : 'No safety signals.'} ${contactType === 'hcp' ? 'HCP engaged with clinical questions.' : 'Patient receptive to support services.'}`,
+    [pSafety]: `AE ${contactType === 'hcp' ? 'report received via inbound HCP call' : 'screening call completed'}. ${aeDetected ? 'Adverse event captured and documented -- routed to pharmacovigilance.' : 'No reportable AEs identified.'} ${contactType === 'hcp' ? 'HCP provided detailed clinical context.' : `Patient was ${isConversion ? 'cooperative and thorough' : 'briefly engaged'}.`}`,
+    [pEducation]: `${contactType === 'hcp' ? 'Inbound medical information inquiry' : 'Clinical education interaction'} from ${contactName}. ${isConversion ? 'Clinical data package sent. Peer-to-peer discussion arranged.' : 'Inquiry documented. Medical affairs team to provide detailed response within 48 hours.'} ${signals.some(s => s.category === 'COMPETITIVE_INTEL') && contactType === 'hcp' ? 'COMPETITIVE INTELLIGENCE: Prescriber evaluating alternatives -- priority follow-up recommended.' : ''}`,
+    [pPatientEd]: `${isConversion ? 'Patient education completed successfully' : 'Patient education discussed'}. Patient expressed ${isConversion ? 'understanding of treatment plan' : 'questions about treatment expectations'}.`,
+    [pAdherence]: `Adherence check-in completed. ${signals.some(s => s.category === 'ADHERENCE_SIGNAL') ? 'Confirmed adherence gap -- refill coordination initiated.' : 'Adherence appears adequate.'} ${isConversion ? 'Intervention plan established.' : 'Monitoring continues.'}`,
+    [pCoordination]: `Support coordination call completed. ${aeDetected ? 'AE identified during outreach and documented for pharmacovigilance review.' : 'Patient/caregiver engaged and receptive to education.'} ${isConversion ? 'Session scheduled.' : 'Follow-up recommended to confirm scheduling.'}`,
   };
 
   // Block 3: What changed since last touch
@@ -705,39 +827,39 @@ function generateLiaisonSummary(
     : 'No new signals since last interaction';
 
   // Block 4: Clinical questions raised
-  const clinicalQuestionsPool: Record<SupportPathwayId, string[][]> = {
-    'medication-access': [
+  const clinicalQuestionsPool: Record<string, string[][]> = {
+    [pAccess]: [
       ['What is the expected titration timeline for new patients?'],
       ['Are there dietary restrictions while on therapy?'],
       [],
     ],
-    'safety-reporting': [
+    [pSafety]: [
       ['Is dizziness dose-related and will it resolve with continued use?', 'Should the dose be reduced or held?'],
       ['What is the expected timeline for side effect resolution?'],
       ['Are there drug interactions with current concomitant medications?'],
     ],
-    'clinical-education': [
+    [pEducation]: [
       [`What are the Phase 3 primary endpoint results for ${drugName}?`, 'Is there real-world evidence data available?'],
-      [`How does the safety profile compare to ${drug === d0.id ? 'propranolol and primidone' : 'fenfluramine and cannabidiol'}?`],
+      [`How does the safety profile compare to ${brandCompetitors(brand, drugIdx).split(' remain ')[0].split(' are ')[0]}?`],
       ['Are there ongoing trials for additional indications?', 'What is the mechanism of action differentiation?'],
     ],
-    'patient-education': [
+    [pPatientEd]: [
       ['Will the copay card work with Medicare Part D?'],
       ['What should I expect during the first weeks of treatment?'],
       [],
     ],
-    'adherence-support': [
+    [pAdherence]: [
       ['Can the dosing schedule be simplified to once daily?'],
       ['What happens if doses are missed -- is re-titration needed?'],
       [],
     ],
-    'nurse-educator': [
-      ['What topics will the nurse educator cover in the first session?'],
-      ['Can the nurse educator coordinate directly with the prescribing physician?'],
+    [pCoordination]: [
+      ['What topics will the first support session cover?'],
+      ['Can the specialist coordinate directly with the prescribing physician?'],
       [],
     ],
   };
-  const clinicalQuestionsRaised = pick(clinicalQuestionsPool[pathway]);
+  const clinicalQuestionsRaised = pick(clinicalQuestionsPool[pathway] ?? [[]]);
 
   // Block 5: Recommended action
   const recommendedActionBlock = aeDetected
@@ -805,7 +927,7 @@ function generateLiaisonSummary(
         'Active health content consumer -- researching condition and treatment options',
       ] as const),
       competitiveIntelligence: pick([
-        `Market: ${drug === d0.id ? 'Propranolol and primidone remain primary alternatives' : 'Fenfluramine and cannabidiol are primary competitors'}`,
+        `Market: ${brandCompetitors(brand, drugIdx)}`,
         'No competitive switching signals detected',
         'Prescriber evaluating multiple options -- differentiation opportunity',
         'Formulary preference for competitor -- access strategy needed',
@@ -852,7 +974,7 @@ function generateClassification(
   const isConversion = CONVERSION_OUTCOMES.includes(outcome);
   const isNoConnect = NON_CONNECT_OUTCOMES.includes(outcome);
 
-  const urgency: UrgencyLevel = pathway === 'safety-reporting' ? 'urgent'
+  const urgency: UrgencyLevel = pathway === brandPathway(brand, 'safety') ? 'urgent'
     : liaisonSummary.aeDetected ? 'urgent'
     : signals.some(s => s.severity === 'high') ? 'soon'
     : 'routine';
@@ -877,28 +999,53 @@ function generateClassification(
   // Competitive intel notes -- ~30% of HCP calls get realistic CI notes
   const competitiveIntelNotes: string[] = [];
   if (contactType === 'hcp' && !isNoConnect && rng() < 0.3) {
-    if (drug === d0.id) {
-      competitiveIntelNotes.push(...pick([
+    const ciPool0: Record<string, string[][]> = {
+      praxis: [
         ['Dr. mentioned considering topiramate for patients who cannot tolerate propranolol'],
         ['Practice currently using primidone as first-line for ET -- interested in alternatives with better side effect profile'],
         ['Asked about head-to-head data vs propranolol -- wants to see tremor reduction comparison'],
         ['Mentioned several patients switching from propranolol due to fatigue and bradycardia side effects'],
-        ['Expressed concern about gabapentin being used off-label for ET at competing practice'],
-      ] as const));
-    } else {
-      competitiveIntelNotes.push(...pick([
+      ],
+      amgen: [
+        ['Practice using PCSK9 alternatives -- interested in real-world cardiovascular outcomes data'],
+        ['Mentioned formulary preference for inclisiran at major local payer -- access strategy needed'],
+        ['Asked about head-to-head data vs bempedoic acid for statin-intolerant patients'],
+        ['Several patients switching from ezetimibe -- wants to compare LDL-C reduction data'],
+      ],
+      ptc: [
+        ['Practice currently managing PKU with dietary restriction only -- interested in pharmacological options'],
+        ['Asked about head-to-head data vs sapropterin (Kuvan) for BH4-responsive patients'],
+        ['Mentioned patient dissatisfaction with dietary management -- wants to discuss Phe reduction data'],
+        ['Expressed interest in genetic testing referral to identify sepiapterin-responsive patients'],
+      ],
+    };
+    const ciPool1: Record<string, string[][]> = {
+      praxis: [
         [`Compared ${d1.brandName} seizure reduction data to fenfluramine -- wants to see long-term safety data`],
         ['Currently prescribing cannabidiol for most Dravet patients -- open to alternatives if seizure control is superior'],
         ['Mentioned that fenfluramine has formulary preference at two major local payers'],
         [`Asked about ${d1.brandName} mechanism differentiation vs other sodium channel blockers`],
-        [`Practice seeing good results with stiripentol combination -- wants evidence for ${d1.brandName} add-on therapy`],
-      ]));
-    }
+      ],
+      amgen: [
+        [`Compared ${d1.brandName} to dupilumab for severe asthma patients with multiple exacerbations`],
+        ['Currently prescribing omalizumab as first biologic -- open to alternatives for non-allergic phenotype'],
+        ['Mentioned payer preference for dupilumab over newer biologics -- needs access strategy'],
+        [`Asked about ${d1.brandName} mechanism differentiation in TSLP pathway vs IL-5 blockers`],
+      ],
+      ptc: [
+        [`Compared ${d1.brandName} to prednisone for ambulatory DMD patients -- wants steroid-sparing data`],
+        ['Currently prescribing prednisone as standard of care -- concerned about long-term corticosteroid side effects'],
+        ['Mentioned interest in eteplirsen for exon-skipping patients -- wants comparative functional data'],
+        [`Asked about ${d1.brandName} weight gain profile vs prednisone in growing children`],
+      ],
+    };
+    const pool = drug === d0.id ? (ciPool0[brand.id] ?? ciPool0['praxis']) : (ciPool1[brand.id] ?? ciPool1['praxis']);
+    competitiveIntelNotes.push(...pick(pool));
   }
 
   // MSL follow-up detection -- HCP calls with medical inquiry or sample request
   const mslFollowupRequested = contactType === 'hcp' && !isNoConnect
-    && (pathway === 'clinical-education' || pathway === 'patient-education')
+    && (pathway === brandPathway(brand, 'education') || pathway === brandPathway(brand, 'patient-ed'))
     && rng() < 0.5;
   const mslFollowupTopic = mslFollowupRequested
     ? pick([
@@ -948,16 +1095,19 @@ function generateScreeningResults(
   pathway: SupportPathwayId,
   isConnected: boolean,
   callTimestamp: string,
+  brand?: BrandPack,
 ): ScreeningResult[] | null {
   if (!isConnected) return null;
-  if (pathway !== 'safety-reporting' && pathway !== 'adherence-support') {
+  const safePw = brand ? brandPathway(brand, 'safety') : 'safety-reporting';
+  const adhPw = brand ? brandPathway(brand, 'adherence') : 'adherence-support';
+  if (pathway !== safePw && pathway !== adhPw) {
     if (rng() > 0.3) return null;
   }
 
   const results: ScreeningResult[] = [];
   const baseTime = new Date(callTimestamp).getTime() / 1000 + 60;
 
-  if (pathway === 'safety-reporting' || rng() < 0.5) {
+  if (pathway === safePw || rng() < 0.5) {
     const declined = rng() < 0.1;
     const isPositive = rng() < 0.4;
     results.push({
@@ -1053,11 +1203,11 @@ function makeTetrasScreening(score: number, callTimestamp: string): ScreeningRes
 // ---------------------------------------------------------------------------
 // Priority tier assignment
 // ---------------------------------------------------------------------------
-function assignPriorityTier(pathway: SupportPathwayId, signals: BehavioralSignal[]): PriorityTier {
+function assignPriorityTier(pathway: SupportPathwayId, signals: BehavioralSignal[], brand: BrandPack): PriorityTier {
   const highCount = signals.filter(s => s.severity === 'high').length;
-  if (pathway === 'safety-reporting') return 'HIGH';
+  if (pathway === brandPathway(brand, 'safety')) return 'HIGH';
   if (highCount >= 2) return 'HIGH';
-  if (highCount === 1 || pathway === 'adherence-support') return 'MEDIUM';
+  if (highCount === 1 || pathway === brandPathway(brand, 'adherence')) return 'MEDIUM';
   return pick(['MEDIUM', 'LOW', 'LOW'] as const);
 }
 
@@ -1067,12 +1217,13 @@ function assignPriorityTier(pathway: SupportPathwayId, signals: BehavioralSignal
 function buildAllCalls(brand: BrandPack, contacts: ContactRecord[]): CallRecord[] {
   const referenceDate = new Date('2026-03-17T00:00:00Z');
   const calls: CallRecord[] = [];
+  const pathwaysList = buildPathwaysList(brand);
 
   for (let i = 0; i < 20; i++) {
     let outcome = OUTCOMES_LIST[i];
-    const pathway = PATHWAYS_LIST[i];
+    const pathway = pathwaysList[i];
     const contact = contacts[i % contacts.length];
-    const agentType = assignAgentType(contact.contactType, pathway);
+    const agentType = assignAgentType(contact.contactType, pathway, brand);
 
     // Inbound agents (hcp-support) can't have outbound-only outcomes
     if (agentType === 'hcp-support' && NON_CONNECT_OUTCOMES.includes(outcome)) {
@@ -1085,7 +1236,7 @@ function buildAllCalls(brand: BrandPack, contacts: ContactRecord[]): CallRecord[
       timestamp: new Date(referenceDate.getTime() - randInt(1, 10) * 86400000).toISOString(),
     }));
 
-    const priorityTier = assignPriorityTier(pathway, signals);
+    const priorityTier = assignPriorityTier(pathway, signals, brand);
     const isNoConnect = NON_CONNECT_OUTCOMES.includes(outcome);
 
     // Duration
@@ -1109,7 +1260,7 @@ function buildAllCalls(brand: BrandPack, contacts: ContactRecord[]): CallRecord[
     const transcript = generateTranscript(outcome, pathway, contact.name, contact.contactType, contact.drugProduct, agentType, brand);
     const liaisonSummary = generateLiaisonSummary(pathway, outcome, signals, priorityTier, contact.name, contact.contactType, contact.drugProduct, agentType, brand);
     const classification = generateClassification(outcome, pathway, signals, liaisonSummary, contact.contactType, contact.drugProduct, brand);
-    const screeningResults = generateScreeningResults(pathway, !isNoConnect, callDate.toISOString());
+    const screeningResults = generateScreeningResults(pathway, !isNoConnect, callDate.toISOString(), brand);
 
     // FRM-relevant fields for patient calls
     const isPatient = contact.contactType === 'patient';
@@ -1120,7 +1271,7 @@ function buildAllCalls(brand: BrandPack, contacts: ContactRecord[]): CallRecord[
 
     if (isPatient && !isNoConnect) {
       // Assign prior auth status based on pathway and randomness
-      if (pathway === 'adherence-support' || pathway === 'medication-access') {
+      if (pathway === brandPathway(brand, 'adherence') || pathway === brandPathway(brand, 'access')) {
         priorAuthStatus = pick(['approved', 'approved', 'not-needed', 'pending'] as const);
       } else if (outcome === 'prior-auth-assist' || signals.some(s => s.detail.toLowerCase().includes('prior auth'))) {
         priorAuthStatus = pick(['pending', 'pending', 'denied', 'appealing'] as const);
@@ -1130,7 +1281,7 @@ function buildAllCalls(brand: BrandPack, contacts: ContactRecord[]): CallRecord[
 
       if (priorAuthStatus === 'denied') {
         denialReason = pick([
-          'Step therapy requirement not met -- propranolol trial required first',
+          'Step therapy requirement not met -- prior therapy trial required first',
           'Medical necessity documentation insufficient',
           'Non-formulary -- preferred alternative available',
           'Prior authorization expired -- resubmission required',

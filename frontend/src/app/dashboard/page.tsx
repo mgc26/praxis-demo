@@ -1068,19 +1068,19 @@ export default function DashboardPage() {
   const fetchAnalytics = useCallback(async () => {
     setLoadingAnalytics(true);
     try {
-      const res = await fetch('/api/analytics?period=all');
+      const res = await fetch(`/api/analytics?period=all&brandId=${encodeURIComponent(brand.id)}`);
       if (!res.ok) throw new Error();
       const data: AnalyticsResponse = await res.json();
       setAnalytics(data);
     } catch { setAnalytics(null); }
     finally { setLoadingAnalytics(false); }
-  }, []);
+  }, [brand.id]);
 
   // -- Fetch calls --
   const fetchCalls = useCallback(async () => {
     setLoadingCalls(true);
     try {
-      const res = await fetch('/api/calls?limit=100');
+      const res = await fetch(`/api/calls?limit=100&brandId=${encodeURIComponent(brand.id)}`);
       if (!res.ok) throw new Error();
       const data: { calls: CallRecord[] } = await res.json();
       setCalls(data.calls);
@@ -1104,19 +1104,19 @@ export default function DashboardPage() {
       setSignals(sigFeed);
     } catch { setCalls([]); setSignals([]); }
     finally { setLoadingCalls(false); }
-  }, []);
+  }, [brand.id]);
 
   // -- Fetch contacts --
   const fetchContacts = useCallback(async () => {
     setLoadingContacts(true);
     try {
-      const res = await fetch('/api/contacts');
+      const res = await fetch(`/api/contacts?brandId=${encodeURIComponent(brand.id)}`);
       if (!res.ok) throw new Error();
       const data: { contacts: ContactRecord[] } = await res.json();
       setContacts(data.contacts);
     } catch { setContacts([]); }
     finally { setLoadingContacts(false); }
-  }, []);
+  }, [brand.id]);
 
   // -- Fetch personas --
   const fetchPersonas = useCallback(async () => {

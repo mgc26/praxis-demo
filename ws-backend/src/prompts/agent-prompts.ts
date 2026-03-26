@@ -26,20 +26,32 @@ export interface AgentPromptData {
 export function buildAgentPrompt(data: AgentPromptData, config: BrandBackendConfig = getBrandConfig()): string {
   const { contact } = data;
 
+  let prompt: string;
   switch (contact.agentType) {
     case 'patient-support':
-      return buildPatientSupportPrompt(data, config);
+      prompt = buildPatientSupportPrompt(data, config);
+      break;
     case 'hcp-support':
-      return buildHcpSupportPrompt(data, config);
+      prompt = buildHcpSupportPrompt(data, config);
+      break;
     case 'hcp-outbound':
-      return buildHcpOutboundPrompt(data, config);
+      prompt = buildHcpOutboundPrompt(data, config);
+      break;
     case 'medcomms-qa':
-      return buildMedcommsQaPrompt(data, config);
+      prompt = buildMedcommsQaPrompt(data, config);
+      break;
     default: {
       const _exhaustive: never = contact.agentType;
       throw new Error(`Unknown agent type: ${_exhaustive}`);
     }
   }
+
+  // Append TTS pronunciation guide if the brand defines one
+  if (config.pronunciationGuide) {
+    prompt += `\n\n${config.pronunciationGuide}`;
+  }
+
+  return prompt;
 }
 
 // ---------------------------------------------------------------------------

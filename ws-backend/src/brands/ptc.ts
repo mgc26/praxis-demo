@@ -277,6 +277,12 @@ const ptc: BrandBackendConfig = {
   ],
 
   // -------------------------------------------------------------------------
+  // TTS pronunciation guide
+  // -------------------------------------------------------------------------
+  pronunciationGuide:
+    'PRONUNCIATION: The drug name Sephience is pronounced "seh-FY-ence" (rhymes with "defiance"). Always write it as "Sefiance" in your spoken responses so the text-to-speech engine says it correctly.',
+
+  // -------------------------------------------------------------------------
   // Outcome overrides (none — uses defaults)
   // -------------------------------------------------------------------------
   outcomeOverrides: undefined,

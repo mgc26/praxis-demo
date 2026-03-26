@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getCallById } from '@/app/lib/seed-data';
+import { getBrand } from '@/app/lib/brands';
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } },
 ) {
   const cookieStore = await cookies();
@@ -13,13 +14,15 @@ export async function GET(
   }
 
   const { id } = params;
+  const { searchParams } = new URL(request.url);
+  const brand = getBrand(searchParams.get('brandId') || '');
 
   if (!id || typeof id !== 'string' || id.trim().length === 0) {
     return NextResponse.json({ error: 'Call ID is required' }, { status: 400 });
   }
 
   try {
-    const call = getCallById(id);
+    const call = getCallById(id, brand);
 
     if (!call) {
       return NextResponse.json({ error: 'Call not found' }, { status: 404 });

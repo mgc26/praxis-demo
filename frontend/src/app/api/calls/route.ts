@@ -1,21 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getFilteredCalls } from '@/app/lib/seed-data';
-import type { InteractionOutcome, SupportPathwayId, PriorityTier, AgentType, TherapeuticArea } from '@/app/lib/types';
-import { OUTCOME_LABELS } from '@/app/lib/constants';
+import type { InteractionOutcome, PriorityTier, AgentType } from '@/app/lib/types';
+import { getBrand } from '@/app/lib/brands';
+import { getOutcomeLabels } from '@/app/lib/constants';
 
-const VALID_OUTCOMES = Object.keys(OUTCOME_LABELS) as InteractionOutcome[];
-const VALID_PATHWAYS: SupportPathwayId[] = [
-  'hub-enrollment',
-  'copay-assistance',
-  'ae-reporting',
-  'adherence-support',
-  'sample-request',
-  'medical-inquiry',
-];
 const VALID_PRIORITY_TIERS: PriorityTier[] = ['HIGH', 'MEDIUM', 'LOW'];
 const VALID_AGENT_TYPES: AgentType[] = ['patient-support', 'hcp-support', 'hcp-outbound', 'medcomms-qa'];
-const VALID_THERAPEUTIC_AREAS: TherapeuticArea[] = ['essential-tremor', 'dee'];
 
 export async function GET(request: NextRequest) {
   const cookieStore = await cookies();
@@ -26,6 +17,11 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
 
+  const brand = getBrand(searchParams.get('brandId') || '');
+  const validOutcomes = Object.keys(getOutcomeLabels(brand)) as InteractionOutcome[];
+  const validPathways = brand.supportPathways.map(sp => sp.id);
+  const validTAs = brand.therapeuticAreas.map(ta => ta.id);
+
   const supportPathway = searchParams.get('supportPathway') || undefined;
   const outcomeParam = searchParams.get('outcome') || undefined;
   const priorityTierParam = searchParams.get('priorityTier') || undefined;
@@ -35,10 +31,10 @@ export async function GET(request: NextRequest) {
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20));
 
-  if (supportPathway && !VALID_PATHWAYS.includes(supportPathway as SupportPathwayId)) {
+  if (supportPathway && !validPathways.includes(supportPathway)) {
     return NextResponse.json({ error: 'Invalid supportPathway' }, { status: 400 });
   }
-  if (outcomeParam && !VALID_OUTCOMES.includes(outcomeParam as InteractionOutcome)) {
+  if (outcomeParam && !validOutcomes.includes(outcomeParam as InteractionOutcome)) {
     return NextResponse.json({ error: 'Invalid outcome' }, { status: 400 });
   }
   if (priorityTierParam && !VALID_PRIORITY_TIERS.includes(priorityTierParam as PriorityTier)) {
@@ -47,7 +43,7 @@ export async function GET(request: NextRequest) {
   if (agentTypeParam && !VALID_AGENT_TYPES.includes(agentTypeParam as AgentType)) {
     return NextResponse.json({ error: 'Invalid agentType' }, { status: 400 });
   }
-  if (therapeuticAreaParam && !VALID_THERAPEUTIC_AREAS.includes(therapeuticAreaParam as TherapeuticArea)) {
+  if (therapeuticAreaParam && !validTAs.includes(therapeuticAreaParam)) {
     return NextResponse.json({ error: 'Invalid therapeuticArea' }, { status: 400 });
   }
 
@@ -61,7 +57,7 @@ export async function GET(request: NextRequest) {
       search,
       page,
       limit,
-    });
+    }, brand);
 
     const response = NextResponse.json(result, { status: 200 });
     response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
