@@ -223,12 +223,26 @@ export async function twilioMediaRoutes(fastify: FastifyInstance) {
 
                   // Twilio gotcha: WAV headers in payload cause audio to be streamed
                   // incorrectly. Strip RIFF/WAV header if Deepgram sends one despite
-                  // container:'none'.
-                  if (!wavHeaderStripped && audio.length > 44 &&
+                  // container:'none'. Check EVERY chunk — Deepgram may prepend a
+                  // fresh RIFF header on each new TTS utterance after barge-in.
+                  if (audio.length > 44 &&
                       audio[0] === 0x52 && audio[1] === 0x49 &&
                       audio[2] === 0x46 && audio[3] === 0x46) {
-                    fastify.log.warn({ originalLen: audio.length }, 'WAV header detected in TTS audio — stripping 44-byte header');
-                    audio = audio.subarray(44);
+                    // Parse actual data offset from WAV header rather than
+                    // hardcoding 44 — handles extended headers with LIST chunks.
+                    let dataOffset = 44;
+                    if (audio.length > 40) {
+                      // Search for 'data' sub-chunk marker
+                      for (let i = 12; i < Math.min(audio.length - 8, 200); i++) {
+                        if (audio[i] === 0x64 && audio[i + 1] === 0x61 &&
+                            audio[i + 2] === 0x74 && audio[i + 3] === 0x61) {
+                          dataOffset = i + 8; // 4 bytes 'data' + 4 bytes chunk size
+                          break;
+                        }
+                      }
+                    }
+                    fastify.log.warn({ originalLen: audio.length, dataOffset }, 'WAV header detected in TTS audio — stripping header');
+                    audio = audio.subarray(dataOffset);
                     wavHeaderStripped = true;
                   }
 

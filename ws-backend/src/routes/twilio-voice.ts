@@ -91,7 +91,7 @@ export async function twilioVoiceRoutes(fastify: FastifyInstance) {
 
     const wsBackendUrl = process.env.WS_BACKEND_URL || '';
     const wsUrl = wsBackendUrl
-      .replace(/^https?:\/\//, '')
+      .replace(/^(https?|wss?):\/\//, '')
       .replace(/\/$/, '');
 
     const twiml = `<?xml version="1.0" encoding="UTF-8"?>

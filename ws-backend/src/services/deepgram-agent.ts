@@ -91,11 +91,11 @@ export function createDeepgramAgent(
         },
       },
       agent: {
-        language: 'en',
         listen: {
           provider: {
             type: 'deepgram',
             model: 'nova-3',
+            language: 'en',
             keyterms: brandCfg.vocabularyBoosts.map((vb) => vb.word),
           },
         },

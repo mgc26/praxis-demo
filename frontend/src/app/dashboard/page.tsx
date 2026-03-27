@@ -1176,7 +1176,7 @@ export default function DashboardPage() {
         body: JSON.stringify({ phoneNumber: configPhone, scenarioId: configScenario, agentType: configAgent, brandId: brand.id }),
       });
       const data = await res.json();
-      setDemoCallStatus(data.status === 'simulated' ? 'Simulated (backend offline)' : data.status === 'error' ? `Error: ${data.message}` : 'Call initiated!');
+      setDemoCallStatus(data.status === 'simulated' ? 'Simulated (backend offline)' : data.status === 'error' ? `Error: ${data.message || data.error}` : 'Call initiated!');
     } catch {
       setDemoCallStatus('Error connecting to backend');
     }
@@ -1212,7 +1212,7 @@ export default function DashboardPage() {
         setDemoCallStatus('Simulated (backend offline)');
         setTimeout(() => setDemoCallStatus(null), 5000);
       } else if (data.status === 'error') {
-        setDemoCallStatus(`Error: ${data.message}`);
+        setDemoCallStatus(`Error: ${data.message || data.error}`);
         setTimeout(() => setDemoCallStatus(null), 5000);
       } else {
         setDemoCallStatus('Call initiated');
